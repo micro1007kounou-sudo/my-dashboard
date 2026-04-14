@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket テスト</title>
+</head>
+<body>
+
+    <h1>BTC リアルタイム価格（円メイン・ドルはカッコ内）</h1>
+
+    <!-- ▼ 海外取引所（BTC/USDT → 円換算 + ドル表示） -->
+    <p>Binance: <span id="binance">---</span> <span id="binance_usd">---</span></p>
+    <p>OKX: <span id="okx">---</span> <span id="okx_usd">---</span></p>
+    <p>Bybit: <span id="bybit">---</span> <span id="bybit_usd">---</span></p>
+
+    <!-- ▼ 国内取引所（BTC/JPY → 円 + ドル換算） -->
+    <p>bitFlyer: <span id="bitflyer">---</span> (<span id="bitflyer_usd">---</span>)</p>
+    <p>bitbank: <span id="bitbank">---</span> (<span id="bitbank_usd">---</span>)</p>
+
+    <!-- ▼ メインの WebSocket / API ロジック -->
+    <script src="ws-test.js"></script>
+
+    <!-- ▼ HTML が正しく読み込まれた確認用 -->
+    <script>
+        console.log("HTML からのテスト");
+    </script>
+
+</body>
+</html>
