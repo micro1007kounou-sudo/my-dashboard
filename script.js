@@ -176,6 +176,3 @@ function getNHKNews() {
 
 getNHKNews();
 setInterval(getNHKNews, 30000);
-
-
-
