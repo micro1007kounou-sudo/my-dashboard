@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>数独アプリ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1>数独アプリ（Web版）</h1>
+
+<div id="board-container"></div>
+
+<div id="settings">
+    <label>問題生成の空欄数：</label>
+    <input id="removeCount" type="number" value="25" min="1" max="50">
+</div>
+
+<div id="buttons">
+    <button id="lock">問題セルロック</button>
+    <button id="generate">問題生成</button>
+    <button id="check">解ける状態？</button>
+    <button id="solve">自動解答</button>
+    <button id="reset">リセット</button>
+
+
+</div>
+
+    <div id="timer">00:00</div>
+
+    <script src="script.js"></script>
+
+
+<div id="spec">
+  <h2>アプリ仕様</h2>
+  <p>・手動入力の場合は入力後に問題セルロックを押して下さい。問題が確定し解答モードになります</p>
+  <p>・問題生成の場合は空欄数を設定してから問題生成ボタンを押して下さい。問題が確定し解答モードになります</p>
+  <p>・解ける状態？ボタンは現在の状態が解けるかどうかを判定します</p>
+  <p>・自動解答は自動で全ての空欄マスを埋めます</p>
+  <p>・リセットボタンで初期状態に戻ります。再読み込みでも完全に初期状態戻ります</p>
+  <p>・問題生成の空欄数は1～50まで設定できます。</p>
+  <p>・空欄数の目安は超初級：19以下　初級：20～24　中級：25～30　上級：31以上</p>
+</div>
+
+</body>
+</html>
