@@ -1,14 +1,21 @@
+/* 全体の基本設定 */
 body {
     font-family: sans-serif;
     text-align: center;
+    margin: 0;
+    padding: 0;
 }
 
-/* 盤面コンテナ（400px固定） */
+/* 盤面コンテナ：スマホは360px、PCは400px */
 #board-container {
-    width: 400px;
-    height: 400px;
+    width: 100%;
+    max-width: 400px;      /* PCでは400px */
     margin: 0 auto;
+    padding: 0 12px;       /* ← ここで左右に余白を作る */
+    box-sizing: border-box;
+    aspect-ratio: 1 / 1;   /* 正方形を維持 */
 }
+
 
 /* テーブル */
 table {
@@ -28,21 +35,19 @@ td {
 #board-container input {
     width: 100%;
     height: 100%;
-    font-size: 22px;
+    font-size: clamp(16px, 4vw, 22px); /* スマホ〜PCで自動調整 */
     text-align: center;
     border: 1px solid #999;
     box-sizing: border-box;
 }
 
-/* タイマー（盤面の上） */
+/* タイマー */
 #timer {
     font-size: 20px;
     margin: 10px 0;
 }
 
-/* ボタン（横並びで400pxに収める） */
-
-/* 空欄数入力欄（ボタンの下） */
+/* 空欄数入力欄 */
 #settings {
     margin: 10px 0;
 }
@@ -72,9 +77,9 @@ input[type="number"] {
     color: black;
 }
 
-/* 仕様文（420px） */
+/* 仕様文 */
 #spec {
-    max-width: 420px;
+    max-width: 400px;
     margin: 30px auto;
     padding: 10px 20px;
     text-align: left;
@@ -83,4 +88,16 @@ input[type="number"] {
     background: #fafafa;
     border: 1px solid #ddd;
     border-radius: 6px;
+}
+
+/* --- スマホ専用調整 --- */
+@media (max-width: 480px) {
+    #board-container {
+        max-width: 360px;   /* スマホでは360pxに制限 */
+    }
+
+    #spec {
+        max-width: 360px;
+        font-size: 15px;
+    }
 }
