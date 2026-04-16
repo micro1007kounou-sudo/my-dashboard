@@ -1,0 +1,50 @@
+#result img {
+  width: 100px;
+  height: 100px;
+  margin-top: 10px;
+}
+#flashEffect {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  z-index: 9999;
+}
+
+#particleContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 9998;
+}
+
+
+.particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: hotpink;
+  border-radius: 50%;
+  opacity: 0.8;
+  animation: fall 1.5s linear forwards;
+}
+
+@keyframes fall {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(200px) scale(0.3);
+    opacity: 0;
+  }
+}
+
