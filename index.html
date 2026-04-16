@@ -4,6 +4,48 @@
   <meta charset="UTF-8">
   <title>My Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    font-size: 18px;     /* スマホでも大きく見える基本サイズ */
+    padding: 16px;
+  }
+
+  h1 {
+    font-size: 28px;
+    text-align: center;
+  }
+
+  ul {
+    padding: 0;
+    list-style: none;
+    max-width: 360px;    /* スマホアプリ風の幅に固定 */
+    margin: 0 auto;
+  }
+
+  li {
+    margin: 12px 0;
+  }
+
+  a {
+    font-size: 20px;
+    text-decoration: none;
+  }
+
+  /* スマホ専用の調整 */
+  @media (max-width: 600px) {
+    body {
+      font-size: 20px;   /* スマホではさらに大きく */
+    }
+
+    h1 {
+      font-size: 32px;
+    }
+
+    a {
+      font-size: 22px;
+    }
+  }
+</style>
 
 </head>
 <body>
