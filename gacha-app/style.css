@@ -1,9 +1,44 @@
+/* 全体レイアウト */
+body {
+  font-family: system-ui, sans-serif;
+  text-align: center;
+  padding: 40px;
+  margin: 0;
+}
+
+/* ボタン */
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* 結果表示 */
+#result {
+  margin-top: 24px;
+}
+
 #result img {
+  margin-top: 12px;
   max-width: 360px;
   width: 100%;
   height: auto;
 }
 
+/* ガチャログエリア */
+#logArea {
+  max-width: 360px;
+  margin: 10px auto 0;
+  height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+/* フラッシュ演出 */
 #flashEffect {
   position: fixed;
   top: 0;
@@ -16,6 +51,7 @@
   z-index: 9999;
 }
 
+/* 粒子エフェクト */
 #particleContainer {
   position: fixed;
   top: 0;
@@ -26,7 +62,6 @@
   overflow: hidden;
   z-index: 9998;
 }
-
 
 .particle {
   position: absolute;
@@ -49,3 +84,9 @@
   }
 }
 
+/* スマホ向けの軽い調整 */
+@media (max-width: 480px) {
+  body {
+    padding: 24px;
+  }
+}

@@ -4,76 +4,7 @@
   <meta charset="UTF-8">
   <title>ミニガチャテスト</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      text-align: center;
-      padding: 40px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    #result {
-      margin-top: 24px;
-    }
-    #result img {
-      margin-top: 12px;
-      width: 150px;
-      height: auto;
-    }
-
-    /* フラッシュ演出 */
-    #flashEffect {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s;
-    }
-
-    /* 粒子エフェクト */
-    #particleContainer {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    .particle {
-      position: absolute;
-      width: 6px;
-      height: 6px;
-      background: hotpink;
-      border-radius: 50%;
-      opacity: 0.8;
-      animation: fall 1.5s linear forwards;
-    }
-
-    @keyframes fall {
-      0% {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-      }
-      100% {
-        transform: translateY(200px) scale(0.3);
-        opacity: 0;
-      }
-    }
-    #logArea {
-  max-width: 360px;   /* ← 盤面と同じ幅に固定 */
-  margin: 0 auto;     /* 中央寄せ */
-}
-
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <h1>ミニガチャ</h1>
@@ -82,17 +13,9 @@
   <div id="result"></div>
 
   <h3>ガチャログ</h3>
-  <div id="logArea" style="
-    margin-top: 10px;
-    height: 200px;
-    overflow-y: auto;
-    border: 1px solid #ccc;
-    padding: 10px;
-    text-align: left;
-    font-size: 14px;
-  "></div>
+  <div id="logArea"></div>
 
-  <!-- フラッシュと粒子（必ず script.js より前に置く） -->
+  <!-- フラッシュと粒子（script.js より前に置く） -->
   <div id="flashEffect"></div>
   <div id="particleContainer"></div>
 
