@@ -1,8 +1,9 @@
 #result img {
-  width: 100px;
-  height: 100px;
-  margin-top: 10px;
+  max-width: 360px;
+  width: 100%;
+  height: auto;
 }
+
 #flashEffect {
   position: fixed;
   top: 0;
