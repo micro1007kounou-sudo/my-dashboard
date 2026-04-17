@@ -203,3 +203,44 @@ createWS(
     },
     "bitbank"
 );
+
+// ===============================
+// Hyperliquid（BTC 現物）
+// ===============================
+createWS(
+    "wss://api.hyperliquid.xyz/ws",
+    (ws) => {
+        ws.send(JSON.stringify({
+            method: "subscribe",
+            subscription: {
+                type: "trades",
+                coin: "BTC"
+            }
+        }));
+    },
+    (event) => {
+        const msg = JSON.parse(event.data);
+
+        // trades 以外は無視
+        if (msg.channel !== "trades") return;
+
+        // data は配列なので [0] を読む
+        const trade = msg.data?.[0];
+        if (!trade || !trade.px || !usdtJpy) return;
+
+        // px は文字列なので数値に変換
+        const priceUsd = Number(trade.px);
+        if (isNaN(priceUsd)) return;
+
+        const priceJpy = Math.round(priceUsd * usdtJpy);
+
+        document.getElementById("hyperliquid").textContent =
+            priceJpy.toLocaleString();
+
+        document.getElementById("hyperliquid_usd").textContent =
+    "($" + Number(priceUsd.toFixed(2)).toLocaleString() + ")";
+
+
+    },
+    "Hyperliquid Spot"
+);
