@@ -244,3 +244,48 @@ createWS(
     },
     "Hyperliquid Spot"
 );
+
+// ===============================
+// SoDEX Spot（vBTC_vUSDC）
+// ===============================
+createWS(
+    "wss://mainnet-gw.sodex.dev/ws/spot",
+    (ws) => {
+        console.log("SoDEX Spot 接続成功");
+
+        ws.send(JSON.stringify({
+            op: "subscribe",
+            params: {
+                channel: "ticker",
+                symbols: ["vBTC_vUSDC"]
+            }
+        }));
+
+        console.log("SoDEX Spot 購読送信: vBTC_vUSDC");
+    },
+    (event) => {
+        const msg = JSON.parse(event.data);
+
+        // ticker チャンネルのみ処理
+        if (msg.channel !== "ticker") return;
+
+        const tick = msg.data?.[0];
+        if (!tick || !tick.c) return;
+
+        const priceUsd = Number(tick.c);
+        if (isNaN(priceUsd)) return;
+
+        // 円換算
+        const priceJpy = Math.round(priceUsd * usdtJpy);
+
+        document.getElementById("sodex_spot").textContent =
+            priceJpy.toLocaleString();
+
+        document.getElementById("sodex_spot_usd").textContent =
+            "($" + priceUsd.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }) + ")";
+    },
+    "SoDEX Spot"
+);
