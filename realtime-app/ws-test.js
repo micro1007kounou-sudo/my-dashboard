@@ -289,3 +289,209 @@ createWS(
     },
     "SoDEX Spot"
 );
+
+
+// ===============================
+// Binance Perps（BTCUSDT 永久）
+// ===============================
+createWS(
+    "wss://fstream.binance.com/ws",
+    (ws) => {
+        console.log("Binance Perps 接続成功");
+
+        ws.send(JSON.stringify({
+            method: "SUBSCRIBE",
+            params: ["btcusdt@markPrice"],
+            id: 1
+        }));
+
+        console.log("Binance Perps 購読送信: btcusdt@markPrice");
+    },
+    (event) => {
+        const msg = JSON.parse(event.data);
+
+        // mark price update のみ処理
+        if (msg.e !== "markPriceUpdate") return;
+
+        const priceUsd = Number(msg.p);
+        if (isNaN(priceUsd)) return;
+
+        document.getElementById("binance_perp").textContent =
+            "$" + priceUsd.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+    },
+    "Binance Perps"
+);
+
+// ===============================
+// OKX Perps（BTC-USDT-SWAP）
+// ===============================
+createWS(
+    "wss://ws.okx.com/ws/v5/public",
+    (ws) => {
+        console.log("OKX Perps 接続成功");
+
+        ws.send(JSON.stringify({
+            op: "subscribe",
+            args: [
+                {
+                    channel: "tickers",
+                    instId: "BTC-USDT-SWAP"
+                }
+            ]
+        }));
+
+        console.log("OKX Perps 購読送信: BTC-USDT-SWAP");
+    },
+    (event) => {
+        const msg = JSON.parse(event.data);
+
+        if (!msg.arg || msg.arg.channel !== "tickers") return;
+
+        const tick = msg.data?.[0];
+        if (!tick || !tick.last) return;
+
+        const priceUsd = Number(tick.last);
+        if (isNaN(priceUsd)) return;
+
+        document.getElementById("okx_perp").textContent =
+            "$" + priceUsd.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+    },
+    "OKX Perps"
+);
+
+// ===============================
+// Bybit Perps（BTCUSDT 永久）
+// ===============================
+createWS(
+    "wss://stream.bybit.com/v5/public/linear",
+    (ws) => {
+        console.log("Bybit Perps 接続成功");
+
+        ws.send(JSON.stringify({
+            op: "subscribe",
+            args: ["tickers.BTCUSDT"]
+        }));
+
+        console.log("Bybit Perps 購読送信: tickers.BTCUSDT");
+    },
+    (event) => {
+        const msg = JSON.parse(event.data);
+
+        // tickers チャンネルのみ処理
+        if (!msg.topic || msg.topic !== "tickers.BTCUSDT") return;
+
+        const tick = msg.data;
+        if (!tick || !tick.lastPrice) return;
+
+        const priceUsd = Number(tick.lastPrice);
+        if (isNaN(priceUsd)) return;
+
+        document.getElementById("bybit_perp").textContent =
+            "$" + priceUsd.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+    },
+    "Bybit Perps"
+);
+
+// ===============================
+// Hyperliquid Perps（BTC-PERP）
+// ===============================
+createWS(
+    "wss://api.hyperliquid.xyz/ws",
+
+    // --- onOpen ---
+    (ws) => {
+        console.log("Hyperliquid Perps 接続成功");
+
+        ws.send(JSON.stringify({
+            method: "subscribe",
+            subscription: {
+                type: "allMids"
+            }
+        }));
+
+        console.log("Hyperliquid Perps 購読送信: allMids");
+    },
+
+    // --- onMessage ---
+    (event) => {
+        try {
+            const msg = JSON.parse(event.data);
+
+            // 他取引所と同じように channel でフィルタ
+            if (msg.channel !== "allMids") return;
+
+            const mids = msg.data?.mids;
+            if (!mids) return;
+
+            // BTC の mid price
+            const price = Number(mids["BTC"]);
+            if (!price) return;
+
+            // DOM 更新（他取引所と同じパターン）
+            const el = document.getElementById("hyper_perp");
+            if (el) {
+                el.textContent = "$" + price.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+
+        } catch (err) {
+            console.error("Hyperliquid Parsing Error:", err);
+        }
+    },
+
+    "Hyperliquid Perps"
+);
+
+// ===============================
+// SoDEX Perps（BTC-USD）
+// ===============================
+createWS(
+    "wss://mainnet-gw.sodex.dev/ws/perps",
+    (ws) => {
+        console.log("SoDEX Perps 接続成功");
+
+        ws.send(JSON.stringify({
+            op: "subscribe",
+            params: {
+                channel: "ticker",
+                symbols: ["BTC-USD"]   // ← Whitepaper の正式名称
+            }
+        }));
+
+        console.log("SoDEX Perps 購読送信: BTC-USD");
+    },
+    (event) => {
+        const msg = JSON.parse(event.data);
+
+        // ticker チャンネルのみ処理
+        if (msg.channel !== "ticker") return;
+
+        const tick = msg.data?.[0];
+        if (!tick || !tick.c) return;
+
+        const priceUsd = Number(tick.c);
+        if (isNaN(priceUsd)) return;
+
+        // USD のみ表示
+        const el = document.getElementById("sodex_perp");
+        if (el) {
+            el.textContent =
+                "$" + priceUsd.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+        }
+    },
+    "SoDEX Perps"
+);
