@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.pyc
+# エクセルの一時ファイルを無視
+~$*.xlsx
+~$*.xlsm
+
+# OSが作るゴミファイルを無視
+Thumbs.db
+.DS_Store
