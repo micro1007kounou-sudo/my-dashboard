@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>JS Monitor Test</title>
+<style>
+    body {
+        margin: 0;
+        background: #111;
+        overflow: hidden;
+        font-family: "Segoe UI", sans-serif;
+    }
+
+    #panel {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(0,0,0,0.6);
+        padding: 12px;
+        border-radius: 8px;
+        color: white;
+        z-index: 9999;
+        transition: opacity 0.2s ease;
+        cursor: move;
+    }
+
+    #panel.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    button {
+        margin: 4px;
+        padding: 8px 14px;
+        background: #444;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+    button:hover {
+        background: #666;
+    }
+
+    canvas {
+        display: block;
+    }
+
+    #app {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+    }
+</style>
+</head>
+<body>
+
+<div id="app">
+    <div id="panel">
+        <button onclick="drawColorBar()">カラーバー</button>
+        <button onclick="drawSolid('#ffffff')">白</button>
+        <button onclick="drawSolid('#000000')">黒</button>
+        <button onclick="drawSolid('#ff0000')">赤</button>
+        <button onclick="drawSolid('#00ff00')">緑</button>
+        <button onclick="drawSolid('#0000ff')">青</button>
+        <button onclick="drawDots()">ドット</button>
+        <button onclick="drawMesh()">メッシュ</button>
+        <button onclick="drawCross()">クロス</button>
+        <button onclick="drawCircle()">サークル</button>
+        <button onclick="goFullscreen()">全画面</button>
+        <button onclick="exitFullscreen()">全画面終了</button>
+
+        <button onclick="startAuto()">オート開始</button>
+        <button onclick="stopAuto()">オート停止</button>
+    </div>
+
+    <canvas id="screen"></canvas>
+</div>
+
+<script>
+
+/* ============================================================
+   ★★ 設定（ここだけ触ればOK）★★
+   オート切り替えの秒数（例：3秒 → 3、5秒 → 5）
+============================================================ */
+const AUTO_INTERVAL = 4;   // ← ここを変えるだけでオートの秒数変わる
+/* ============================================================ */
+
+
+const app = document.getElementById("app");
+const panel = document.getElementById("panel");
+const canvas = document.getElementById("screen");
+const ctx = canvas.getContext("2d");
+
+// ★ 最初の1回だけ全画面にするフラグ
+let firstClickFullscreen = true;
+
+// ★ すべてのボタンでオート停止（ただしオート開始ボタンは除外）
+panel.querySelectorAll("button").forEach(btn => {
+    if (btn.textContent !== "オート開始") {
+        btn.addEventListener("click", () => {
+            stopAuto();
+        });
+    }
+
+    // ★ 最初のボタンクリックで全画面へ
+    btn.addEventListener("click", () => {
+        if (firstClickFullscreen) {
+            firstClickFullscreen = false;
+            goFullscreen();
+        }
+    });
+});
+
+let currentPattern = "bar";
+let lastColor = "#ffffff";
+
+/* ----------------------
+   Canvas リサイズ
+---------------------- */
+function resizeCanvas() {
+    canvas.width = app.clientWidth;
+    canvas.height = app.clientHeight;
+}
+window.onresize = () => {
+    resizeCanvas();
+    redraw();
+};
+resizeCanvas();
+
+/* ----------------------
+   パターン再描画
+---------------------- */
+function redraw() {
+    if (currentPattern === "bar") drawColorBar();
+    if (currentPattern === "solid") drawSolid(lastColor);
+    if (currentPattern === "dot") drawDots();
+    if (currentPattern === "mesh") drawMesh();
+    if (currentPattern === "cross") drawCross();
+    if (currentPattern === "circle") drawCircle();
+}
+
+/* ----------------------
+   カラーバー
+---------------------- */
+function drawColorBar() {
+    currentPattern = "bar";
+    const colors = [
+        "#ffffff", "#ffff00", "#00ffff", "#00ff00",
+        "#ff00ff", "#ff0000", "#0000ff", "#000000"
+    ];
+    const w = canvas.width / colors.length;
+
+    for (let i = 0; i < colors.length; i++) {
+        ctx.fillStyle = colors[i];
+        ctx.fillRect(i * w, 0, w, canvas.height);
+    }
+}
+
+/* ----------------------
+   単色
+---------------------- */
+function drawSolid(color) {
+    currentPattern = "solid";
+    lastColor = color;
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+/* ----------------------
+   ドット
+---------------------- */
+function drawDots() {
+    currentPattern = "dot";
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const spacing = 50;
+    const size = 1;
+
+    ctx.fillStyle = "#fff";
+    for (let y = 0; y < canvas.height; y += spacing) {
+        for (let x = 0; x < canvas.width; x += spacing) {
+            ctx.fillRect(x, y, size, size);
+        }
+    }
+}
+
+/* ----------------------
+   メッシュ（縦横線）
+---------------------- */
+function drawMesh() {
+    currentPattern = "mesh";
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const spacing = 50;
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 1;
+
+    for (let x = 0; x < canvas.width; x += spacing) {
+        ctx.beginPath();
+        ctx.moveTo(x + 0.5, 0);
+        ctx.lineTo(x + 0.5, canvas.height);
+        ctx.stroke();
+    }
+
+    for (let y = 0; y < canvas.height; y += spacing) {
+        ctx.beginPath();
+        ctx.moveTo(0, y + 0.5);
+        ctx.lineTo(canvas.width, y + 0.5);
+        ctx.stroke();
+    }
+}
+
+/* ----------------------
+   クロス（斜め線）
+---------------------- */
+function drawCross() {
+    currentPattern = "cross";
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const spacing = 50;
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 1;
+
+    for (let i = -canvas.height; i < canvas.width; i += spacing) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i + canvas.height, canvas.height);
+        ctx.stroke();
+    }
+
+    for (let i = 0; i < canvas.width + canvas.height; i += spacing) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i - canvas.height, canvas.height);
+        ctx.stroke();
+    }
+}
+
+/* ----------------------
+   サークル（同心円＋センタークロス）
+---------------------- */
+function drawCircle() {
+    currentPattern = "circle";
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 1;
+
+    const maxR = Math.sqrt(cx * cx + cy * cy);
+    const step = 40;
+
+    for (let r = 20; r < maxR; r += step) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+
+    ctx.strokeStyle = "#ff0000";
+    ctx.lineWidth = 1;
+
+    ctx.beginPath();
+    ctx.moveTo(cx - 100, cy);
+    ctx.lineTo(cx + 100, cy);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 100);
+    ctx.lineTo(cx, cy + 100);
+    ctx.stroke();
+}
+
+/* ----------------------
+   全画面
+---------------------- */
+function goFullscreen() {
+    if (app.requestFullscreen) app.requestFullscreen();
+    else if (app.webkitRequestFullscreen) app.webkitRequestFullscreen();
+    else if (app.msRequestFullscreen) app.msRequestFullscreen();
+}
+
+/* 全画面終了 */
+function exitFullscreen() {
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    }
+}
+
+/* Fullscreen後に再描画 */
+document.addEventListener("fullscreenchange", () => {
+    resizeCanvas();
+    redraw();
+
+    if (!document.fullscreenElement) {
+        stopAuto();
+    }
+});
+
+/* ESCで解除 */
+document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && document.fullscreenElement) {
+        document.exitFullscreen();
+    }
+});
+
+/* ----------------------
+   パネルの表示/非表示切替
+---------------------- */
+// パネルクリック → パネルを隠す
+panel.addEventListener("click", (e) => {
+    e.stopPropagation();
+    panel.classList.add("hidden");
+});
+
+// 画面クリック → パネルを表示
+app.addEventListener("click", () => {
+    panel.classList.remove("hidden");
+});
+
+/* ----------------------
+   パネルをドラッグで移動
+---------------------- */
+let isDragging = false;
+let offsetX = 0;
+let offsetY = 0;
+
+panel.addEventListener("mousedown", (e) => {
+    isDragging = true;
+    offsetX = e.clientX - panel.offsetLeft;
+    offsetY = e.clientY - panel.offsetTop;
+});
+
+document.addEventListener("mousemove", (e) => {
+    if (isDragging) {
+        panel.style.left = (e.clientX - offsetX) + "px";
+        panel.style.top = (e.clientY - offsetY) + "px";
+    }
+});
+
+document.addEventListener("mouseup", () => {
+    isDragging = false;
+});
+
+/* ----------------------
+   オート切り替え（3秒固定）
+---------------------- */
+let autoTimer = null;
+let autoIndex = 0;
+
+const autoPatterns = [
+    "bar",
+    "solid_white",
+    "solid_black",
+    "solid_red",
+    "solid_green",
+    "solid_blue",
+    "dot",
+    "mesh",
+    "cross",
+    "circle"
+];
+
+function startAuto() {
+    stopAuto();
+
+    goFullscreen();
+
+autoTimer = setInterval(() => {
+    const p = autoPatterns[autoIndex];
+
+    switch (p) {
+        case "bar": drawColorBar(); break;
+        case "solid_white": drawSolid("#ffffff"); break;
+        case "solid_black": drawSolid("#000000"); break;
+        case "solid_red": drawSolid("#ff0000"); break;
+        case "solid_green": drawSolid("#00ff00"); break;
+        case "solid_blue": drawSolid("#0000ff"); break;
+        case "dot": drawDots(); break;
+        case "mesh": drawMesh(); break;
+        case "cross": drawCross(); break;
+        case "circle": drawCircle(); break;
+    }
+
+    autoIndex = (autoIndex + 1) % autoPatterns.length;
+}, AUTO_INTERVAL * 1000);   // ★ ここを変数にした
+
+}
+
+function stopAuto() {
+    if (autoTimer) {
+        clearInterval(autoTimer);
+        autoTimer = null;
+    }
+}
+
+</script>
+
+</body>
+</html>
