@@ -90,13 +90,15 @@ placeBtn.addEventListener("click", () => {
     const fileName = cardFiles[cardIndex];
     const targetEl = document.getElementById(`spread${i + 1}`);
     
+    // 日本語名を上、画像を下に配置
     targetEl.innerHTML = `
       <div class="card-wrapper">
-        <img src="cards/${fileName}" alt="${name}" class="tarot-img">
         <div class="card-name-label">${name}</div>
+        <img src="cards/${fileName}" alt="${name}" class="tarot-img">
       </div>
     `;
   });
+  
   spreadContainer.style.display = "block";
   setTimeout(() => spreadContainer.style.opacity = "1", 10);
   step = 4; updateStatus(); updateButtons();
