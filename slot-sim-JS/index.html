@@ -164,13 +164,29 @@ document.getElementById("result").innerText =
         tension: 0.1
       }]
     },
-    options: {
+options: {
       responsive: true,
       scales: {
         y: {
           min: -maxAbs,
           max:  maxAbs,
-          title: { display: true, text: "差枚" }
+          title: { display: true, text: "差枚" },
+          // --- ここから追加 ---
+          grid: {
+            color: (context) => {
+              if (context.tick.value === 0) {
+                return 'rgba(0, 0, 0, 1.0)'; // 0の線の色（黒）
+              }
+              return 'rgba(0, 0, 0, 0.1)';   // それ以外の線の色（薄い灰色）
+            },
+            lineWidth: (context) => {
+              if (context.tick.value === 0) {
+                return 3; // 0の線の太さ
+              }
+              return 1;   // それ以外の線の太さ
+            }
+          }
+          // --- ここまで追加 ---
         },
         x: {
           title: { display: true, text: "ゲーム数" }
