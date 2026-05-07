@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Aタイプスロットシミュレーション</title>
+
+  <!-- Chart.js 読み込み -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body { font-family: sans-serif; padding: 16px; }
+    #result { white-space: pre-wrap; margin-top: 20px; }
+    canvas { margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+<h2>Aタイプスロットシミュレーション</h2>
+<div style="margin-bottom:10px; font-size:14px;">
+  ※ボーナス確率はゴージャグ3を参考にしています。
+</div>
+
+<select id="setting">
+  <option value="1">設定1</option>
+  <option value="2">設定2</option>
+  <option value="3">設定3</option>
+  <option value="4">設定4</option>
+  <option value="5">設定5</option>
+  <option value="6">設定6</option>
+</select>
+
+<input id="games" type="number" value="5000">
+<button onclick="runSim()">開始</button>
+
+<div id="result"></div>
+<h3>コイン持ち</h3>
+<div style="margin-bottom:10px; font-size:14px;">
+  50枚あたり：約40回転
+</div>
+
+<h3>設定別ボーナス確率</h3>
+<div style="margin-bottom:10px; font-size:14px;">
+ 獲得数 BIG240枚　REG96枚
+</div>
+<table border="1" cellpadding="6" style="border-collapse: collapse; margin-top:10px;">
+  <tr>
+    <th>設定</th>
+    <th>BIG</th>
+    <th>REG</th>
+    <th>合算</th>
+  </tr>
+  <tr><td>1</td><td>1/259.0</td><td>1/354.2</td><td>1/149.6</td></tr>
+  <tr><td>2</td><td>1/258.0</td><td>1/332.7</td><td>1/145.3</td></tr>
+  <tr><td>3</td><td>1/257.0</td><td>1/306.2</td><td>1/139.7</td></tr>
+  <tr><td>4</td><td>1/254.0</td><td>1/268.6</td><td>1/130.5</td></tr>
+  <tr><td>5</td><td>1/247.3</td><td>1/247.3</td><td>1/123.7</td></tr>
+  <tr><td>6</td><td>1/234.9</td><td>1/234.9</td><td>1/117.4</td></tr>
+</table>
+
+
+<canvas id="lineChart" width="600" height="300"></canvas>
+
+<script>
+// 設定別ボーナス確率（BIG, REG, 合算）
+const SETTING_DATA = {
+  1: [259.0, 354.2, 149.6],
+  2: [258.0, 332.7, 145.3],
+  3: [257.0, 306.2, 139.7],
+  4: [254.0, 268.6, 130.5],
+  5: [247.3, 247.3, 123.7],
+  6: [234.9, 234.9, 117.4],
+};
+
+const BB_PAY = 240;
+const RB_PAY = 96;
+const COIN_PER_GAME = 50 / 40; // 1.25枚
+
+function simulate(setting, games) {
+  const [bigBunbo, regBunbo, totalBunbo] = SETTING_DATA[setting];
+
+  const pTotal = 1 / totalBunbo;
+  const pBigRatio = (1 / bigBunbo) / ((1 / bigBunbo) + (1 / regBunbo));
+
+  let big = 0;
+  let reg = 0;
+  let diff = 0;
+  let diffList = [];
+
+  for (let i = 0; i < games; i++) {
+    diff -= COIN_PER_GAME;
+
+    if (Math.random() < pTotal) {
+      if (Math.random() < pBigRatio) {
+        big++;
+        diff += BB_PAY;
+      } else {
+        reg++;
+        diff += RB_PAY;
+      }
+    }
+
+    diffList.push(diff);
+  }
+
+  return { big, reg, diff, diffList };
+}
+
+let chart = null;
+
+function runSim() {
+  const setting = Number(document.getElementById("setting").value);
+  const games = Number(document.getElementById("games").value);
+
+  const { big, reg, diff, diffList } = simulate(setting, games);
+
+  // ボーナス確率計算
+  const bigRate = big > 0 ? (games / big).toFixed(1) : "-";
+  const regRate = reg > 0 ? (games / reg).toFixed(1) : "-";
+  const totalRate = (big + reg) > 0 ? (games / (big + reg)).toFixed(1) : "-";
+
+document.getElementById("result").innerText =
+  `設定${setting} を ${games}G 回した結果\n` +
+  `BIG：${big} 回（1/${bigRate}）\n` +
+  `REG：${reg} 回（1/${regRate}）\n` +
+  `合算：${big + reg} 回（1/${totalRate}）\n` +
+  `差枚：${diff.toFixed(0)} 枚（${(diff * 20).toLocaleString()} 円）`;
+
+
+  // 既存グラフがあれば破棄
+  if (chart) chart.destroy();
+
+  const ctx = document.getElementById("lineChart").getContext("2d");
+
+  // 0 を中央に固定するための上下対称スケール
+  const maxAbs = Math.max(
+    Math.abs(Math.min(...diffList)),
+    Math.abs(Math.max(...diffList))
+  );
+
+  chart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: diffList.map((_, i) => i + 1),
+      datasets: [{
+        label: "差枚推移",
+        data: diffList,
+        borderColor: "blue",
+        borderWidth: 1,
+        pointRadius: 0,
+        tension: 0.1
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          min: -maxAbs,
+          max:  maxAbs,
+          title: { display: true, text: "差枚" }
+        },
+        x: {
+          title: { display: true, text: "ゲーム数" }
+        }
+      }
+    }
+  });
+}
+</script>
+
+</body>
+</html>
