@@ -10,7 +10,15 @@
   <style>
     body { font-family: sans-serif; padding: 16px; }
     #result { white-space: pre-wrap; margin-top: 20px; }
-    canvas { margin-top: 20px; }
+canvas {
+  width: 100% !important;   /* PC では横幅いっぱい */
+  max-width: none !important; /* PC の最大幅制限を解除 */
+  height: 400px !important; /* 高さは固定で安定 */
+  margin-top: 20px;
+  display: block;
+}
+
+
   </style>
 </head>
 <body>
