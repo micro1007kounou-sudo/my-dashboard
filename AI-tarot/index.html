@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AIタロット占い</title>
   <!-- CSSファイルの読み込み -->
   <link rel="stylesheet" href="style.css">
@@ -47,8 +48,10 @@
     </div>
   </div>
 
+  <!-- カード一覧が表示される場所 -->
   <div id="grid-container"></div>
 
+  <!-- モーダル（プロンプト表示） -->
   <div id="modal">
     <div id="modal-content">
       <button id="close-modal">閉じる</button>
@@ -73,21 +76,19 @@
     </div>
   </div>
 
-  <!-- JavaScriptファイルの読み込み -->
+  <footer style="text-align:center; margin-top:40px;">
+    <a href="../index.html">
+      <img src="../bannar_S.png" alt="Back to Dashboard" 
+           style="width:100%; max-width:360px; height:auto; opacity:0.95;">
+    </a>
+
+    <p style="font-size: 12px; color: #aaa; margin-top: 10px;">
+      タロットカード画像引用元：<a href="https://amateras.blog/" target="_blank" style="color:#ffd86b;">amateras.blog</a>
+    </p>
+  </footer>
+
+  <!-- JavaScriptファイルの読み込み（最後に1回だけ） -->
   <script src="script.js"></script>
 
-  <footer style="text-align:center; margin-top:40px;">
-  <a href="../index.html">
-    <img src="../bannar_S.png" alt="Back to Dashboard" 
-         style="width:100%; max-width:360px; height:auto; opacity:0.95;">
-  </a>
-
-  <p style="font-size: 12px; color: #aaa; margin-top: 10px;">
-  タロットカード画像引用元：<a href="https://amateras.blog/" target="_blank" style="color:#ffd86b;">amateras.blog</a>
-</p>
-
-</footer>
-
 </body>
-
 </html>

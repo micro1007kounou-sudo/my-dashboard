@@ -12,6 +12,15 @@ const tarot = {
   "審判": "復活・決断・再評価", "世界": "完成・達成・統合"
 };
 
+const cardFiles = [
+  "00-fool.png", "01-magician.png", "02-highpriestess.png", "03-the-empress.png",
+  "04-the-emperor.png", "05-the-hierophant.png", "06-the-lovers.png", "07-the-chariot.png",
+  "08-strength.png", "09-the-hermit.png", "10-wheel-offortune.png", "11-justice.png",
+  "12-the-hangedman.png", "13-death.png", "14-temperance.png", "15-the-devil.png",
+  "16-the-tower.png", "17-the-star.png", "18-the-moon.png", "19-the-sun.png",
+  "20-judgement.png", "21-the-world.png"
+];
+
 const positions = { 1: "過去", 2: "現在", 3: "未来", 4: "対策", 5: "周囲", 6: "結果" };
 
 const gridContainer = document.getElementById("grid-container");
@@ -32,7 +41,7 @@ let step = 1;
 
 function initGrid() {
   gridContainer.innerHTML = "";
-  Object.keys(tarot).forEach(name => {
+  Object.keys(tarot).forEach((name, index) => {
     const div = document.createElement("div");
     div.className = "grid-card";
     div.dataset.cardName = name;
@@ -76,7 +85,18 @@ shuffleBtn.addEventListener("click", () => {
 
 placeBtn.addEventListener("click", () => {
   if (step !== 3) return;
-  for (let i = 1; i <= 6; i++) { document.getElementById(`spread${i}`).textContent = selectedCards[i - 1]; }
+  selectedCards.forEach((name, i) => {
+    const cardIndex = Object.keys(tarot).indexOf(name);
+    const fileName = cardFiles[cardIndex];
+    const targetEl = document.getElementById(`spread${i + 1}`);
+    
+    targetEl.innerHTML = `
+      <div class="card-wrapper">
+        <img src="cards/${fileName}" alt="${name}" class="tarot-img">
+        <div class="card-name-label">${name}</div>
+      </div>
+    `;
+  });
   spreadContainer.style.display = "block";
   setTimeout(() => spreadContainer.style.opacity = "1", 10);
   step = 4; updateStatus(); updateButtons();
@@ -119,7 +139,10 @@ resetBtn.addEventListener("click", () => resetAll(true));
 function resetAll(resetStep = true) {
   selectedCards = [];
   document.querySelectorAll(".grid-card").forEach(c => c.classList.remove("selected"));
-  document.querySelectorAll(".spread-card").forEach(c => c.textContent = "");
+  document.querySelectorAll(".spread-card").forEach(c => {
+    c.innerHTML = "";
+    c.textContent = "";
+  });
   modal.style.display = "none";
   spreadContainer.style.opacity = "0"; spreadContainer.style.display = "none";
   if (resetStep) {

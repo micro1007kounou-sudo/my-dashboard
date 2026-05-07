@@ -98,6 +98,7 @@ button:disabled {
   color: #fff;
 }
 
+/* AIリンクボタンのホバー色を固定 */
 .gemini-btn { border-color: #8ab4f8; color: #8ab4f8; }
 .gemini-btn:hover { background: linear-gradient(135deg, #8ab4f8 0%, #4285f4 100%) !important; color: #fff !important; }
 .chatgpt-btn { border-color: #74aa9c; color: #74aa9c; }
@@ -117,11 +118,40 @@ button:disabled {
 .spread-row { display: flex; justify-content: space-between; margin: 18px 0; }
 .spread-row.center { justify-content: center; }
 
+/* 【修正】画像を表示するために背景やパディングを調整 */
 .spread-card {
-  width: 95px; height: 145px; border-radius: 8px; background: #faf5e6; color: #222;
-  border: 2px solid #ffd86b; box-shadow: 0 0 20px rgba(255, 216, 107, 0.7);
-  display: flex; align-items: center; justify-content: center; padding: 10px;
-  box-sizing: border-box; font-size: 14px; font-weight: bold;
+  width: 95px; 
+  min-height: 165px; /* 画像+文字が入る高さ */
+  border-radius: 8px; 
+  display: flex; 
+  flex-direction: column;
+  align-items: center; 
+  justify-content: flex-start;
+  box-sizing: border-box; 
+}
+
+/* 【追加】画像とラベルのスタイル */
+.card-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tarot-img {
+  width: 95px;
+  height: 145px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #ffd86b;
+  box-shadow: 0 0 15px rgba(255, 216, 107, 0.5);
+}
+
+.card-name-label {
+  margin-top: 6px;
+  color: #ffd86b;
+  font-size: 13px;
+  font-weight: bold;
+  text-shadow: 0 0 5px rgba(0,0,0,0.8);
 }
 
 .spread-label { font-size: 12px; color: #ffeb9c; margin-top: 6px; font-weight: bold; }
