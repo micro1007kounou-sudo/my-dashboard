@@ -5,10 +5,27 @@
   <title>AIタロット占い（プロンプト生成版）</title>
   <style>
     body {
-      background: #111;
+      background:
+        radial-gradient(circle at 30% 40%, rgba(150, 80, 255, 0.25) 0%, transparent 60%),
+        radial-gradient(circle at 70% 70%, rgba(120, 60, 220, 0.22) 0%, transparent 65%),
+        radial-gradient(circle at 20% 30%, rgba(255,255,255,0.10) 0%, transparent 60%),
+        radial-gradient(circle at 80% 70%, rgba(255,255,255,0.08) 0%, transparent 60%),
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05) 0%, transparent 70%),
+        repeating-linear-gradient(
+          60deg,
+          rgba(255,255,255,0.06) 0px,
+          rgba(255,255,255,0.06) 6px,
+          transparent 6px,
+          transparent 16px
+        ),
+        #0b0b15;
+      background-size: cover;
+      background-attachment: fixed;
       color: #f5f5f5;
       font-family: system-ui, sans-serif;
       text-align: center;
+      margin: 0;
+      padding-bottom: 50px;
     }
 
     h1 {
@@ -26,8 +43,12 @@
       min-height: 2em;
     }
 
-    button {
+    .controls {
       margin-top: 10px;
+      margin-bottom: 20px;
+    }
+
+    button {
       padding: 6px 16px;
       border-radius: 999px;
       border: 1px solid #ffd86b;
@@ -36,6 +57,11 @@
       cursor: pointer;
       font-size: 13px;
       margin-inline: 4px;
+      transition: all 0.2s;
+    }
+
+    button:hover:not(:disabled) {
+      background: rgba(255, 216, 107, 0.1);
     }
 
     button:disabled {
@@ -43,56 +69,13 @@
       cursor: default;
     }
 
-/* カードグリッド（レスポンシブ & 中央揃え） */
-#grid-container {
-  width:700px;
-  max-width: 95vw;
-  margin: 10px auto 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(55px, 1fr));
-  gap: 6px;
-  justify-items: center;
-}
-
-/* カードサイズを少し小さく */
-.grid-card {
-  width: 55px;
-  height: 90px;
-  border-radius: 8px;
-  background: radial-gradient(circle at 30% 30%, #444, #111);
-  border: 1px solid #555;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-
-    .grid-card.selected {
-      box-shadow: 0 0 12px rgba(255, 216, 107, 0.9);
-      border-color: #ffd86b;
-      transform: translateY(-4px) scale(1.02);
-    }
-
-    /* ほんの少し震えるアニメーション */
-    @keyframes soft-shake {
-      0%   { transform: translate(0, 0); }
-      25%  { transform: translate(0.5px, -0.5px); }
-      50%  { transform: translate(-0.5px, 0.5px); }
-      75%  { transform: translate(0.5px, 0.5px); }
-      100% { transform: translate(0, 0); }
-    }
-
-    .shuffling {
-      animation: soft-shake 0.12s infinite;
-      border-color: #ffd86b;
-    }
-
-    /* ヘキサグラム配置（最初は非表示） */
+    /* ヘキサグラム配置エリア */
     #spread-container {
       width: 420px;
       max-width: 95vw;
-      margin: 30px auto 0;
+      margin: 0 auto; /* ボタンのすぐ下 */
       opacity: 0;
-      pointer-events: none;
+      display: none; /* 初期状態は非表示 */
       transition: opacity 0.6s ease;
     }
 
@@ -120,12 +103,53 @@
       padding: 6px;
       box-sizing: border-box;
       font-size: 12px;
+      font-weight: bold;
     }
 
     .spread-label {
       font-size: 11px;
       color: #ccc;
       margin-top: 4px;
+    }
+
+    /* カードグリッドエリア */
+    #grid-container {
+      width: 700px;
+      max-width: 95vw;
+      margin: 30px auto 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(55px, 1fr));
+      gap: 6px;
+      justify-items: center;
+    }
+
+    .grid-card {
+      width: 55px;
+      height: 90px;
+      border-radius: 8px;
+      background: radial-gradient(circle at 30% 30%, #444, #111);
+      border: 1px solid #555;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .grid-card.selected {
+      box-shadow: 0 0 12px rgba(255, 216, 107, 0.9);
+      border-color: #ffd86b;
+      transform: translateY(-4px) scale(1.02);
+    }
+
+    @keyframes soft-shake {
+      0%   { transform: translate(0, 0); }
+      25%  { transform: translate(0.5px, -0.5px); }
+      50%  { transform: translate(-0.5px, 0.5px); }
+      75%  { transform: translate(0.5px, 0.5px); }
+      100% { transform: translate(0, 0); }
+    }
+
+    .shuffling {
+      animation: soft-shake 0.12s infinite;
+      border-color: #ffd86b;
     }
 
     /* モーダル */
@@ -136,6 +160,7 @@
       display: none;
       align-items: center;
       justify-content: center;
+      z-index: 100;
     }
 
     #modal-content {
@@ -168,15 +193,14 @@
 
   <div id="status">① まずはシャッフルしましょう</div>
 
-  <div>
+  <div class="controls">
     <button id="shuffle-btn">① シャッフル</button>
     <button id="place-btn" disabled>③ 配置</button>
     <button id="prompt-btn" disabled>④ プロンプト表示</button>
     <button id="reset-btn">リセット</button>
   </div>
 
-  <div id="grid-container"></div>
-
+  <!-- ★配置エリアをグリッドの上に移動 -->
   <div id="spread-container">
     <div class="spread-row center">
       <div>
@@ -215,12 +239,15 @@
     </div>
   </div>
 
+  <!-- カード選択用のグリッド -->
+  <div id="grid-container"></div>
+
   <!-- モーダル -->
   <div id="modal">
     <div id="modal-content">
       <button id="close-modal">閉じる</button>
       <h3>④ AIに貼り付けて占い結果を受け取りましょう</h3>
-      <p>このプロンプトを ChatGPT / Claude / Gemini / DeepSeek / ローカルAI に貼り付けてください。</p>
+      <p>このプロンプトを AI（Gemini, ChatGPT等）に貼り付けてください。</p>
       <div id="prompt-text"></div>
       <button id="copy-btn">コピー</button>
     </div>
@@ -253,21 +280,16 @@
     };
 
     const positions = {
-      1: "過去",
-      2: "現在",
-      3: "未来",
-      4: "対策",
-      5: "周囲",
-      6: "結果"
+      1: "過去", 2: "現在", 3: "未来", 4: "対策", 5: "周囲", 6: "結果"
     };
 
     const gridContainer = document.getElementById("grid-container");
+    const spreadContainer = document.getElementById("spread-container");
     const shuffleBtn = document.getElementById("shuffle-btn");
     const placeBtn = document.getElementById("place-btn");
     const promptBtn = document.getElementById("prompt-btn");
     const resetBtn = document.getElementById("reset-btn");
     const statusEl = document.getElementById("status");
-
     const modal = document.getElementById("modal");
     const promptText = document.getElementById("prompt-text");
     const closeModal = document.getElementById("close-modal");
@@ -289,9 +311,9 @@
 
     function updateStatus() {
       if (step === 1) statusEl.textContent = "① まずはシャッフルしましょう";
-      if (step === 2) statusEl.textContent = "② 気になるカードを6枚選んでください";
+      if (step === 2) statusEl.textContent = "② 気になるカードを6枚選んでください (" + selectedCards.length + "/6)";
       if (step === 3) statusEl.textContent = "③ 配置ボタンを押して結果を並べましょう";
-      if (step === 4) statusEl.textContent = "④ AIに貼り付けて占い結果を受け取りましょう";
+      if (step === 4) statusEl.textContent = "④ プロンプトを表示してAIに相談しましょう";
     }
 
     function updateButtons() {
@@ -302,13 +324,13 @@
 
     function onCardClick(e) {
       if (step !== 2) return;
-
       const div = e.currentTarget;
       if (div.classList.contains("selected")) return;
       if (selectedCards.length >= 6) return;
 
       div.classList.add("selected");
       selectedCards.push(div.dataset.cardName);
+      updateStatus();
 
       if (selectedCards.length === 6) {
         step = 3;
@@ -323,13 +345,11 @@
       updateStatus();
       updateButtons();
 
-      // --- シャッフル演出（控えめ） ---
       const cards = document.querySelectorAll(".grid-card");
       cards.forEach(c => c.classList.add("shuffling"));
-
       setTimeout(() => {
         cards.forEach(c => c.classList.remove("shuffling"));
-      }, 1500);
+      }, 1000);
     });
 
     placeBtn.addEventListener("click", () => {
@@ -339,29 +359,29 @@
         document.getElementById(`spread${i}`).textContent = selectedCards[i - 1];
       }
 
-      // ★ spread をふわっと表示
-      const spread = document.getElementById("spread-container");
-      spread.style.opacity = "1";
-      spread.style.pointerEvents = "auto";
+      spreadContainer.style.display = "block";
+      setTimeout(() => {
+        spreadContainer.style.opacity = "1";
+      }, 10);
 
       step = 4;
       updateStatus();
       updateButtons();
+      
+      // スプレッドが見えるように上部へスクロール
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
     function buildPrompt() {
-      let text = "";
-      text += "あなたは熟練したタロット占い師です。\n";
+      let text = "あなたは熟練したタロット占い師です。\n";
       text += "以下のヘキサグラムスプレッドから、質問者の現状と今後の流れを総合的に読み解いてください。\n";
       text += "カードの意味を単に説明するのではなく、全体の流れ・因果関係・最終的なメッセージを中心にまとめてください。\n\n";
       text += "【スプレッド】\n";
-
       for (let i = 1; i <= 6; i++) {
         const name = selectedCards[i - 1];
         const meaning = tarot[name];
         text += `${positions[i]}：${name}（意味：${meaning}）\n`;
       }
-
       text += "\n最後に、質問者への総合アドバイスを1つ書いてください。";
       return text;
     }
@@ -388,11 +408,8 @@
       document.querySelectorAll(".grid-card").forEach(c => c.classList.remove("selected"));
       document.querySelectorAll(".spread-card").forEach(c => c.textContent = "");
       modal.style.display = "none";
-
-      // ★ spread を非表示に戻す
-      const spread = document.getElementById("spread-container");
-      spread.style.opacity = "0";
-      spread.style.pointerEvents = "none";
+      spreadContainer.style.opacity = "0";
+      spreadContainer.style.display = "none";
 
       if (resetStep) step = 1;
       updateStatus();
