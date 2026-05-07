@@ -43,25 +43,27 @@
       cursor: default;
     }
 
-    #grid-container {
-      width: 640px;
-      max-width: 95vw;
-      margin: 10px auto 0;
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      gap: 8px;
-      justify-items: center;
-    }
+/* カードグリッド（2行にする） */
+#grid-container {
+  width: 640px;
+  max-width: 95vw;
+  margin: 10px auto 0;
+  display: grid;
+  grid-template-columns: repeat(11, 1fr); /* ★ 11列にして2行にする */
+  gap: 6px; /* 少し詰める */
+  justify-items: center;
+}
 
-    .grid-card {
-      width: 70px;
-      height: 110px;
-      border-radius: 8px;
-      background: radial-gradient(circle at 30% 30%, #444, #111);
-      border: 1px solid #555;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
+/* カードサイズを少し小さく */
+.grid-card {
+  width: 60px;   /* ★ 小さくした */
+  height: 95px;  /* ★ 小さくした */
+  border-radius: 8px;
+  background: radial-gradient(circle at 30% 30%, #444, #111);
+  border: 1px solid #555;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
 
     .grid-card.selected {
       box-shadow: 0 0 12px rgba(255, 216, 107, 0.9);
@@ -69,10 +71,28 @@
       transform: translateY(-4px) scale(1.02);
     }
 
+    /* ほんの少し震えるアニメーション */
+    @keyframes soft-shake {
+      0%   { transform: translate(0, 0); }
+      25%  { transform: translate(0.5px, -0.5px); }
+      50%  { transform: translate(-0.5px, 0.5px); }
+      75%  { transform: translate(0.5px, 0.5px); }
+      100% { transform: translate(0, 0); }
+    }
+
+    .shuffling {
+      animation: soft-shake 0.12s infinite;
+      border-color: #ffd86b;
+    }
+
+    /* ヘキサグラム配置（最初は非表示） */
     #spread-container {
       width: 420px;
       max-width: 95vw;
       margin: 30px auto 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
     }
 
     .spread-row {
@@ -139,19 +159,6 @@
       overflow-y: auto;
       margin-top: 8px;
     }
-    @keyframes soft-shake {
-  0%   { transform: translate(0, 0); }
-  25%  { transform: translate(0.5px, -0.5px); }
-  50%  { transform: translate(-0.5px, 0.5px); }
-  75%  { transform: translate(0.5px, 0.5px); }
-  100% { transform: translate(0, 0); }
-}
-
-.shuffling {
-  animation: soft-shake 0.12s infinite;
-  border-color: #ffd86b;
-}
-
   </style>
 </head>
 <body>
@@ -309,21 +316,20 @@
       }
     }
 
-shuffleBtn.addEventListener("click", () => {
-  resetAll(false);
-  step = 2;
-  updateStatus();
-  updateButtons();
+    shuffleBtn.addEventListener("click", () => {
+      resetAll(false);
+      step = 2;
+      updateStatus();
+      updateButtons();
 
-  // --- シャッフル演出（控えめ） ---
-  const cards = document.querySelectorAll(".grid-card");
-  cards.forEach(c => c.classList.add("shuffling"));
+      // --- シャッフル演出（控えめ） ---
+      const cards = document.querySelectorAll(".grid-card");
+      cards.forEach(c => c.classList.add("shuffling"));
 
-  // 1.5秒後に停止
-  setTimeout(() => {
-    cards.forEach(c => c.classList.remove("shuffling"));
-  }, 1000);
-});
+      setTimeout(() => {
+        cards.forEach(c => c.classList.remove("shuffling"));
+      }, 1500);
+    });
 
     placeBtn.addEventListener("click", () => {
       if (step !== 3) return;
@@ -331,6 +337,11 @@ shuffleBtn.addEventListener("click", () => {
       for (let i = 1; i <= 6; i++) {
         document.getElementById(`spread${i}`).textContent = selectedCards[i - 1];
       }
+
+      // ★ spread をふわっと表示
+      const spread = document.getElementById("spread-container");
+      spread.style.opacity = "1";
+      spread.style.pointerEvents = "auto";
 
       step = 4;
       updateStatus();
@@ -376,6 +387,11 @@ shuffleBtn.addEventListener("click", () => {
       document.querySelectorAll(".grid-card").forEach(c => c.classList.remove("selected"));
       document.querySelectorAll(".spread-card").forEach(c => c.textContent = "");
       modal.style.display = "none";
+
+      // ★ spread を非表示に戻す
+      const spread = document.getElementById("spread-container");
+      spread.style.opacity = "0";
+      spread.style.pointerEvents = "none";
 
       if (resetStep) step = 1;
       updateStatus();
