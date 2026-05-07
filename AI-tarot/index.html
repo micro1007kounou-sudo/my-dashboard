@@ -43,27 +43,28 @@
       cursor: default;
     }
 
-/* カードグリッド（2行にする） */
+/* カードグリッド（レスポンシブ & 中央揃え） */
 #grid-container {
-  width: 640px;
+  width:700px;
   max-width: 95vw;
   margin: 10px auto 0;
   display: grid;
-  grid-template-columns: repeat(11, 1fr); /* ★ 11列にして2行にする */
-  gap: 6px; /* 少し詰める */
+  grid-template-columns: repeat(auto-fit, minmax(55px, 1fr));
+  gap: 6px;
   justify-items: center;
 }
 
 /* カードサイズを少し小さく */
 .grid-card {
-  width: 60px;   /* ★ 小さくした */
-  height: 95px;  /* ★ 小さくした */
+  width: 55px;
+  height: 90px;
   border-radius: 8px;
   background: radial-gradient(circle at 30% 30%, #444, #111);
   border: 1px solid #555;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
 }
+
 
     .grid-card.selected {
       box-shadow: 0 0 12px rgba(255, 216, 107, 0.9);
