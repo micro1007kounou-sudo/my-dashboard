@@ -10,8 +10,21 @@
   <style>
     body { font-family: sans-serif; padding: 16px; }
     #result { white-space: pre-wrap; margin-top: 20px; }
-  canvas { margin-top: 20px; }
+/* PC：Chart.js の自動伸縮をそのまま使う */
+canvas {
+  width: 100%;
+  height: auto;        /* ← これがPCで縦幅が伸び縮みする理由 */
+  margin-top: 20px;
+  display: block;
+}
 
+/* スマホ：画面幅に合わせて縮む */
+@media (max-width: 600px) {
+  canvas {
+    width: 100%;
+    height: auto;
+  }
+}
 
 
   </style>
