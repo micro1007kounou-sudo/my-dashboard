@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>AIタロット占い（プロンプト生成版）</title>
+  <title>AIタロット占い</title>
   <style>
     body {
       background:
@@ -33,6 +33,7 @@
       color: #ffd86b;
       letter-spacing: 0.1em;
       font-size: 20px;
+      text-shadow: 0 0 10px rgba(255, 216, 107, 0.5);
     }
 
     #status {
@@ -43,155 +44,163 @@
       min-height: 2em;
     }
 
-    .controls {
-      margin-top: 10px;
-      margin-bottom: 20px;
+    /* テーマ選択エリア */
+    .theme-selector {
+      margin: 15px 0;
+    }
+    #tarot-theme {
+      background: #1e1e2f;
+      color: #ffd86b;
+      border: 1px solid #ffd86b;
+      padding: 8px 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      outline: none;
     }
 
-    button {
-      padding: 6px 16px;
+    .controls {
+      margin-top: 10px;
+      margin-bottom: 25px;
+    }
+
+    button, .link-button {
+      display: inline-block;
+      text-decoration: none;
+      padding: 10px 20px;
       border-radius: 999px;
       border: 1px solid #ffd86b;
-      background: transparent;
+      background: linear-gradient(135deg, #2a2a4a 0%, #16162d 100%);
       color: #ffd86b;
       cursor: pointer;
       font-size: 13px;
-      margin-inline: 4px;
-      transition: all 0.2s;
+      font-weight: bold;
+      margin: 4px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+      outline: none;
+      box-sizing: border-box;
     }
 
-    button:hover:not(:disabled) {
-      background: rgba(255, 216, 107, 0.1);
+    button:hover:not(:disabled), .link-button:hover {
+      background: linear-gradient(135deg, #ffd86b 0%, #e6b840 100%);
+      color: #0b0b15;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 216, 107, 0.4);
     }
 
     button:disabled {
-      opacity: 0.3;
+      background: #1a1a25;
+      border-color: #444;
+      color: #666;
+      opacity: 0.6;
       cursor: default;
+      box-shadow: none;
     }
 
-    /* ヘキサグラム配置エリア */
+    #reset-btn { border-color: #ff8c8c; color: #ff8c8c; }
+    #reset-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, #ff8c8c 0%, #ff5e5e 100%);
+      color: #fff;
+    }
+
+    .gemini-btn { border-color: #8ab4f8; color: #8ab4f8; }
+    .gemini-btn:hover { background: linear-gradient(135deg, #8ab4f8 0%, #4285f4 100%) !important; color: #fff !important; }
+    .chatgpt-btn { border-color: #74aa9c; color: #74aa9c; }
+    .chatgpt-btn:hover { background: linear-gradient(135deg, #74aa9c 0%, #19c37d 100%) !important; color: #fff !important; }
+    .claude-btn { border-color: #d97757; color: #d97757; }
+    .claude-btn:hover { background: linear-gradient(135deg, #d97757 0%, #c05a3d 100%) !important; color: #fff !important; }
+
     #spread-container {
       width: 420px;
       max-width: 95vw;
-      margin: 0 auto; /* ボタンのすぐ下 */
+      margin: 0 auto;
       opacity: 0;
-      display: none; /* 初期状態は非表示 */
+      display: none;
       transition: opacity 0.6s ease;
     }
 
-    .spread-row {
-      display: flex;
-      justify-content: space-between;
-      margin: 18px 0;
-    }
-
-    .spread-row.center {
-      justify-content: center;
-    }
+    .spread-row { display: flex; justify-content: space-between; margin: 18px 0; }
+    .spread-row.center { justify-content: center; }
 
     .spread-card {
-      width: 90px;
-      height: 140px;
-      border-radius: 8px;
-      background: #faf5e6;
-      color: #222;
-      border: 1px solid #ffd86b;
-      box-shadow: 0 0 14px rgba(255, 216, 107, 0.9);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 6px;
-      box-sizing: border-box;
-      font-size: 12px;
-      font-weight: bold;
+      width: 95px; height: 145px; border-radius: 8px; background: #faf5e6; color: #222;
+      border: 2px solid #ffd86b; box-shadow: 0 0 20px rgba(255, 216, 107, 0.7);
+      display: flex; align-items: center; justify-content: center; padding: 10px;
+      box-sizing: border-box; font-size: 14px; font-weight: bold;
     }
 
-    .spread-label {
-      font-size: 11px;
-      color: #ccc;
-      margin-top: 4px;
-    }
+    .spread-label { font-size: 12px; color: #ffeb9c; margin-top: 6px; font-weight: bold; }
 
-    /* カードグリッドエリア */
     #grid-container {
-      width: 700px;
-      max-width: 95vw;
-      margin: 30px auto 0;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(55px, 1fr));
-      gap: 6px;
-      justify-items: center;
+      width: 720px; max-width: 95vw; margin: 30px auto 0;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(55px, 1fr));
+      gap: 8px; justify-items: center;
     }
 
     .grid-card {
-      width: 55px;
-      height: 90px;
-      border-radius: 8px;
+      width: 55px; height: 90px; border-radius: 8px; border: 1px solid #555;
       background: radial-gradient(circle at 30% 30%, #444, #111);
-      border: 1px solid #555;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer; transition: all 0.2s;
     }
 
     .grid-card.selected {
-      box-shadow: 0 0 12px rgba(255, 216, 107, 0.9);
-      border-color: #ffd86b;
-      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 0 15px rgba(255, 216, 107, 1);
+      border-color: #ffd86b; transform: translateY(-8px) scale(1.05);
     }
 
-    @keyframes soft-shake {
-      0%   { transform: translate(0, 0); }
-      25%  { transform: translate(0.5px, -0.5px); }
-      50%  { transform: translate(-0.5px, 0.5px); }
-      75%  { transform: translate(0.5px, 0.5px); }
-      100% { transform: translate(0, 0); }
-    }
-
-    .shuffling {
-      animation: soft-shake 0.12s infinite;
-      border-color: #ffd86b;
-    }
-
-    /* モーダル */
     #modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.7);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+      display: none; align-items: center; justify-content: center; z-index: 100;
     }
 
     #modal-content {
-      background: #222;
-      padding: 20px;
-      border-radius: 8px;
-      width: 90%;
-      max-width: 600px;
-      text-align: left;
-      color: #eee;
+      background: #1e1e2f; padding: 25px; border-radius: 12px; width: 90%;
+      max-width: 650px; text-align: left; color: #eee; border: 1px solid #ffd86b;
     }
 
     #prompt-text {
-      white-space: pre-wrap;
-      background: #111;
-      padding: 12px;
-      border-radius: 6px;
-      border: 1px solid #444;
-      font-size: 13px;
-      line-height: 1.6;
-      max-height: 300px;
-      overflow-y: auto;
-      margin-top: 8px;
+      white-space: pre-wrap; background: #0b0b15; padding: 15px; border-radius: 8px;
+      border: 1px solid #444; font-size: 13px; line-height: 1.6;
+      max-height: 200px; overflow-y: auto; margin-top: 10px;
     }
+
+    .modal-buttons {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    #close-modal { float: right; padding: 4px 12px; margin-bottom: 10px; }
+
+    @keyframes soft-shake {
+      0% { transform: translate(0, 0); }
+      25% { transform: translate(0.5px, -0.5px); }
+      50% { transform: translate(-0.5px, 0.5px); }
+      75% { transform: translate(0.5px, 0.5px); }
+      100% { transform: translate(0, 0); }
+    }
+    .shuffling { animation: soft-shake 0.12s infinite; border-color: #ffd86b; }
   </style>
 </head>
 <body>
 
-  <h1>AIタロット占い（プロンプト生成版）</h1>
+  <h1>AIタロット占い（テーマ選択版）</h1>
 
-  <div id="status">① まずはシャッフルしましょう</div>
+  <div id="status">① 占うテーマを選んでシャッフルしましょう</div>
+
+  <div class="theme-selector">
+    <label for="tarot-theme" style="color: #ffd86b; font-size: 0.9em; margin-right: 10px;">占うテーマ:</label>
+    <select id="tarot-theme">
+      <option value="総合運">総合運（全体的な流れ）</option>
+      <option value="恋愛運">恋愛運（出会い・片思い・パートナー）</option>
+      <option value="仕事運">仕事運（キャリア・転職・人間関係）</option>
+      <option value="金運">金運（収入・投資・買い物）</option>
+      <option value="対人関係">対人関係（友人・家族・苦手な人）</option>
+    </select>
+  </div>
 
   <div class="controls">
     <button id="shuffle-btn">① シャッフル</button>
@@ -200,88 +209,65 @@
     <button id="reset-btn">リセット</button>
   </div>
 
-  <!-- ★配置エリアをグリッドの上に移動 -->
   <div id="spread-container">
     <div class="spread-row center">
-      <div>
-        <div class="spread-card" id="spread1"></div>
-        <div class="spread-label">過去</div>
-      </div>
+      <div><div class="spread-card" id="spread1"></div><div class="spread-label">過去</div></div>
     </div>
-
     <div class="spread-row">
-      <div>
-        <div class="spread-card" id="spread4"></div>
-        <div class="spread-label">対策</div>
-      </div>
-      <div>
-        <div class="spread-card" id="spread2"></div>
-        <div class="spread-label">現在</div>
-      </div>
+      <div><div class="spread-card" id="spread4"></div><div class="spread-label">対策</div></div>
+      <div><div class="spread-card" id="spread2"></div><div class="spread-label">現在</div></div>
     </div>
-
     <div class="spread-row">
-      <div>
-        <div class="spread-card" id="spread5"></div>
-        <div class="spread-label">周囲</div>
-      </div>
-      <div>
-        <div class="spread-card" id="spread3"></div>
-        <div class="spread-label">未来</div>
-      </div>
+      <div><div class="spread-card" id="spread5"></div><div class="spread-label">周囲</div></div>
+      <div><div class="spread-card" id="spread3"></div><div class="spread-label">未来</div></div>
     </div>
-
     <div class="spread-row center">
-      <div>
-        <div class="spread-card" id="spread6"></div>
-        <div class="spread-label">結果</div>
-      </div>
+      <div><div class="spread-card" id="spread6"></div><div class="spread-label">結果</div></div>
     </div>
   </div>
 
-  <!-- カード選択用のグリッド -->
   <div id="grid-container"></div>
 
-  <!-- モーダル -->
   <div id="modal">
     <div id="modal-content">
       <button id="close-modal">閉じる</button>
-      <h3>④ AIに貼り付けて占い結果を受け取りましょう</h3>
-      <p>このプロンプトを AI（Gemini, ChatGPT等）に貼り付けてください。</p>
+      <h3 style="color: #ffd86b; margin-top: 0;">占いプロンプトが完成しました</h3>
+      <p style="font-size: 0.9em; line-height: 1.5;">
+        1. 下のボタンでプロンプトを<b>コピー</b>してください。<br>
+        2. お好きなAIを開いて<b>貼り付け</b>、送信してください。
+      </p>
+      
       <div id="prompt-text"></div>
-      <button id="copy-btn">コピー</button>
+      
+      <div class="modal-buttons" style="border-bottom: 1px solid #444; padding-bottom: 15px; margin-bottom: 15px;">
+        <button id="copy-btn">プロンプトをコピーする</button>
+      </div>
+
+      <p style="font-size: 0.8em; text-align: center; color: #ffeb9c; margin-bottom: 10px;">コピーした内容を貼り付けて占う（無料AIリンク）</p>
+      <div class="modal-buttons">
+        <a href="https://gemini.google.com/app" target="_blank" class="link-button gemini-btn">Gemini</a>
+        <a href="https://chatgpt.com/" target="_blank" class="link-button chatgpt-btn">ChatGPT</a>
+        <a href="https://claude.ai/" target="_blank" class="link-button claude-btn">Claude</a>
+      </div>
     </div>
   </div>
 
   <script>
     const tarot = {
-      "愚者": "自由・冒険・無邪気・新しい旅立ち",
-      "魔術師": "創造・始まり・才能・行動力",
-      "女教皇": "直感・静寂・精神性・冷静さ",
-      "女帝": "豊かさ・愛情・育成",
-      "皇帝": "支配・安定・責任",
-      "法王": "伝統・助言・精神性",
-      "恋人": "選択・愛・関係性",
-      "戦車": "勝利・前進・意志",
-      "力": "勇気・忍耐・内なる強さ",
-      "隠者": "探求・内省・孤独",
-      "運命の輪": "転機・変化・チャンス",
-      "正義": "公平・バランス・判断",
-      "吊るされた男": "犠牲・視点変更・停滞",
-      "死神": "終わり・再生・変化",
-      "節制": "調和・節度・バランス",
-      "悪魔": "誘惑・依存・束縛",
-      "塔": "崩壊・衝撃・リセット",
-      "星": "希望・癒し・未来",
-      "月": "不安・迷い・潜在意識",
-      "太陽": "成功・幸福・活力",
-      "審判": "復活・決断・再評価",
-      "世界": "完成・達成・統合"
+      "愚者": "自由・冒険・無邪気・新しい旅立ち", "魔術師": "創造・始まり・才能・行動力",
+      "女教皇": "直感・静寂・精神性・冷静さ", "女帝": "豊かさ・愛情・育成",
+      "皇帝": "支配・安定・責任", "法王": "伝統・助言・精神性",
+      "恋人": "選択・愛・関係性", "戦車": "勝利・前進・意志",
+      "力": "勇気・忍耐・内なる強さ", "隠者": "探求・内省・孤独",
+      "運命の輪": "転機・変化・チャンス", "正義": "公平・バランス・判断",
+      "吊るされた男": "犠牲・視点変更・停滞", "死神": "終わり・再生・変化",
+      "節制": "調和・節度・バランス", "悪魔": "誘惑・依存・束縛",
+      "塔": "崩壊・衝撃・リセット", "星": "希望・癒し・未来",
+      "月": "不安・迷い・潜在意識", "太陽": "成功・幸福・活力",
+      "審判": "復活・決断・再評価", "世界": "完成・達成・統合"
     };
 
-    const positions = {
-      1: "過去", 2: "現在", 3: "未来", 4: "対策", 5: "周囲", 6: "結果"
-    };
+    const positions = { 1: "過去", 2: "現在", 3: "未来", 4: "対策", 5: "周囲", 6: "結果" };
 
     const gridContainer = document.getElementById("grid-container");
     const spreadContainer = document.getElementById("spread-container");
@@ -290,6 +276,7 @@
     const promptBtn = document.getElementById("prompt-btn");
     const resetBtn = document.getElementById("reset-btn");
     const statusEl = document.getElementById("status");
+    const themeSelect = document.getElementById("tarot-theme");
     const modal = document.getElementById("modal");
     const promptText = document.getElementById("prompt-text");
     const closeModal = document.getElementById("close-modal");
@@ -310,7 +297,7 @@
     }
 
     function updateStatus() {
-      if (step === 1) statusEl.textContent = "① まずはシャッフルしましょう";
+      if (step === 1) statusEl.textContent = "① 占うテーマを選んでシャッフルしましょう";
       if (step === 2) statusEl.textContent = "② 気になるカードを6枚選んでください (" + selectedCards.length + "/6)";
       if (step === 3) statusEl.textContent = "③ 配置ボタンを押して結果を並べましょう";
       if (step === 4) statusEl.textContent = "④ プロンプトを表示してAIに相談しましょう";
@@ -320,6 +307,7 @@
       shuffleBtn.disabled = step !== 1;
       placeBtn.disabled = step !== 3;
       promptBtn.disabled = step !== 4;
+      themeSelect.disabled = step !== 1;
     }
 
     function onCardClick(e) {
@@ -327,60 +315,43 @@
       const div = e.currentTarget;
       if (div.classList.contains("selected")) return;
       if (selectedCards.length >= 6) return;
-
       div.classList.add("selected");
       selectedCards.push(div.dataset.cardName);
       updateStatus();
-
-      if (selectedCards.length === 6) {
-        step = 3;
-        updateStatus();
-        updateButtons();
-      }
+      if (selectedCards.length === 6) { step = 3; updateStatus(); updateButtons(); }
     }
 
     shuffleBtn.addEventListener("click", () => {
       resetAll(false);
-      step = 2;
-      updateStatus();
-      updateButtons();
-
+      step = 2; updateStatus(); updateButtons();
       const cards = document.querySelectorAll(".grid-card");
       cards.forEach(c => c.classList.add("shuffling"));
-      setTimeout(() => {
-        cards.forEach(c => c.classList.remove("shuffling"));
-      }, 1000);
+      setTimeout(() => cards.forEach(c => c.classList.remove("shuffling")), 1000);
     });
 
     placeBtn.addEventListener("click", () => {
       if (step !== 3) return;
-
-      for (let i = 1; i <= 6; i++) {
-        document.getElementById(`spread${i}`).textContent = selectedCards[i - 1];
-      }
-
+      for (let i = 1; i <= 6; i++) { document.getElementById(`spread${i}`).textContent = selectedCards[i - 1]; }
       spreadContainer.style.display = "block";
-      setTimeout(() => {
-        spreadContainer.style.opacity = "1";
-      }, 10);
-
-      step = 4;
-      updateStatus();
-      updateButtons();
-      
-      // スプレッドが見えるように上部へスクロール
+      setTimeout(() => spreadContainer.style.opacity = "1", 10);
+      step = 4; updateStatus(); updateButtons();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
     function buildPrompt() {
-      let text = "あなたは熟練したタロット占い師です。\n";
-      text += "以下のヘキサグラムスプレッドから、質問者の現状と今後の流れを総合的に読み解いてください。\n";
-      text += "カードの意味を単に説明するのではなく、全体の流れ・因果関係・最終的なメッセージを中心にまとめてください。\n\n";
-      text += "【スプレッド】\n";
+      const theme = themeSelect.value;
+      let text = `あなたは熟練したタロット占い師です。\n今回は【${theme}】について、以下のヘキサグラムスプレッドから質問者の現状と今後の流れを総合的に読み解いてください。\n`;
+      
+      // テーマ別の指示を追加
+      if(theme === "恋愛運") text += "特に相手の気持ちや、より良い関係を築くための具体的なアプローチに焦点を当ててください。\n";
+      if(theme === "仕事運") text += "仕事におけるチャンスや課題、人間関係、あるいは今後のキャリアの進展について焦点を当ててください。\n";
+      if(theme === "金運") text += "収支のバランス、投資や貯蓄のタイミング、経済的な豊かさを引き寄せるためのヒントに焦点を当ててください。\n";
+      if(theme === "対人関係") text += "周囲の人々との調和や、コミュニケーションの改善点、信頼関係の構築について焦点を当ててください。\n";
+      
+      text += "カードの意味を単に説明するのではなく、全体の流れ・因果関係・最終的なメッセージを中心にまとめてください。\n\n【スプレッド】\n";
       for (let i = 1; i <= 6; i++) {
         const name = selectedCards[i - 1];
-        const meaning = tarot[name];
-        text += `${positions[i]}：${name}（意味：${meaning}）\n`;
+        text += `${positions[i]}：${name}（意味：${tarot[name]}）\n`;
       }
       text += "\n最後に、質問者への総合アドバイスを1つ書いてください。";
       return text;
@@ -391,14 +362,12 @@
       modal.style.display = "flex";
     });
 
-    closeModal.addEventListener("click", () => {
-      modal.style.display = "none";
-    });
+    closeModal.addEventListener("click", () => modal.style.display = "none");
 
     copyBtn.addEventListener("click", () => {
       navigator.clipboard.writeText(promptText.textContent);
-      copyBtn.textContent = "コピーしました！";
-      setTimeout(() => copyBtn.textContent = "コピー", 1500);
+      copyBtn.textContent = "コピー完了！";
+      setTimeout(() => copyBtn.textContent = "プロンプトをコピーする", 1500);
     });
 
     resetBtn.addEventListener("click", () => resetAll(true));
@@ -408,17 +377,15 @@
       document.querySelectorAll(".grid-card").forEach(c => c.classList.remove("selected"));
       document.querySelectorAll(".spread-card").forEach(c => c.textContent = "");
       modal.style.display = "none";
-      spreadContainer.style.opacity = "0";
-      spreadContainer.style.display = "none";
-
-      if (resetStep) step = 1;
-      updateStatus();
-      updateButtons();
+      spreadContainer.style.opacity = "0"; spreadContainer.style.display = "none";
+      if (resetStep) {
+        step = 1;
+        themeSelect.value = "総合運";
+      }
+      updateStatus(); updateButtons();
     }
 
-    initGrid();
-    updateStatus();
-    updateButtons();
+    initGrid(); updateStatus(); updateButtons();
   </script>
 </body>
 </html>
