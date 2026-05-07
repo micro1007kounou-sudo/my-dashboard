@@ -4,29 +4,28 @@
   <meta charset="UTF-8">
   <title>Aタイプスロットシミュレーション</title>
 
-  <!-- Chart.js 読み込み -->
+  <!-- グラフ描画ライブラリ Chart.js の読み込み -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     body { font-family: sans-serif; padding: 16px; }
     #result { white-space: pre-wrap; margin-top: 20px; }
-/* PC：Chart.js の自動伸縮をそのまま使う */
-canvas {
-  width: 100%;
-  height: auto;        /* ← これがPCで縦幅が伸び縮みする理由 */
-  margin-top: 20px;
-  display: block;
-}
+    
+    /* PC・スマホ共通：グラフを表示するキャンバスの基本設定 */
+    canvas {
+      width: 100%;
+      height: auto;
+      margin-top: 20px;
+      display: block;
+    }
 
-/* スマホ：画面幅に合わせて縮む */
-@media (max-width: 600px) {
-  canvas {
-    width: 100%;
-    height: auto;
-  }
-}
-
-
+    /* スマホ（画面幅600px以下）用のレスポンシブ対応 */
+    @media (max-width: 600px) {
+      canvas {
+        width: 100%;
+        height: auto;
+      }
+    }
   </style>
 </head>
 <body>
@@ -36,6 +35,7 @@ canvas {
   ※ボーナス確率はゴージャグ3を参考にしています。
 </div>
 
+<!-- ユーザー入力：設定選択と試行ゲーム数 -->
 <select id="setting">
   <option value="1">設定1</option>
   <option value="2">設定2</option>
@@ -48,16 +48,19 @@ canvas {
 <input id="games" type="number" value="5000">
 <button onclick="runSim()">開始</button>
 
+<!-- 結果テキストとスランプグラフの表示エリア -->
 <div id="result"></div>
 <canvas id="lineChart" width="600" height="300"></canvas>
+
 <h3>コイン持ち</h3>
 <div style="margin-bottom:10px; font-size:14px;">
   50枚あたり：約40回転
 </div>
 
+<!-- 参考：スペック表（HTMLテーブル） -->
 <h3>設定別ボーナス確率</h3>
 <div style="margin-bottom:10px; font-size:14px;">
- 獲得数 BIG240枚　REG96枚
+  獲得数 BIG240枚　REG96枚
 </div>
 <table border="1" cellpadding="6" style="border-collapse: collapse; margin-top:10px;">
   <tr>
@@ -75,7 +78,10 @@ canvas {
 </table>
 
 <script>
-// 設定別ボーナス確率（BIG, REG, 合算）
+/**
+ * 定数定義
+ * SETTING_DATA: [BIG確率分母, REG確率分母, 合算確率分母]
+ */
 const SETTING_DATA = {
   1: [259.0, 354.2, 149.6],
   2: [258.0, 332.7, 145.3],
@@ -85,108 +91,123 @@ const SETTING_DATA = {
   6: [234.9, 234.9, 117.4],
 };
 
-const BB_PAY = 240;
-const RB_PAY = 96;
-const COIN_PER_GAME = 50 / 40; // 1.25枚
+const BB_PAY = 240;        // BIG獲得枚数
+const RB_PAY = 96;         // REG獲得枚数
+const COIN_PER_GAME = 50 / 40; // 1Gあたりの消費枚数（50枚で40G回る＝1.25枚）
 
+/**
+ * シミュレーション実行関数
+ * @param {number} setting - 選択された設定
+ * @param {number} games - 試行ゲーム数
+ */
 function simulate(setting, games) {
   const [bigBunbo, regBunbo, totalBunbo] = SETTING_DATA[setting];
 
-  const pTotal = 1 / totalBunbo;
+  const pTotal = 1 / totalBunbo; // 何かしらのボーナスを引く確率
+  // ボーナス当選時にどちらが選ばれるかの比率
   const pBigRatio = (1 / bigBunbo) / ((1 / bigBunbo) + (1 / regBunbo));
 
-  let big = 0;
-  let reg = 0;
-  let diff = 0;
-  let diffList = [];
+  let big = 0;           // BIG回数カウンタ
+  let reg = 0;           // REG回数カウンタ
+  let diff = 0;          // 差枚数合計
+  let diffList = [];     // グラフ用の差枚推移データ
 
   for (let i = 0; i < games; i++) {
+    // 1G消化ごとにメダルを消費
     diff -= COIN_PER_GAME;
 
+    // ボーナス抽選（0〜1の乱数が当選確率を下回れば当選）
     if (Math.random() < pTotal) {
       if (Math.random() < pBigRatio) {
         big++;
-        diff += BB_PAY;
+        diff += BB_PAY; // BIGなら240枚加算
       } else {
         reg++;
-        diff += RB_PAY;
+        diff += RB_PAY; // REGなら96枚加算
       }
     }
-
+    // 毎ゲームの差枚を配列に保存（グラフ用）
     diffList.push(diff);
   }
 
   return { big, reg, diff, diffList };
 }
 
+// Chartオブジェクトを保持する変数（再描画時に破棄するため）
 let chart = null;
 
+/**
+ * ボタンクリック時に実行されるメイン処理
+ */
 function runSim() {
+  // 入力値の取得
   const setting = Number(document.getElementById("setting").value);
   const games = Number(document.getElementById("games").value);
 
+  // シミュレーション実行
   const { big, reg, diff, diffList } = simulate(setting, games);
 
-  // ボーナス確率計算
+  // ボーナス出現率の計算
   const bigRate = big > 0 ? (games / big).toFixed(1) : "-";
   const regRate = reg > 0 ? (games / reg).toFixed(1) : "-";
   const totalRate = (big + reg) > 0 ? (games / (big + reg)).toFixed(1) : "-";
 
-document.getElementById("result").innerText =
-  `設定${setting} を ${games}G 回した結果\n` +
-  `BIG：${big} 回（1/${bigRate}）\n` +
-  `REG：${reg} 回（1/${regRate}）\n` +
-  `合算：${big + reg} 回（1/${totalRate}）\n` +
-  `差枚：${diff.toFixed(0)} 枚（${(diff * 20).toLocaleString()} 円）`;
+  // 画面上に結果テキストを表示
+  document.getElementById("result").innerText =
+    `設定${setting} を ${games}G 回した結果\n` +
+    `BIG：${big} 回（1/${bigRate}）\n` +
+    `REG：${reg} 回（1/${regRate}）\n` +
+    `合算：${big + reg} 回（1/${totalRate}）\n` +
+    `差枚：${diff.toFixed(0)} 枚（${(diff * 20).toLocaleString()} 円）`;
 
-
-  // 既存グラフがあれば破棄
+  // 既存のグラフがある場合は一度消去（メモリリーク防止・バグ防止）
   if (chart) chart.destroy();
 
   const ctx = document.getElementById("lineChart").getContext("2d");
 
-  // 0 を中央に固定するための上下対称スケール
+  // スランプグラフを中央配置にするため、データの最大振れ幅を計算
   const maxAbs = Math.max(
     Math.abs(Math.min(...diffList)),
     Math.abs(Math.max(...diffList))
   );
 
+  // Chart.js インスタンス作成
   chart = new Chart(ctx, {
     type: "line",
     data: {
-      labels: diffList.map((_, i) => i + 1),
+      labels: diffList.map((_, i) => i + 1), // x軸：1〜ゲーム数
       datasets: [{
         label: "差枚推移",
         data: diffList,
         borderColor: "blue",
         borderWidth: 1,
-        pointRadius: 0,
-        tension: 0.1
+        pointRadius: 0, // 点を表示しない（線のみ）
+        tension: 0.1    // 線のわずかな丸み
       }]
     },
-options: {
+    options: {
       responsive: true,
       scales: {
         y: {
-          min: -maxAbs,
+          min: -maxAbs, // 上下対称の範囲設定
           max:  maxAbs,
           title: { display: true, text: "差枚" },
-          // --- ここから追加 ---
           grid: {
+            // y軸の各目盛り線に対する色の設定
             color: (context) => {
               if (context.tick.value === 0) {
-                return 'rgba(0, 0, 0, 1.0)'; // 0の線の色（黒）
+                return 'rgba(0, 0, 0, 1.0)'; // 差枚0の線は黒く
               }
-              return 'rgba(0, 0, 0, 0.1)';   // それ以外の線の色（薄い灰色）
+              return 'rgba(0, 0, 0, 0.1)';   // それ以外は薄く
             },
+            // y軸の各目盛り線に対する太さの設定
             lineWidth: (context) => {
               if (context.tick.value === 0) {
-                return 3; // 0の線の太さ
+                return 3; // 差枚0の線は太く（強調）
               }
-              return 1;   // それ以外の線の太さ
+              return 1;   // それ以外は通常
             }
           }
-          // --- ここまで追加 ---
         },
         x: {
           title: { display: true, text: "ゲーム数" }
@@ -196,6 +217,7 @@ options: {
   });
 }
 </script>
+
 <footer style="text-align:center; margin-top:40px;">
   <a href="../index.html">
     <img src="../bannar_S.png" alt="Back to Dashboard" 
