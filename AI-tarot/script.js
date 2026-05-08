@@ -89,14 +89,22 @@ placeBtn.addEventListener("click", () => {
     const cardIndex = Object.keys(tarot).indexOf(name);
     const fileName = cardFiles[cardIndex];
     const targetEl = document.getElementById(`spread${i + 1}`);
+    const nodeEl = document.getElementById(`node${i + 1}`); // ノードを取得
     
-    // 日本語名を上、画像を下に配置
+    // 1. 画像の上の文字を「役割名」にする
+    const roleName = positions[i + 1]; 
     targetEl.innerHTML = `
       <div class="card-wrapper">
-        <div class="card-name-label">${name}</div>
         <img src="cards/${fileName}" alt="${name}" class="tarot-img">
+        <div class="card-name-overlay">${roleName}</div>
       </div>
     `;
+    
+    // 2. 下のラベルの文字を「カード名」に書き換える
+    const labelEl = nodeEl.querySelector(".spread-label");
+    if (labelEl) {
+      labelEl.textContent = name;
+    }
   });
   
   spreadContainer.style.display = "block";
@@ -104,7 +112,6 @@ placeBtn.addEventListener("click", () => {
   step = 4; updateStatus(); updateButtons();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
-
 function buildPrompt() {
   const theme = themeSelect.value;
   let text = `あなたは熟練したタロット占い師です。\n今回は【${theme}】について、以下のヘキサグラムスプレッドから質問者の現状と今後の流れを総合的に読み解いてください。\n`;

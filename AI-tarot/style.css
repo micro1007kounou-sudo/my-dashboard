@@ -151,18 +151,35 @@ button:disabled {
   border: none;
 }
 
-/* 役割名ラベル：画像の下に配置されるようマージンを調整 */
+/* 下のラベル：ここに「カード名」が入る */
 .spread-label {
-  margin-top: 10px; /* 画像との隙間をしっかり空ける */
-  font-size: 13px;
-  color: #ffeb9c;
+  position: relative;
+  margin-top: 15px;
+  font-size: 14px; /* カード名なので少し大きくしても良い */
+  color: #ffd86b; /* カード名をメインカラーの金に */
   font-weight: bold;
-  background: rgba(11, 11, 21, 0.8); /* 背景色をbodyに合わせる */
-  padding: 3px 12px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 4px 14px;
   border-radius: 4px;
   border: 1px solid #ffd86b;
   white-space: nowrap;
   z-index: 5;
+  transform: translateY(10px); 
+}
+  
+  /* もしこれでも重なる場合は、以下の1行を追加して強制的に下げます */
+  transform: translateY(10px); 
+}
+
+/* カードを包むノード自体の高さを確保して、ラベルがはみ出さないようにする */
+.spread-card-node {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100px;
+  height: 180px; /* 画像(140px) + ラベル(30px) 分の余裕を持たせる */
+}
 }
 
 /* カード画像と名前のオーバーレイ（画像の上端） */
@@ -176,13 +193,17 @@ button:disabled {
   border-radius: 8px; border: 1.5px solid #ffd86b;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
 }
+/* 画像の上に重なる役割名（過去・現在など） */
 .card-name-overlay {
   position: absolute; 
   top: 0; left: 0; width: 100%;
-  background: rgba(0, 0, 0, 0.7); 
-  color: #ffd86b;
-  font-size: 11px; padding: 4px 0; text-align: center;
+  background: rgba(15, 52, 96, 0.85); /* 役割名なので少し色を変えてもOK */
+  color: #fff; /* 役割名は白、カード名は金という使い分け */
+  font-size: 11px; 
+  padding: 3px 0; 
+  text-align: center;
   border-radius: 6px 6px 0 0;
+  letter-spacing: 0.1em;
 }
 #grid-container {
   width: 720px; max-width: 95vw; margin: 30px auto 0;
