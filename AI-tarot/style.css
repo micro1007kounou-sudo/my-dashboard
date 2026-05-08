@@ -220,7 +220,7 @@ button:disabled {
 /* カード名（画像の下側に重ねる：金枠の黒背景） */
 .spread-label {
   position: absolute;
-  bottom: 8px;        /* PCデフォルトの重なり位置 */
+  bottom: -22px;        /* PCデフォルトの重なり位置 */
   left: 50%;
   transform: translateX(-50%);
   width: 90%;
