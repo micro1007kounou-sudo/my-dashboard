@@ -1,3 +1,4 @@
+/* --- ベースデザイン --- */
 body {
   background:
     radial-gradient(circle at 30% 40%, rgba(150, 80, 255, 0.25) 0%, transparent 60%),
@@ -53,6 +54,7 @@ h1 {
   outline: none;
 }
 
+/* --- ボタン・コントロール --- */
 .controls {
   margin-top: 10px;
   margin-bottom: 25px;
@@ -73,7 +75,6 @@ button, .link-button {
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
   outline: none;
-  box-sizing: border-box;
 }
 
 button:hover:not(:disabled), .link-button:hover {
@@ -89,7 +90,6 @@ button:disabled {
   color: #666;
   opacity: 0.6;
   cursor: default;
-  box-shadow: none;
 }
 
 #reset-btn { border-color: #ff8c8c; color: #ff8c8c; }
@@ -98,113 +98,101 @@ button:disabled {
   color: #fff;
 }
 
-/* AIリンクボタンのホバー色を固定 */
+/* AIリンクボタン */
 .gemini-btn { border-color: #8ab4f8; color: #8ab4f8; }
-.gemini-btn:hover { background: linear-gradient(135deg, #8ab4f8 0%, #4285f4 100%) !important; color: #fff !important; }
+.gemini-btn:hover { background: #8ab4f8 !important; color: #fff !important; }
 .chatgpt-btn { border-color: #74aa9c; color: #74aa9c; }
-.chatgpt-btn:hover { background: linear-gradient(135deg, #74aa9c 0%, #19c37d 100%) !important; color: #fff !important; }
+.chatgpt-btn:hover { background: #74aa9c !important; color: #fff !important; }
 .claude-btn { border-color: #d97757; color: #d97757; }
-.claude-btn:hover { background: linear-gradient(135deg, #d97757 0%, #c05a3d 100%) !important; color: #fff !important; }
+.claude-btn:hover { background: #d97757 !important; color: #fff !important; }
 
-/* 六芒星コンテナのサイズを適正化 */
-/* 全体コンテナを少し上にずらして下のグリッドとの隙間を作る */
-/* 全体コンテナ：上下にしっかり広げる（480px → 600px） */
+/* --- 六芒星スプレッド配置 --- */
 #spread-container {
   position: relative;
-  width: 480px; 
-  height: 600px; 
-  margin: 20px auto 50px; /* 下のグリッドとの間隔を50px確保 */
+  width: 520px; /* 余裕を持って広げる */
+  height: 650px; 
+  margin: 20px auto 60px;
   display: none;
   opacity: 0;
   transition: opacity 0.6s ease;
 }
 
-/* カードとラベルを包むノード */
 .spread-card-node {
   position: absolute;
+  width: 100px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100px;
 }
 
-/* 座標設定：row（行）の意識を持たせて上下をしっかり離す */
-/* 1段目（上） */
-#node1 { top: 0px;   left: 190px; } /* 過去 */
+/* 座標設定（一画面に収まり、かつ重ならない絶妙な間隔） */
+#node1 { top: 0px;   left: 210px; } /* 過去 */
+#node4 { top: 120px; left: 0px; }   /* 対策 */
+#node2 { top: 120px; left: 420px; } /* 現在 */
+#node5 { top: 350px; left: 0px; }   /* 周囲 */
+#node3 { top: 350px; left: 420px; } /* 未来 */
+#node6 { top: 470px; left: 210px; } /* 結果 */
 
-/* 2段目（中上） */
-#node4 { top: 110px;  left: 0px; }   /* 対策 */
-#node2 { top: 110px;  left: 380px; } /* 現在 */
-
-/* 3段目（中下） */
-#node5 { top: 320px; left: 0px; }   /* 周囲 */
-#node3 { top: 320px; left: 380px; } /* 未来 */
-
-/* 4段目（下） */
-#node6 { top: 430px; left: 190px; } /* 結果 */
-
-/* カード本体 */
-.spread-card {
-  width: 95px;
-  height: 140px;
-  background: none; /* 余計な背景を消す */
-  border: none;
-}
-
-/* 下のラベル：ここに「カード名」が入る */
-.spread-label {
-  position: relative;
-  margin-top: 15px;
-  font-size: 14px; /* カード名なので少し大きくしても良い */
-  color: #ffd86b; /* カード名をメインカラーの金に */
-  font-weight: bold;
-  background: rgba(0, 0, 0, 0.8);
-  padding: 4px 14px;
-  border-radius: 4px;
-  border: 1px solid #ffd86b;
-  white-space: nowrap;
-  z-index: 5;
-  transform: translateY(10px); 
-}
-  
-  /* もしこれでも重なる場合は、以下の1行を追加して強制的に下げます */
-  transform: translateY(10px); 
-}
-
-/* カードを包むノード自体の高さを確保して、ラベルがはみ出さないようにする */
-.spread-card-node {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100px;
-  height: 180px; /* 画像(140px) + ラベル(30px) 分の余裕を持たせる */
-}
-}
-
-/* カード画像と名前のオーバーレイ（画像の上端） */
+/* カードを包むラッパー（名前の重なり基準） */
 .card-wrapper {
   position: relative;
-  width: 95px;
-  height: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100px;
 }
+
+/* 役割名（画像の外、上側） */
+.role-label {
+  font-size: 12px;
+  color: #ffeb9c;
+  font-weight: bold;
+  margin-bottom: 6px;
+  background: rgba(255, 216, 107, 0.15);
+  padding: 2px 12px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* タロット画像（切れないようにheight: auto） */
 .tarot-img {
-  width: 100%; height: 100%; object-fit: cover;
-  border-radius: 8px; border: 1.5px solid #ffd86b;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  width: 100px;
+  height: auto; /* 画像を切らずに表示 */
+  border-radius: 8px;
+  border: 1.5px solid #ffd86b;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
 }
-/* 画像の上に重なる役割名（過去・現在など） */
-.card-name-overlay {
-  position: absolute; 
-  top: 0; left: 0; width: 100%;
-  background: rgba(15, 52, 96, 0.85); /* 役割名なので少し色を変えてもOK */
-  color: #fff; /* 役割名は白、カード名は金という使い分け */
-  font-size: 11px; 
-  padding: 3px 0; 
+
+/* カード名ラベル（位置を下げて半透明に） */
+.spread-label {
+  position: absolute;
+  bottom: -20px;      /* 画像の下端ギリギリ（少しはみ出すくらい）まで下げる */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;        /* 横幅を少し広めに */
+  
+  box-sizing: border-box;
+  font-size: 13px;
+  color: #ffd86b;
+  font-weight: bold;
+  
+  /* 背景を半透明（0.85 → 0.6）に変更 */
+  background: rgba(0, 0, 0, 0.432); 
+  /* 背景にぼかしを入れると、半透明でも文字が読みやすくなります */
+  backdrop-filter: blur(4px);
+  
+  padding: 3px 2px;
+  border-radius: 4px;
   text-align: center;
-  border-radius: 6px 6px 0 0;
-  letter-spacing: 0.1em;
+  
+  /* 金色の枠線（ここも少し細く/薄くして馴染ませる） */
+  border: 1px solid rgba(255, 216, 107, 0.6); 
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  
+  z-index: 10;
+  white-space: nowrap;
 }
+/* --- カードグリッド（手札） --- */
 #grid-container {
   width: 720px; max-width: 95vw; margin: 30px auto 0;
   display: grid; grid-template-columns: repeat(auto-fit, minmax(55px, 1fr));
@@ -222,6 +210,7 @@ button:disabled {
   border-color: #ffd86b; transform: translateY(-8px) scale(1.05);
 }
 
+/* --- モーダル --- */
 #modal {
   position: fixed; inset: 0; background: rgba(0,0,0,0.8);
   display: none; align-items: center; justify-content: center; z-index: 100;
@@ -238,16 +227,7 @@ button:disabled {
   max-height: 200px; overflow-y: auto; margin-top: 10px;
 }
 
-.modal-buttons {
-  margin-top: 20px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-}
-
-#close-modal { float: right; padding: 4px 12px; margin-bottom: 10px; }
-
+/* --- アニメーション --- */
 @keyframes soft-shake {
   0% { transform: translate(0, 0); }
   25% { transform: translate(0.5px, -0.5px); }

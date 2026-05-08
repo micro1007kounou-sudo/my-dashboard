@@ -85,30 +85,29 @@ shuffleBtn.addEventListener("click", () => {
 
 placeBtn.addEventListener("click", () => {
   if (step !== 3) return;
+
   selectedCards.forEach((name, i) => {
     const cardIndex = Object.keys(tarot).indexOf(name);
     const fileName = cardFiles[cardIndex];
     const targetEl = document.getElementById(`spread${i + 1}`);
-    const nodeEl = document.getElementById(`node${i + 1}`); // ノードを取得
-    
-    // 1. 画像の上の文字を「役割名」にする
-    const roleName = positions[i + 1]; 
+    const roleName = positions[i + 1]; // 例: "過去"
+
+    // 画像の上に「役割」を重ね、画像の下に「カード名」を置く
+    // 【重要】CSSで重なりを制御するため、クラス名を調整
     targetEl.innerHTML = `
       <div class="card-wrapper">
+        <div class="role-overlay">${roleName}</div>
         <img src="cards/${fileName}" alt="${name}" class="tarot-img">
-        <div class="card-name-overlay">${roleName}</div>
+        <div class="spread-label">${name}</div>
       </div>
     `;
-    
-    // 2. 下のラベルの文字を「カード名」に書き換える
-    const labelEl = nodeEl.querySelector(".spread-label");
-    if (labelEl) {
-      labelEl.textContent = name;
-    }
   });
-  
+
+  // 表示アニメーション
   spreadContainer.style.display = "block";
-  setTimeout(() => spreadContainer.style.opacity = "1", 10);
+  setTimeout(() => { spreadContainer.style.opacity = "1"; }, 10);
+  
+  // ステップ更新
   step = 4; updateStatus(); updateButtons();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
