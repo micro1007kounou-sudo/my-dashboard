@@ -45,6 +45,7 @@ h1 {
     #8a6d3b 100%
   );
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 0 10px rgba(255, 216, 107, 0.4));
 }
