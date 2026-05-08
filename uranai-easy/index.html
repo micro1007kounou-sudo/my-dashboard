@@ -3,129 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <title>簡単占い</title>
-<style>
-body {
-  text-align: center;
-  padding-top: 50px;
-  font-family: sans-serif;
-}
-
-#uranaiBtn {
-  display: block;
-  margin: 0 auto 20px auto;
-}
-
-#gifBox {
-  position: fixed;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: none;
-  z-index: 999;
-}
-
-#loadingGif {
-  width: 300px;
-  height: auto;
-}
-
-#result {
-  opacity: 0;
-  transition: opacity 0.6s ease;
-  margin-top: 20px;
-  font-size: 18px;
-  border: 1px solid #ccc;
-  padding: 20px;
-  border-radius: 10px;
-  /* inline-block を削除して縦並びにする */
-}
-
-.show {
-  opacity: 1 !important;
-}
-#uranaiBtn {
-  display: block;
-  margin: 0 auto 25px auto;
-  padding: 16px 32px;
-  font-size: 20px;
-  font-weight: bold;
-  color: #fff;
-  background: linear-gradient(135deg, #ff9acb, #ff6fb1);
-  border: none;
-  border-radius: 40px;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(255, 120, 180, 0.4);
-  transition: transform 0.15s ease, box-shadow 0.2s ease;
-}
-
-/* ホバーでふわっと光る */
-#uranaiBtn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(255, 120, 180, 0.55);
-}
-
-/* 押した瞬間に“ぷにっ”と縮む */
-#uranaiBtn:active {
-  transform: scale(0.95);
-}
-
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <button id="uranaiBtn">今日の運勢を占う</button>
 
 <div id="gifBox">
-  <!-- 画像がない場合でも動くよう、alt属性を入れるか代わりのテキストを表示 -->
   <img src="omikuji.gif" id="loadingGif" alt="占いちゅう...">
 </div>
 
 <div id="result"></div>
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("uranaiBtn");
-  const gifBox = document.getElementById("gifBox");
-  const result = document.getElementById("result");
-
-  const items = ["青いペン", "コーヒー", "スマホ", "白い紙", "イヤホン"];
-  const colors = ["赤", "青", "緑", "黄色", "紫"];
-  const messages = [
-    "小さな挑戦が大きな成果に",
-    "落ち着いて行動すると吉",
-    "人との会話が運を運ぶ",
-    "直感を信じると良い方向へ",
-    "休むことで運気が回復"
-  ];
-
-  btn.onclick = () => {
-    // ボタンを連打できないようにする
-    btn.disabled = true;
-    gifBox.style.display = "block";
-    result.classList.remove("show");
-    result.style.opacity = "0"; // 明示的に隠す
-
-    setTimeout(() => {
-      gifBox.style.display = "none";
-      btn.disabled = false; // ボタンを元に戻す
-
-      const item = items[Math.floor(Math.random()*items.length)];
-      const color = colors[Math.floor(Math.random()*colors.length)];
-      const msg = messages[Math.floor(Math.random()*messages.length)];
-      const star = "★".repeat(Math.floor(Math.random()*5)+1);
-
-      result.innerHTML = `
-        <p>総合運：${star}</p>
-        <p>ラッキーアイテム：${item}</p>
-        <p>ラッキーカラー：${color}</p>
-        <p>今日のメッセージ：<br><strong>${msg}</strong></p>
-      `;
-
-      result.classList.add("show");
-    }, 3000);
-  };
-});
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
