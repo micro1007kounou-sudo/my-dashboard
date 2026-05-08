@@ -24,19 +24,117 @@ body {
 }
 
 h1 {
-  margin-top: 20px;
+  /* --- 基本配置 --- */
+  margin-top: 10px;
+  margin-bottom: 5px;
+  display: inline-block; /* 装飾の基準にするため */
+  position: relative;
+  
+  /* --- フォント設定（標準の明朝体を美しく） --- */
+  font-family: "Georgia", "Times New Roman", "Shippori Mincho", serif;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: 0.25em; /* 文字間を広くして神秘的に */
+  text-transform: uppercase;
+  
+  /* --- 黄金のグラデーション（画像を使わずに質感を出す） --- */
+  background: linear-gradient(
+    to bottom,
+    #fff6d5 0%,
+    #ffd86b 40%,
+    #e6b840 60%,
+    #8a6d3b 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  
+  /* --- 発光エフェクト --- */
+  filter: drop-shadow(0 0 12px rgba(255, 216, 107, 0.5));
+  
+  /* --- 前後の装飾文字（CSSだけで記号を追加） --- */
+}
+
+h1::before, h1::after {
+  content: "✦"; /* 四角い星の記号 */
+  display: inline-block;
+  font-size: 0.6em;
   color: #ffd86b;
-  letter-spacing: 0.1em;
-  font-size: 20px;
-  text-shadow: 0 0 10px rgba(255, 216, 107, 0.5);
+  vertical-align: middle;
+  opacity: 0.8;
+  /* 左右にふわっと光るアニメーション */
+  animation: title-glow 3s infinite ease-in-out;
+}
+
+h1::before { margin-right: 15px; }
+h1::after { margin-left: 5px; }
+
+/* --- 輝きのアニメーション --- */
+@keyframes title-glow {
+  0%, 100% { opacity: 0.4; filter: blur(1px); }
+  50% { opacity: 1; filter: blur(0px) drop-shadow(0 0 10px #ffd86b); }
 }
 
 #status {
-  margin-top: 12px;
-  font-size: 14px;
-  color: #ffeb9c;
+  /* --- レイアウト：縦幅をスリムに --- */
+  margin: 10px auto 20px;   /* 上下の余白を微減 */
+  padding: 6px 40px;        /* 縦を 15px → 6px に大幅カット */
+  width: fit-content;
+  min-width: 350px;
+  max-width: 85%;
+  min-height: 1.2em;        /* 縦の最小高さを抑える */
+  
+  /* --- テキスト：スリムでも読みやすく --- */
+  font-size: 14px;          /* 16px → 14px でシャープに */
+  font-weight: bold;
+  color: #ffffff;
+  line-height: 1.4;
   white-space: pre-line;
-  min-height: 2em;
+  text-shadow: 0 0 8px rgba(180, 100, 255, 0.8);
+  
+  /* --- 背景：紫のグラデーションを維持 --- */
+  background: linear-gradient(
+    90deg,                  /* 横方向のグラデーションに変更してスリム感を強調 */
+    rgba(30, 30, 60, 0) 0%, 
+    rgba(60, 20, 80, 0.8) 50%,
+    rgba(30, 30, 60, 0) 100%
+  );
+  backdrop-filter: blur(4px);
+  
+  /* --- 枠線：上下の線を消して「光のライン」に見せる --- */
+  border-top: 1px solid rgba(180, 100, 255, 0);    /* 上下は透明に */
+  border-bottom: 1px solid rgba(180, 100, 255, 0.5); /* 下だけ光らせる */
+  border-radius: 0;         /* カプセル型をやめてシャープに */
+  
+  /* --- 外側の輝き --- */
+  box-shadow: 0 10px 15px -10px rgba(180, 100, 255, 0.5); /* 下方向にだけ光を逃がす */
+    
+  /* --- 動き：控えめな脈動 --- */
+  animation: status-glow 3s infinite ease-in-out;
+  transition: all 0.4s ease;
+}
+
+@keyframes status-glow {
+  0%, 100% { opacity: 0.8; filter: brightness(1); }
+  50% { opacity: 1; filter: brightness(1.3); }
+}
+
+/* 呼吸するように光らせるアニメーション */
+@keyframes status-pulse {
+  0%, 100% { 
+    border-color: rgba(180, 100, 255, 0.4); 
+    box-shadow: 0 0 10px rgba(180, 100, 255, 0.3);
+    transform: scale(1);
+  }
+  50% { 
+    border-color: rgba(220, 180, 255, 1); 
+    box-shadow: 0 0 25px rgba(180, 100, 255, 0.6);
+    transform: scale(1.02); /* わずかに膨らむ */
+  }
+}
+
+/* 文字が入った時に少しだけ光らせる（JSで中身が変わるときの演出） */
+#status:not(:empty) {
+  border-color: rgba(255, 216, 107, 0.6);
 }
 
 .theme-selector {
@@ -56,8 +154,8 @@ h1 {
 
 /* --- ボタン・コントロール --- */
 .controls {
-  margin-top: 10px;
-  margin-bottom: 25px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 button, .link-button {
