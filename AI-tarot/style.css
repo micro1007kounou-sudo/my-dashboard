@@ -334,3 +334,54 @@ button:disabled {
   100% { transform: translate(0, 0); }
 }
 .shuffling { animation: soft-shake 0.12s infinite; border-color: #ffd86b; }
+
+/* --- スマホ・タブレット向け調整（画面幅 600px 以下） --- */
+@media screen and (max-width: 600px) {
+  /* タイトルを少し小さく */
+  h1 {
+    font-size: 22px;
+    letter-spacing: 0.1em;
+  }
+
+  /* ステータスバーの横幅を調整 */
+  #status {
+    min-width: 90%;
+    font-size: 13px;
+    padding: 6px 15px;
+  }
+
+  /* 六芒星スプレッドの縮小 */
+  #spread-container {
+    width: 340px;  /* 全体の幅をギュッと縮める */
+    height: 450px; /* 高さも抑える */
+    margin-bottom: 20px;
+    /* 画面からはみ出さないように自動縮小 */
+    transform: scale(0.9); 
+    transform-origin: top center;
+  }
+
+  /* 各カードの座標をスマホ用に再計算（重ならないように調整） */
+  .spread-card-node { width: 70px; } /* カード自体の表示幅を小さく */
+  .tarot-img { width: 70px; }
+  .role-label { font-size: 10px; padding: 2px 6px; }
+  .spread-label { font-size: 10px; bottom: 2px; width: 95%; }
+
+  /* 座標の再配置（スマホの細い画面に合わせる） */
+  #node1 { top: 0px;   left: 135px; } /* 過去 */
+  #node4 { top: 80px;  left: 10px; }  /* 対策 */
+  #node2 { top: 80px;  left: 260px; } /* 現在 */
+  #node5 { top: 230px; left: 10px; }  /* 周囲 */
+  #node3 { top: 230px; left: 260px; } /* 未来 */
+  #node6 { top: 310px; left: 135px; } /* 結果 */
+
+  /* 手札グリッドの調整 */
+  #grid-container {
+    width: 95vw;
+    grid-template-columns: repeat(auto-fit, minmax(45px, 1fr));
+    gap: 5px;
+  }
+  .grid-card {
+    width: 45px;
+    height: 75px;
+  }
+}
