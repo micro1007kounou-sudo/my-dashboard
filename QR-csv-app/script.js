@@ -83,3 +83,28 @@ document.getElementById("saveSjisBtn").addEventListener("click", function () {
   a.click();
   URL.revokeObjectURL(url);
 });
+
+document.getElementById("saveExcelBtn").addEventListener("click", function () {
+  const btn = this;
+
+  // まず UI を更新（ここは軽い）
+  btn.disabled = true;
+  btn.textContent = "保存中…";
+
+  // 1ms 遅らせて Excel 作成を開始（UI が固まらない）
+  setTimeout(() => {
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([
+      ["商品コード", "商品名", "単価", "カテゴリ", "数量"],
+      ...rows
+    ]);
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+    XLSX.writeFile(wb, "data.xlsx");
+
+    // 保存完了後にボタンを戻す
+    btn.disabled = false;
+    btn.textContent = "Excel保存（.xlsx）";
+  }, 10); // ← 10ms でも 1ms でもOK
+});
+
