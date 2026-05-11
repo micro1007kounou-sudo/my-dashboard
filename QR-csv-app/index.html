@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>QR CSV App</title>
+</head>
+<body>
+
+<h2>商品入力</h2>
+
+商品コード: <input id="code"><br>
+商品名: <input id="name"><br>
+単価: <input id="price"><br>
+カテゴリ: <input id="category"><br>
+数量: <input id="qty"><br><br>
+
+<button onclick="addRow()">行を追加</button>
+
+<h2>一覧</h2>
+<table border="1" id="table">
+  <tr>
+    <th>商品コード</th>
+    <th>商品名</th>
+    <th>単価</th>
+    <th>カテゴリ</th>
+    <th>数量</th>
+  </tr>
+</table>
+
+<br>
+<button id="saveUtf8Btn">CSV保存（UTF-8）</button>
+<button id="saveSjisBtn">CSV保存（Shift-JIS）</button>
+
+<script src="html5-qrcode.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
