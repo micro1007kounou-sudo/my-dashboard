@@ -9,19 +9,24 @@ fetch("master.json")
     console.log("商品マスタ読み込み完了", master);
   });
 
-// 商品コード → 自動補完
 function fillFormByCode(code) {
+  // 5桁揃うまでは何もしない
+  if (code.length < 5) return;
+
   const item = master[code];
+
+  // 5桁揃ってマスタに無い場合だけアラート
   if (!item) {
     alert("商品コードがマスタにありません: " + code);
     return;
   }
 
-  document.getElementById("code").value = code;
+  // 自動補完
   document.getElementById("name").value = item.name;
   document.getElementById("price").value = item.price;
   document.getElementById("category").value = item.category;
 }
+
 
 // 行追加
 function addRow() {
