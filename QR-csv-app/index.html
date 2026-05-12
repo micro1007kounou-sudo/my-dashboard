@@ -6,19 +6,26 @@
 </head>
 <body>
 
+<h2>QR 読み取り</h2>
+
+<button id="startCameraBtn">カメラ起動</button>
+<button id="stopCameraBtn" disabled>停止</button>
+
+<div id="qr-reader" style="width:300px; margin-top:10px;"></div>
+<div id="qr-result"></div>
+
 <h2>商品入力</h2>
 
-商品コード: <input id="code" oninput="fillFormByCode(this.value)">
-
+商品コード: <input id="code" oninput="fillFormByCode(this.value)"><br>
 商品名: <input id="name"><br>
 単価: <input id="price"><br>
 カテゴリ: <input id="category"><br>
 数量: <input id="qty"><br><br>
 
-<button onclick="addRow()">行を追加</button>
+<button id="addRowBtn">行を追加</button>
 
 <h2>一覧</h2>
-<table border="1" id="table">
+<table border="1" id="dataTable">
   <tr>
     <th>商品コード</th>
     <th>商品名</th>
@@ -33,8 +40,10 @@
 <button id="saveSjisBtn">CSV保存（Shift-JIS）</button>
 <button id="saveExcelBtn">Excel保存（.xlsx）</button>
 
-<script src="xlsx.full.min.js"></script>
+<!-- ライブラリ読み込み順は絶対にこの順番 -->
 <script src="html5-qrcode.min.js"></script>
+<script src="xlsx.full.min.js"></script>
 <script src="script.js"></script>
+
 </body>
 </html>
