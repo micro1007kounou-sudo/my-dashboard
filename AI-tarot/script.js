@@ -112,23 +112,42 @@ placeBtn.addEventListener("click", () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 function buildPrompt() {
-  const theme = themeSelect.value;
-  let text = `あなたは熟練したタロット占い師です。\n今回は【${theme}】について、以下のヘキサグラムスプレッドから質問者の現状と今後の流れを総合的に読み解いてください。\n`;
+  // value（id）ではなく、選択されている項目の「テキスト（日本語名）」を取得する
+  const themeLabel = themeSelect.options[themeSelect.selectedIndex].text;
+  const themeValue = themeSelect.value;
   
-  if(theme === "恋愛運") text += "特に相手の気持ちや、より良い関係を築くための具体的なアプローチに焦点を当ててください。\n";
-  if(theme === "仕事運") text += "仕事におけるチャンスや課題、人間関係、あるいは今後のキャリアの進展について焦点を当ててください。\n";
-  if(theme === "金運") text += "収支のバランス、投資や貯蓄のタイミング、経済的な豊かさを引き寄せるためのヒントに焦点を当ててください。\n";
-  if(theme === "対人関係") text += "周囲の人々との調和や、コミュニケーションの改善点、信頼関係の構築について焦点を当ててください。\n";
+  let text = `あなたは相談者の心に寄り添う、思慮深く熟練したタロット占い師です。\n`;
+  text += `今回の鑑定テーマは【${themeLabel}】です。単なる記号的な解釈ではなく、相談者の人生の物語を読み解くように深く鑑定してください。\n\n`;
   
-  text += "カードの意味を単に説明するのではなく、全体の流れ・因果関係・最終的なメッセージを中心にまとめてください。\n\n【スプレッド】\n";
+  // --- 具体的な相談状況に応じた深掘り指示 ---
+  if (themeValue === "love_no_partner") {
+    text += "相談者は現在特定のパートナーがおらず、新しい良縁を求めています。今の停滞の原因がどこにあるのか、運命の歯車を回すために必要な「心の持ち方」や「具体的な行動」を重点的に提示してください。\n";
+  } else if (themeValue === "love_with_partner") {
+    text += "相談者には現在パートナーがいます。二人の間にある表面化していない課題や、絆を再確認し、より深い愛へ昇華させるためのアドバイスを重視してください。\n";
+  } else if (themeValue === "love_unrequited") {
+    text += "相談者は今、片思いをしています。相手の深層心理にある相談者への印象や、二人の関係が動く「転換点」はいつどこにあるのかを詳細に分析してください。\n";
+  } else if (themeValue === "work") {
+    text += "仕事におけるチャンスや課題、人間関係、あるいは今後のキャリアの進展について焦点を当ててください。\n";
+  } else if (themeValue === "money") {
+    text += "収支のバランス、投資や貯蓄のタイミング、経済的な豊かさを引き寄せるためのヒントに焦点を当ててください。\n";
+  } else if (themeValue === "interpersonal") {
+    text += "周囲の人々との調和や、コミュニケーションの改善点、信頼関係の構築について焦点を当ててください。\n";
+  }
+  
+  text += "\n【鑑定の指針】\n";
+  text += "・1枚ずつの意味を解説するのではなく、6枚のカードが織りなす「因果関係」と「ストーリー」を語ってください。\n";
+  text += "・専門用語を使いすぎず、相談者が明日から何をすればいいか希望を持てる温かい言葉で構成してください。\n\n";
+
+  text += "【ヘキサグラム・スプレッド】\n";
   for (let i = 1; i <= 6; i++) {
     const name = selectedCards[i - 1];
-    text += `${positions[i]}：${name}（意味：${tarot[name]}）\n`;
+    // カード名と、もしあればその基本キーワードを添える
+    text += `${positions[i]}：${name}${tarot[name] ? `（意味：${tarot[name]}）` : ""}\n`;
   }
-  text += "\n最後に、質問者への総合アドバイスを1つ書いてください。";
+  
+  text += "\n相談者の心に深く響く、至高の鑑定をお願いいたします。";
   return text;
 }
-
 promptBtn.addEventListener("click", () => {
   promptText.textContent = buildPrompt();
   modal.style.display = "flex";

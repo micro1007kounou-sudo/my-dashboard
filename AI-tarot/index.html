@@ -13,16 +13,17 @@
 
   <div id="status">① 占うテーマを選んでシャッフルしましょう</div>
 
-  <div class="theme-selector">
-    <label for="tarot-theme" style="color: #ffd86b; font-size: 0.9em; margin-right: 10px;">占うテーマ:</label>
-    <select id="tarot-theme">
-      <option value="総合運">総合運（全体的な流れ）</option>
-      <option value="恋愛運">恋愛運（出会い・片思い・パートナー）</option>
-      <option value="仕事運">仕事運（キャリア・転職・人間関係）</option>
-      <option value="金運">金運（収入・投資・買い物）</option>
-      <option value="対人関係">対人関係（友人・家族・苦手な人）</option>
-    </select>
-  </div>
+<div class="theme-selector">
+  <select id="tarot-theme">
+    <option value="general">総合運（全体的な流れ）</option>
+    <!-- 恋愛運を3つに細分化 -->
+    <option value="love_no_partner">恋愛運：パートナーなし（新しい出会い）</option>
+    <option value="love_with_partner">恋愛運：パートナーあり（現在の関係）</option>
+    <option value="love_unrequited">恋愛運：片思い（相手の気持ち・進展）</option>
+    <option value="work">仕事運・キャリア</option>
+    <option value="money">金運・財運</option>
+  </select>
+</div>
 
   <div class="controls">
     <button id="shuffle-btn">シャッフル</button>
