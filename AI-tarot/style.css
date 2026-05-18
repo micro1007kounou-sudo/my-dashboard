@@ -49,7 +49,24 @@ h1 {
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 0 10px rgba(255, 216, 107, 0.4));
 }
+/* タイトル下のカード説明テキスト */
+.card-info {
+  font-size: 13px;          /* 控えめなサイズ */
+  color: #ffeb9c;           /* 淡いゴールド */
+  letter-spacing: 0.05em;   /* 少しだけ文字間隔を広げて上品に */
+  margin-top: 2px;          /* タイトルとの隙間を極限まで詰める */
+  margin-bottom: 15px;      /* 下のセレクトボックスとの間隔 */
+  opacity: 0.85;            /* ほんのり透過させて馴染ませる */
+  font-family: "Shippori Mincho", serif; /* 占いらしいフォントに（お好みで） */
+}
 
+/* スマホ表示のとき（@media screen and (max-width: 480px) の中） */
+@media screen and (max-width: 480px) {
+  .card-info {
+    font-size: 11px;        /* スマホではさらに小さくスマートに */
+    margin-bottom: 10px;
+  }
+}
 /* タイトル下の説明テキスト */
 h1 + p {
   font-size: 13px;

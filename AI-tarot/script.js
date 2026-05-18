@@ -75,32 +75,61 @@ function onCardClick(e) {
   if (selectedCards.length === 6) { step = 3; updateStatus(); updateButtons(); }
 }
 
+// --- 配列をガチガチに混ぜる関数（追加） ---
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+// --- シャッフルボタンのクリックイベント（修正） ---
 shuffleBtn.addEventListener("click", () => {
-  resetAll(false);
-  step = 2; updateStatus(); updateButtons();
+  resetAll(false); // カードの選択状態などをクリア
+  step = 2; 
+  updateStatus(); 
+  updateButtons();
+
+  // 1. HTML上のカード（グリッド）を揺らす演出
   const cards = document.querySelectorAll(".grid-card");
   cards.forEach(c => c.classList.add("shuffling"));
   setTimeout(() => cards.forEach(c => c.classList.remove("shuffling")), 1000);
+
+  // 2. ★超重要：裏側のカードデータの並び順をシャッフルする★
+  const tarotKeys = Object.keys(tarot); // ["愚者", "魔術師", ...]
+  const shuffledKeys = shuffleArray(tarotKeys); // ランダムに混ぜる
+
+  // 3. シャッフルされた新しい順番で、グリッド（手札）のデータを再割り当てする
+  cards.forEach((cardDiv, index) => {
+    const newCardName = shuffledKeys[index];
+    cardDiv.dataset.cardName = newCardName; // 新しいカード名を仕込む
+    cardDiv.classList.remove("selected");   // 念のため選択を外す
+  });
 });
 
+// --- 配置ボタンのクリックイベント（修正） ---
 placeBtn.addEventListener("click", () => {
   if (step !== 3) return;
 
   selectedCards.forEach((name, i) => {
     const cardIndex = Object.keys(tarot).indexOf(name);
     const fileName = cardFiles[cardIndex];
-    const targetEl = document.getElementById(`spread${i + 1}`);
-    const roleName = positions[i + 1]; // 例: "過去"
+    
+    // 【修正】HTML/CSSのID名「node1, node2...」に合わせる
+    const targetEl = document.getElementById(`node${i + 1}`);
+    const roleName = positions[i + 1]; 
 
-    // 画像の上に「役割」を重ね、画像の下に「カード名」を置く
-    // 【重要】CSSで重なりを制御するため、クラス名を調整
-    targetEl.innerHTML = `
-      <div class="card-wrapper">
-        <div class="role-overlay">${roleName}</div>
-        <img src="cards/${fileName}" alt="${name}" class="tarot-img">
-        <div class="spread-label">${name}</div>
-      </div>
-    `;
+    if (targetEl) {
+      // 先ほどCSSで整えたクラス名（role-label, spread-label）に綺麗に統一
+      targetEl.innerHTML = `
+        <div class="card-wrapper">
+          <div class="role-label">${roleName}</div>
+          <img src="cards/${fileName}" alt="${name}" class="tarot-img">
+          <div class="spread-label">${name}</div>
+        </div>
+      `;
+    }
   });
 
   // 表示アニメーション
@@ -108,7 +137,9 @@ placeBtn.addEventListener("click", () => {
   setTimeout(() => { spreadContainer.style.opacity = "1"; }, 10);
   
   // ステップ更新
-  step = 4; updateStatus(); updateButtons();
+  step = 4; 
+  updateStatus(); 
+  updateButtons();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 function buildPrompt() {
@@ -165,17 +196,25 @@ resetBtn.addEventListener("click", () => resetAll(true));
 function resetAll(resetStep = true) {
   selectedCards = [];
   document.querySelectorAll(".grid-card").forEach(c => c.classList.remove("selected"));
-  document.querySelectorAll(".spread-card").forEach(c => {
-    c.innerHTML = "";
-    c.textContent = "";
-  });
+  
+  // 各ノードのカード表示をクリア
+  for (let i = 1; i <= 6; i++) {
+    const node = document.getElementById(`node${i}`);
+    if (node) node.innerHTML = "";
+  }
+
   modal.style.display = "none";
-  spreadContainer.style.opacity = "0"; spreadContainer.style.display = "none";
+  spreadContainer.style.opacity = "0"; 
+  spreadContainer.style.display = "none";
+
   if (resetStep) {
     step = 1;
-    themeSelect.value = "総合運";
+    // ★ここにあった themeSelect.selectedIndex = 0;（または themeSelect.value = "総合運";）を削除
+    // これだけで、ユーザーが選んだテーマがそのまま維持されます！
   }
-  updateStatus(); updateButtons();
+  
+  updateStatus(); 
+  updateButtons();
 }
 
 initGrid(); updateStatus(); updateButtons();
