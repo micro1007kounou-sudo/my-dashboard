@@ -22,8 +22,21 @@
     <option value="love_no_partner">恋愛運：パートナーなし（新しい出会い）</option>
     <option value="love_with_partner">恋愛運：パートナーあり（現在の関係）</option>
     <option value="love_unrequited">恋愛運：片思い（相手の気持ち・進展）</option>
-    <option value="work">仕事運・キャリア</option>
-    <option value="money">金運・財運</option>
+    <option value="love_reconciliation">恋愛運：復縁（相手の気持ち・再接近）</option>
+    <option value="love_steal">恋愛運：略奪愛（相手の本心・成就の可能性）</option>
+
+    <option value="work_general">仕事運：総合（現状・課題・今後）</option>
+    <option value="work_change">仕事運：転職（適職・タイミング）</option>
+
+    <option value="money_general">金運：総合（収支・流れ・改善点）</option>
+    <option value="money_gamble">金運：ギャンブル（勝負運・流れ）</option>
+    <option value="money_lottery">金運：宝くじ（当たりやすい時期・運気）</option>
+
+    <option value="study">学業（集中力・結果・対策）</option>
+    <option value="life_path">生き方（方向性・使命・選択）</option>
+    <option value="travel">旅行運（行くべき場所・タイミング）</option>
+    <option value="lost_item">探し物（見つかる時期・ヒント）</option>
+
   </select>
 </div>
 
@@ -52,22 +65,27 @@
       <button id="close-modal">閉じる</button>
       <h3 style="color: #ffd86b; margin-top: 0;">占いプロンプトが完成しました</h3>
       <p style="font-size: 0.9em; line-height: 1.5;">
-        1. 下のボタンでプロンプトを<b>コピー</b>してください。<br>
-        2. お好きなAIを開いて<b>貼り付け</b>、送信してください。
+1. 下のプロンプトは編集できます（このままでも相談内容を追記しても大丈夫です）。<br>
+2. 完成したらコピーして、お好きなAIに貼り付けてください。
+
       </p>
       
-      <div id="prompt-text"></div>
+  <div id="prompt-text" contenteditable="true"></div>
+
+
       
       <div class="modal-buttons" style="border-bottom: 1px solid #444; padding-bottom: 15px; margin-bottom: 15px;">
         <button id="copy-btn">プロンプトをコピーする</button>
       </div>
 
       <p style="font-size: 0.8em; text-align: center; color: #ffeb9c; margin-bottom: 10px;">コピーした内容を貼り付けて占う（無料AIリンク）</p>
-      <div class="modal-buttons">
-        <a href="https://gemini.google.com/app" target="_blank" class="link-button gemini-btn">Gemini</a>
-        <a href="https://chatgpt.com/" target="_blank" class="link-button chatgpt-btn">ChatGPT</a>
-        <a href="https://claude.ai/" target="_blank" class="link-button claude-btn">Claude</a>
-      </div>
+<div class="modal-buttons">
+  <a href="https://gemini.google.com/app" target="_blank" class="link-button gemini-btn">Gemini</a>
+  <a href="https://chatgpt.com/" target="_blank" class="link-button chatgpt-btn">ChatGPT</a>
+  <a href="https://claude.ai/" target="_blank" class="link-button claude-btn">Claude</a>
+  <a href="https://copilot.microsoft.com/" target="_blank" class="link-button copilot-btn">Copilot</a>
+</div>
+
     </div>
   </div>
 

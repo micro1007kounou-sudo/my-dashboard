@@ -188,6 +188,15 @@ button:disabled {
 .chatgpt-btn:hover { background: #74aa9c !important; color: #fff !important; }
 .claude-btn { border-color: #d97757; color: #d97757; }
 .claude-btn:hover { background: #d97757 !important; color: #fff !important; }
+.copilot-btn {
+  border-color: #4fa3f7;
+  color: #4fa3f7;
+}
+
+.copilot-btn:hover {
+  background: #4fa3f7 !important;
+  color: #fff !important;
+}
 
 /* --- 六芒星スプレッド配置 --- */
 #spread-container {
