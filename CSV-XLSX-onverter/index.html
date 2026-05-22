@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>CSV ⇄ XLSX 相互変換ツール</title>
+<style>
+  body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+  h2 { margin-top: 0; }
+  section { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 8px; }
+  table { border-collapse: collapse; margin-top: 10px; max-width: 100%; }
+  th, td { border: 1px solid #ccc; padding: 4px 8px; font-size: 12px; }
+  pre { background: #f7f7f7; padding: 10px; max-height: 300px; overflow: auto; font-size: 12px; }
+  button { margin-top: 10px; padding: 6px 12px; }
+</style>
+</head>
+<body>
+
+<h2>CSV ⇄ XLSX 相互変換ツール</h2>
+
+<section>
+  <h3>CSV → Excel</h3>
+  <input type="file" id="fileInputCsv" accept=".csv,text/csv">
+  <h4>CSV プレビュー</h4>
+  <div id="previewCsv"></div>
+  <button id="downloadExcelBtn" disabled>Excel をダウンロード</button>
+</section>
+
+<section>
+  <h3>Excel → CSV</h3>
+  <input type="file" id="fileInputExcel" accept=".xlsx">
+  <h4>Excel プレビュー</h4>
+  <div id="previewExcel"></div>
+
+  <label>
+    文字コード：
+    <select id="csvEncoding">
+      <option value="utf-8">UTF-8</option>
+      <option value="shift-jis">Shift-JIS（Excel 用）</option>
+    </select>
+  </label>
+
+  <button id="downloadCsvBtn" disabled>CSV をダウンロード</button>
+</section>
+
+<script src="xlsx.full.min.js"></script>
+<script src="converter.js"></script>
+
+</body>
+</html>
