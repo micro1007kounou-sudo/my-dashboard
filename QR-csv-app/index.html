@@ -6,7 +6,7 @@
 </head>
 <body>
 
-<h2>QR 読み取り</h2>
+<h2>商品コードQR 読み取り</h2>
 
 <button id="startCameraBtn">カメラ起動</button>
 <button id="stopCameraBtn" disabled>停止</button>
@@ -17,12 +17,25 @@
 <h2>商品入力</h2>
 
 商品コード: <input id="code" oninput="fillFormByCode(this.value)"><br>
-商品名: <input id="name"><br>
-単価: <input id="price"><br>
-カテゴリ: <input id="category"><br>
+
+商品名: <input id="name" readonly style="background:#eee;"><br>
+単価: <input id="price" readonly style="background:#eee;"><br>
+
+カテゴリ1: <input id="category1" readonly style="background:#eee;"><br>
+カテゴリ2: <input id="category2" readonly style="background:#eee;"><br>
+カテゴリ3: <input id="category3" readonly style="background:#eee;"><br>
+カテゴリ4: <input id="category4" readonly style="background:#eee;"><br>
+カテゴリ5: <input id="category5" readonly style="background:#eee;"><br>
+カテゴリ6: <input id="category6" readonly style="background:#eee;"><br>
+
+メーカー: <input id="maker" readonly style="background:#eee;"><br>
+単位: <input id="unit" readonly style="background:#eee;"><br>
+
 数量: <input id="qty"><br><br>
 
 <button id="addRowBtn">行を追加</button>
+
+
 
 <h2>一覧</h2>
 <table border="1" id="dataTable">
@@ -30,15 +43,40 @@
     <th>商品コード</th>
     <th>商品名</th>
     <th>単価</th>
-    <th>カテゴリ</th>
+    <th>カテゴリ1</th>
+    <th>カテゴリ2</th>
+    <th>カテゴリ3</th>
+    <th>カテゴリ4</th>
+    <th>カテゴリ5</th>
+    <th>カテゴリ6</th>
+    <th>メーカー</th>
+    <th>単位</th>
     <th>数量</th>
   </tr>
 </table>
+
 
 <br>
 <button id="saveUtf8Btn">CSV保存（UTF-8）</button>
 <button id="saveSjisBtn">CSV保存（Shift-JIS）</button>
 <button id="saveExcelBtn">Excel保存（.xlsx）</button>
+
+<h2>商品マスタ（サンプルデータ）</h2>
+<table border="1" id="masterTable">
+  <tr>
+    <th>商品コード</th>
+    <th>商品名</th>
+    <th>単価</th>
+    <th>カテゴリ1</th>
+    <th>カテゴリ2</th>
+    <th>カテゴリ3</th>
+    <th>カテゴリ4</th>
+    <th>カテゴリ5</th>
+    <th>カテゴリ6</th>
+    <th>メーカー</th>
+    <th>単位</th>
+  </tr>
+</table>
 
 <!-- ライブラリ読み込み順は絶対にこの順番 -->
 <script src="html5-qrcode.min.js"></script>
