@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Excel ⇄ JSON 変換ツール</title>
+<style>
+  body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+  h2 { margin-top: 0; }
+  h3 { margin-bottom: 5px; }
+  section { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 8px; }
+  table { border-collapse: collapse; margin-top: 10px; max-width: 100%; }
+  th, td { border: 1px solid #ccc; padding: 4px 8px; font-size: 12px; }
+  pre { background: #f7f7f7; padding: 10px; max-height: 300px; overflow: auto; font-size: 12px; }
+  button { margin-top: 10px; padding: 6px 12px; }
+</style>
+</head>
+<body>
+
+<h2>Excel ⇄ JSON 変換ツール</h2>
+
+<section>
+  <h3>Excel → JSON</h3>
+  <input type="file" id="fileInputExcel" accept=".xlsx">
+  <h4>Excel プレビュー</h4>
+  <div id="previewExcel"></div>
+  <button id="generateJsonBtn" disabled>JSON を生成</button>
+  <h4>JSON プレビュー</h4>
+  <pre id="jsonPreview"></pre>
+  <button id="downloadJsonBtn" disabled>JSON をダウンロード</button>
+</section>
+
+<section>
+  <h3>JSON → Excel</h3>
+  <input type="file" id="fileInputJson" accept=".json,application/json">
+  <h4>JSON プレビュー</h4>
+  <pre id="jsonPreviewFromFile"></pre>
+  <h4>Excel プレビュー</h4>
+  <div id="previewFromJson"></div>
+  <button id="downloadExcelBtn" disabled>Excel をダウンロード</button>
+</section>
+
+<script src="xlsx.full.min.js"></script>
+<script src="converter.js"></script>
+
+</body>
+</html>
