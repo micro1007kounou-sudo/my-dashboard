@@ -1,14 +1,72 @@
-// 共通データ
-let excelData = [];
-let jsonDataFromExcel = [];
-let jsonDataFromFile = [];
+// ------------------------------
+// 共通：元ファイル名から拡張子を除去
+// ------------------------------
+function getBaseName(filename) {
+  return filename.replace(/\.[^/.]+$/, "");
+}
+// ------------------------------
+// JSON → Excel（XLSX）
+// ------------------------------
+let jsonData = null;
+let originalJsonName = "";
 
-// ------------------------------
-// Excel → JSON
-// ------------------------------
-document.getElementById("fileInputExcel").addEventListener("change", function(e) {
+document.getElementById("fileInputJson").addEventListener("change", function(e) {
   const file = e.target.files[0];
   if (!file) return;
+
+  originalJsonName = getBaseName(file.name);
+
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      jsonData = JSON.parse(ev.target.result);
+
+      // JSON → 表形式に変換
+      const rows = Array.isArray(jsonData)
+        ? jsonData
+        : Object.keys(jsonData).map(key => [key, jsonData[key]]);
+
+      // ★ JSON プレビュー（縦長 JSON）
+      document.getElementById("previewJson").textContent =
+        JSON.stringify(jsonData, null, 2);
+
+      // ★ Excel プレビュー（表形式）
+      showTablePreview(rows, "previewJsonToExcel");
+
+      document.getElementById("downloadExcelFromJsonBtn").disabled = false;
+
+    } catch (err) {
+      alert("JSON の読み込みに失敗しました");
+    }
+  };
+
+  reader.readAsText(file, "utf-8");
+});
+
+
+document.getElementById("downloadExcelFromJsonBtn").addEventListener("click", function() {
+  const rows = Array.isArray(jsonData)
+    ? jsonData
+    : Object.keys(jsonData).map(key => [key, jsonData[key]]);
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+  XLSX.writeFile(wb, `${originalJsonName}-cvrt.xlsx`);
+});
+
+// ------------------------------
+// Excel（XLSX）→ JSON
+// ------------------------------
+let excelJsonData = [];
+let originalExcelNameJson = "";
+
+document.getElementById("fileInputExcelJson").addEventListener("change", function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  originalExcelNameJson = getBaseName(file.name);
 
   const reader = new FileReader();
   reader.onload = function(ev) {
@@ -16,16 +74,44 @@ document.getElementById("fileInputExcel").addEventListener("change", function(e)
     const workbook = XLSX.read(data, { type: "array" });
 
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    excelData = XLSX.utils.sheet_to_json(sheet); // テーブル的に扱える
+    excelJsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-    showExcelPreview(excelData, "previewExcel");
-    document.getElementById("generateJsonBtn").disabled = excelData.length === 0;
+    // Excel プレビュー
+    showTablePreview(excelJsonData, "previewExcelJson");
+
+    // JSON プレビュー（Excel → JSON）
+    const jsonPreview = JSON.stringify(excelJsonData, null, 2);
+    document.getElementById("previewJsonFromExcel").textContent = jsonPreview;
+
+    document.getElementById("downloadJsonBtn").disabled = excelJsonData.length === 0;
   };
+
   reader.readAsArrayBuffer(file);
 });
 
-// Excel プレビュー表示
-function showExcelPreview(data, elementId) {
+document.getElementById("downloadJsonBtn").addEventListener("click", function() {
+  const json = JSON.stringify(excelJsonData, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+
+  downloadFile(blob, `${originalExcelNameJson}-cvrt.json`);
+});
+
+// ------------------------------
+// 共通：ダウンロード処理
+// ------------------------------
+function downloadFile(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ------------------------------
+// 共通：プレビュー表示（表形式）
+// ------------------------------
+function showTablePreview(data, elementId) {
   const preview = document.getElementById(elementId);
   preview.innerHTML = "";
 
@@ -36,19 +122,11 @@ function showExcelPreview(data, elementId) {
 
   const table = document.createElement("table");
 
-  const header = document.createElement("tr");
-  Object.keys(data[0]).forEach(key => {
-    const th = document.createElement("th");
-    th.textContent = key;
-    header.appendChild(th);
-  });
-  table.appendChild(header);
-
   data.forEach(row => {
     const tr = document.createElement("tr");
-    Object.keys(data[0]).forEach(key => {
+    (Array.isArray(row) ? row : Object.values(row)).forEach(cell => {
       const td = document.createElement("td");
-      td.textContent = row[key] !== undefined ? row[key] : "";
+      td.textContent = cell;
       tr.appendChild(td);
     });
     table.appendChild(tr);
@@ -56,76 +134,3 @@ function showExcelPreview(data, elementId) {
 
   preview.appendChild(table);
 }
-
-// JSON 生成（Excel → JSON）
-document.getElementById("generateJsonBtn").addEventListener("click", function() {
-  jsonDataFromExcel = excelData; // そのまま配列として扱う
-  const jsonText = JSON.stringify(jsonDataFromExcel, null, 2);
-  document.getElementById("jsonPreview").textContent = jsonText;
-  document.getElementById("downloadJsonBtn").disabled = jsonDataFromExcel.length === 0;
-});
-
-// JSON ダウンロード
-document.getElementById("downloadJsonBtn").addEventListener("click", function() {
-  const blob = new Blob(
-    [JSON.stringify(jsonDataFromExcel, null, 2)],
-    { type: "application/json" }
-  );
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "converted.json";
-  a.click();
-  URL.revokeObjectURL(url);
-});
-
-// ------------------------------
-// JSON → Excel
-// ------------------------------
-document.getElementById("fileInputJson").addEventListener("change", function(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = function(ev) {
-    try {
-      const text = ev.target.result;
-      const parsed = JSON.parse(text);
-
-      // 配列でなければ配列に包む
-      if (Array.isArray(parsed)) {
-        jsonDataFromFile = parsed;
-      } else if (typeof parsed === "object" && parsed !== null) {
-        // オブジェクトの場合は値を配列化（用途に応じて調整可）
-        jsonDataFromFile = Array.isArray(parsed)
-          ? parsed
-          : Object.keys(parsed).map(k => ({ key: k, ...parsed[k] }));
-      } else {
-        jsonDataFromFile = [];
-      }
-
-      document.getElementById("jsonPreviewFromFile").textContent =
-        JSON.stringify(jsonDataFromFile, null, 2);
-
-      showExcelPreview(jsonDataFromFile, "previewFromJson");
-      document.getElementById("downloadExcelBtn").disabled = jsonDataFromFile.length === 0;
-    } catch (err) {
-      document.getElementById("jsonPreviewFromFile").textContent =
-        "JSON の解析に失敗しました: " + err.message;
-      document.getElementById("previewFromJson").innerHTML = "";
-      document.getElementById("downloadExcelBtn").disabled = true;
-    }
-  };
-  reader.readAsText(file, "utf-8");
-});
-
-// Excel ダウンロード（JSON → Excel）
-document.getElementById("downloadExcelBtn").addEventListener("click", function() {
-  if (!jsonDataFromFile || jsonDataFromFile.length === 0) return;
-
-  const ws = XLSX.utils.json_to_sheet(jsonDataFromFile);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-
-  XLSX.writeFile(wb, "converted.xlsx");
-});
