@@ -9,7 +9,6 @@
   section { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 8px; }
   table { border-collapse: collapse; margin-top: 10px; max-width: 100%; }
   th, td { border: 1px solid #ccc; padding: 4px 8px; font-size: 12px; }
-  pre { background: #f7f7f7; padding: 10px; max-height: 300px; overflow: auto; font-size: 12px; }
   button { margin-top: 10px; padding: 6px 12px; }
 </style>
 </head>
@@ -18,15 +17,15 @@
 <h2>CSV ⇄ XLSX 相互変換ツール</h2>
 
 <section>
-  <h3>CSV → Excel</h3>
+  <h3>CSV → Excel（XLSX）</h3>
   <input type="file" id="fileInputCsv" accept=".csv,text/csv">
   <h4>CSV プレビュー</h4>
   <div id="previewCsv"></div>
-  <button id="downloadExcelBtn" disabled>Excel をダウンロード</button>
+  <button id="downloadExcelBtn" disabled>Excel（.xlsx）をダウンロード</button>
 </section>
 
 <section>
-  <h3>Excel → CSV</h3>
+  <h3>Excel（XLSX）→ CSV</h3>
   <input type="file" id="fileInputExcel" accept=".xlsx">
   <h4>Excel プレビュー</h4>
   <div id="previewExcel"></div>
@@ -43,6 +42,7 @@
 </section>
 
 <script src="xlsx.full.min.js"></script>
+<script src="encoding.min.js"></script>
 <script src="converter.js"></script>
 
 </body>
