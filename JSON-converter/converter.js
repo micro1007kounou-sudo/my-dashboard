@@ -1,20 +1,8 @@
 let excelData = [];
 let jsonData = {};
 
-document.getElementById("dropArea").addEventListener("dragover", function(e) {
-  e.preventDefault();
-  this.style.background = "#eef";
-});
-
-document.getElementById("dropArea").addEventListener("dragleave", function(e) {
-  this.style.background = "";
-});
-
-document.getElementById("dropArea").addEventListener("drop", function(e) {
-  e.preventDefault();
-  this.style.background = "";
-
-  const file = e.dataTransfer.files[0];
+document.getElementById("fileInput").addEventListener("change", function(e) {
+  const file = e.target.files[0];
   if (!file) return;
 
   const reader = new FileReader();
@@ -31,9 +19,7 @@ document.getElementById("dropArea").addEventListener("drop", function(e) {
   reader.readAsArrayBuffer(file);
 });
 
-// ------------------------------
-// Excel プレビュー表示
-// ------------------------------
+// Excel プレビュー
 function showPreview(data) {
   const preview = document.getElementById("preview");
   preview.innerHTML = "";
@@ -68,29 +54,9 @@ function showPreview(data) {
   preview.appendChild(table);
 }
 
-// ------------------------------
-// JSON 生成
-// ------------------------------
+// JSON 生成（Excel の内容をそのまま JSON にする）
 document.getElementById("generateJsonBtn").addEventListener("click", function() {
-  jsonData = {};
-
-  excelData.forEach(row => {
-    const code = String(row["code"] || row["商品コード"]).trim();
-    if (!code) return;
-
-    jsonData[code] = {
-      name: row["name"] || row["商品名"] || "",
-      price: Number(row["price"] || row["単価"] || 0),
-      category1: row["category1"] || "",
-      category2: row["category2"] || "",
-      category3: row["category3"] || "",
-      category4: row["category4"] || "",
-      category5: row["category5"] || "",
-      category6: row["category6"] || "",
-      maker: row["maker"] || row["メーカー"] || "",
-      unit: row["unit"] || row["単位"] || ""
-    };
-  });
+  jsonData = excelData; // ← そのまま JSON にするだけ
 
   document.getElementById("jsonPreview").textContent =
     JSON.stringify(jsonData, null, 2);
@@ -98,9 +64,7 @@ document.getElementById("generateJsonBtn").addEventListener("click", function() 
   document.getElementById("downloadBtn").disabled = false;
 });
 
-// ------------------------------
 // JSON ダウンロード
-// ------------------------------
 document.getElementById("downloadBtn").addEventListener("click", function() {
   const blob = new Blob(
     [JSON.stringify(jsonData, null, 2)],
@@ -110,7 +74,7 @@ document.getElementById("downloadBtn").addEventListener("click", function() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "master.json";
+  a.download = "converted.json";
   a.click();
   URL.revokeObjectURL(url);
 });

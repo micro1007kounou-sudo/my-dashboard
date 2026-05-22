@@ -3,14 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>Excel → JSON 変換ツール</title>
-<script src="xlsx.full.min.js"></script>
-<script src="converter.js"></script>
 <style>
   body { font-family: sans-serif; padding: 20px; }
-  #dropArea {
-    width: 100%; padding: 40px; border: 2px dashed #888;
-    text-align: center; color: #555; margin-bottom: 20px;
-  }
   table { border-collapse: collapse; margin-top: 20px; }
   th, td { border: 1px solid #ccc; padding: 5px 10px; }
   pre { background: #f0f0f0; padding: 10px; }
@@ -20,7 +14,7 @@
 
 <h2>Excel → JSON 変換ツール</h2>
 
-<div id="dropArea">ここに Excel ファイル（.xlsx）をドラッグ＆ドロップ</div>
+<input type="file" id="fileInput" accept=".xlsx">
 
 <h3>Excel プレビュー</h3>
 <div id="preview"></div>
@@ -31,6 +25,10 @@
 <pre id="jsonPreview"></pre>
 
 <button id="downloadBtn" disabled>master.json をダウンロード</button>
+
+<!-- ★★★ ここに移動 ★★★ -->
+<script src="xlsx.full.min.js"></script>
+<script src="converter.js"></script>
 
 </body>
 </html>
