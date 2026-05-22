@@ -196,6 +196,13 @@ else if (themeValue === "travel") {
 else if (themeValue === "lost_item") {
   text += "相談者は探し物をしています。見つかる時期、場所のヒント、探し方のポイント、そして心の状態が与える影響について慎重に読み解いてください。\n";
 }
+else if (themeValue === "free") {
+  text += "";
+}
+if (themeValue === "free") {
+  text += "\n【相談内容（自由に編集してください）】\n";
+  text += "ここに相談内容を自由に書いてください。\n\n";
+}
 
   text += "\n【鑑定の指針】\n";
   text += "・6枚のカードが織りなす「因果関係」と「ストーリー」を語ってください。\n";
