@@ -23,7 +23,9 @@ document.getElementById("fileInputCsv").addEventListener("change", function(e) {
 
     csvData = text.split(/\r?\n/).map(r => r.split(","));
 
-    showTablePreview(csvData, "previewCsv");
+   document.getElementById("previewCsv").textContent = text;
+
+    showTablePreview(csvData, "previewCsvToExcel");   // ★ Excel プレビュー追加
     document.getElementById("downloadExcelBtn").disabled = csvData.length === 0;
   };
 
@@ -51,16 +53,22 @@ document.getElementById("fileInputExcel").addEventListener("change", function(e)
   originalExcelName = getBaseName(file.name);
 
   const reader = new FileReader();
-  reader.onload = function(ev) {
-    const data = new Uint8Array(ev.target.result);
-    const workbook = XLSX.read(data, { type: "array" });
+reader.onload = function(ev) {
+  const data = new Uint8Array(ev.target.result);
+  const workbook = XLSX.read(data, { type: "array" });
 
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    excelData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  excelData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-    showTablePreview(excelData, "previewExcel");
-    document.getElementById("downloadCsvBtn").disabled = excelData.length === 0;
-  };
+  showTablePreview(excelData, "previewExcel");  // Excel プレビュー
+
+  // ★ CSV プレビュー追加
+  const csvPreview = excelData.map(row => row.join(",")).join("\r\n");
+  document.getElementById("previewExcelToCsv").textContent = csvPreview;
+
+  document.getElementById("downloadCsvBtn").disabled = excelData.length === 0;
+};
+
 
   reader.readAsArrayBuffer(file);
 });

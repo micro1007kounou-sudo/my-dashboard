@@ -19,8 +19,13 @@
 <section>
   <h3>CSV → Excel（XLSX）</h3>
   <input type="file" id="fileInputCsv" accept=".csv,text/csv">
-  <h4>CSV プレビュー</h4>
-  <div id="previewCsv"></div>
+<h4>CSV プレビュー</h4>
+<pre id="previewCsv" style="background:#f0f0f0; padding:10px;"></pre>
+
+
+  <h4>Excel プレビュー（変換後）</h4>
+  <div id="previewCsvToExcel"></div>
+
   <button id="downloadExcelBtn" disabled>Excel（.xlsx）をダウンロード</button>
 </section>
 
@@ -29,6 +34,10 @@
   <input type="file" id="fileInputExcel" accept=".xlsx">
   <h4>Excel プレビュー</h4>
   <div id="previewExcel"></div>
+
+  <h4>CSV プレビュー（変換後）</h4>
+  <pre id="previewExcelToCsv" style="background:#f0f0f0; padding:10px;"></pre>
+
 
   <label>
     文字コード：
