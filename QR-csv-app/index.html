@@ -77,6 +77,12 @@
     <th>単位</th>
   </tr>
 </table>
+<div id="footer"></div>
+<script>
+  fetch("../footer.html")
+    .then(res => res.text())
+    .then(html => document.getElementById("footer").innerHTML = html);
+</script>
 
 <!-- ライブラリ読み込み順は絶対にこの順番 -->
 <script src="html5-qrcode.min.js"></script>

@@ -218,11 +218,12 @@ function runSim() {
 }
 </script>
 
-<footer style="text-align:center; margin-top:40px;">
-  <a href="../index.html">
-    <img src="../bannar_S.png" alt="Back to Dashboard" 
-         style="width:100%; max-width:360px; height:auto; opacity:0.95;">
-  </a>
-</footer>
+<div id="footer"></div>
+<script>
+  fetch("../footer.html")
+    .then(res => res.text())
+    .then(html => document.getElementById("footer").innerHTML = html);
+</script>
+
 </body>
 </html>
