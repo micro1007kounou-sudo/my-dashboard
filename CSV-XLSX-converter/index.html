@@ -16,6 +16,13 @@
 
 <h2>Excel ⇄ CSV 相互変換ツール</h2>
 
+<p style="color:#a00; font-size:13px; line-height:1.6; margin-top:10px;">
+※ CSV は表形式のデータのみ扱えます。セル結合・書式・複数シートなどの情報は保持されません。<br>
+※ 結合セル・画像・書式・コメントなどの Excel 特有の情報は、CSV 変換時にすべて失われます。<br>
+※ CSV は 1 シートしか扱えません。複数シートがある Excel を読み込んだ場合、<br>
+　「最初のシートのみ」CSV に変換されます。他のシートは変換対象外となります。
+</p>
+
 <section>
   <h3>CSV → Excel（XLSX）</h3>
   <input type="file" id="fileInputCsv" accept=".csv,text/csv">
