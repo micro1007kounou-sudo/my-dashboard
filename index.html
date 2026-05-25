@@ -31,6 +31,9 @@
     font-size: 28px;
     text-align: center;
   }
+h3 {
+  text-align: center;
+}
 
   p {
   text-align: center;
@@ -75,24 +78,39 @@
 
   <h1>KONO パブリックポートフォリオ</h1>
   <p>KONOが学習用に作成したWebアプリを公開しています</p>
-  <ul>
-    <li><a href="weather-finance-news/">◆天気・金融・ニュース自動更新サイト</a></li>
-    <li><a href="color-test-JS/">◆モニターテスト用アプリ</a></li>
-    <li><a href="sudoku-app/">◆数独ゲーム</a></li>
-    <li><a href="gacha-app/">◆ミニガチャゲーム</a></li>
-    <li><a href="9puzzle/">◆3×3パズルゲーム</a></li>
-    <li><a href="slot-sim-JS/">◆Aタイプスロットシミュレーション</a></li>
-    <li><a href="AI-tarot/">◆タロット占い用プロンプト生成アプリ</a></li>
-    <li><a href="uranai-easy/">◆簡単占い一日の運勢アプリ</a></li>
-    <li><a href="QR-csv-app/">◆QR在庫入力アプリ</a></li>
-    <li><a href="CSV-XLSX-converter/">◆エクセル-CSV相互変換アプリ</a></li>
-    <li><a href="JSON-XLSX-converter/">◆エクセル-JSON相互変換アプリ</a></li>
-  </ul>
+<h3>＜生活・便利系＞</h3>
+<ul>
+  <li><a href="weather-finance-news/">◆天気・金融・ニュース自動更新サイト</a></li>
+</ul>
 
-<footer style="text-align:center; margin-top:40px; font-size:14px; opacity:0.7;">
-  © 2026 KONO | 
-  <a href="https://github.com/micro1007kounou-sudo" target="_blank">GitHub</a>
-</footer>
+<h3>＜遊び・ゲーム系＞</h3>
+<ul>
+  <li><a href="sudoku-app/">◆数独ゲーム</a></li>
+  <li><a href="gacha-app/">◆ミニガチャゲーム</a></li>
+  <li><a href="9puzzle/">◆3×3パズルゲーム</a></li>
+  <li><a href="slot-sim-JS/">◆Aタイプスロットシミュレーション</a></li>
+  <li><a href="AI-tarot/">◆タロット占い用プロンプト生成アプリ</a></li>
+  <li><a href="uranai-easy/">◆簡単占い一日の運勢アプリ</a></li>
+</ul>
+
+<h3>＜業務・仕事系＞</h3>
+<ul>
+  <li><a href="color-test-JS">◆モニターテストアプリ</a></li>
+  <li><a href="QR-csv-app/">◆QR在庫入力アプリ</a></li>
+  <li><a href="CSV-XLSX-converter/">◆エクセル-CSV相互変換ツール</a></li>
+  <li><a href="JSON-XLSX-converter/">◆エクセル-JSON相互変換ツール</a></li>
+</ul>
+
+
+
+
+<div id="footer"></div>
+<script>
+  fetch("footer.html")
+    .then(res => res.text())
+    .then(html => document.getElementById("footer").innerHTML = html);
+</script>
+
 
 </body>
 
