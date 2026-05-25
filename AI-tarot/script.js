@@ -257,3 +257,8 @@ function resetAll(resetStep = true) {
 }
 
 initGrid(); updateStatus(); updateButtons();
+
+// ★ LINEブラウザ対策：テーマ選択の値を確実に反映させる
+themeSelect.addEventListener("input", () => {
+  themeSelect.blur(); // フォーカスを外して確定させる
+});
