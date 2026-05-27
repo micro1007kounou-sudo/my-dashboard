@@ -9,6 +9,10 @@
 <body>
 
   <h1>画像・PDF 変換ツール</h1>
+<div class="info-alert">
+    <p>⚠️ ブラウザの再読み込みで全てリセットされます
+      <br>⚠️ダウンロードしていないデータは破棄されます</p>
+  </div>
 
   <div class="app-container">
 
@@ -83,7 +87,7 @@
           </div>
           <div>
             <input type="radio" id="modeSize" name="resizeMode" value="size">
-            <label for="modeSize" style="font-weight: bold; cursor: pointer;">狙う容量 (MB) で指定 <span style="font-weight: normal; color: #555; font-size: 0.9em;">[縮小のみ0.01-5MBまでの範囲指定が可能]</span></label>
+            <label for="modeSize" style="font-weight: bold; cursor: pointer;">狙う容量 (MB) で指定 <span style="font-weight: normal; color: #555; font-size: 0.9em;">[縮小のみ0.01-5MBまで範囲可能]</span></label>
           </div>
         </div>
         <div class="item">
@@ -124,6 +128,13 @@
   <script src="jszip.min.js"></script>
   <script src="jspdf.umd.min.js"></script>
   <script src="script.js"></script>
+
+<div id="footer"></div>
+<script>
+  fetch("../footer.html")
+    .then(res => res.text())
+    .then(html => document.getElementById("footer").innerHTML = html);
+</script>
 
 </body>
 </html>

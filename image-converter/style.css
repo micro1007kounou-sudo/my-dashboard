@@ -21,7 +21,7 @@ h1 {
   text-align: center;
   color: #1a202c;
   font-size: 1.85rem;
-  margin-bottom: 40px;
+  margin-bottom: 10px;
   width: 100%;
   max-width: 650px; /* カードの幅と合わせる */
 }
@@ -310,4 +310,12 @@ label {
 @keyframes modalPop {
   0% { transform: scale(0.9) translateY(20px); opacity: 0; }
   100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.minimal-alert {
+  font-size: 0.8rem;     /* 少し小さめにして上品に */
+  color: #666;           /* 真っ黒ではなく、少し目に優しいグレー */
+  line-height: 1.6;      /* ★超重要：行と行の間のスキマを広げて読みやすくする */
+  margin-bottom: 25px;   /* 下のカードとの間に少しだけ余白を作る */
+  text-align: center;    /* 中央寄せ（カードやタイトルと揃える） */
 }
