@@ -5,17 +5,25 @@
    ========================================== */
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans JP", sans-serif;
-  background-color: #f4f6f9; /* ほんのり上品な薄いグレー */
+  background-color: #f4f6f9;
   color: #333;
   margin: 0;
-  padding: 30px 20px;
+  /* ★ 左右の余白を同じ（40px）に戻し、上下をゆったり広げます（左端だけを広げるのをやめます） */
+  padding: 50px 40px; 
+  /* ★ 中に入っている要素（h1やsection）をすべて縦並びのセンターに集める魔法 */
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
 }
 
 h1 {
+  /* ★ タイトルを中央寄せに戻します */
   text-align: center;
   color: #1a202c;
   font-size: 1.85rem;
-  margin-bottom: 30px;
+  margin-bottom: 40px;
+  width: 100%;
+  max-width: 650px; /* カードの幅と合わせる */
 }
 
 /* 横棒（hr）はデザイン崩れを防ぐため非表示 */
@@ -51,7 +59,11 @@ section {
   padding: 24px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   transition: transform 0.2s, box-shadow 0.2s;
-  border: none !important; /* 既存の点線などをリセット */
+  border: none !important;
+  
+  /* 📐 ここでカードの横幅を小さく絞ります */
+  max-width: 650px; /* ★ 横幅が広がりすぎないように上限（650px）を設定 */
+  width: 100%;       /* ★ 画面が狭いときは自動で縮むように指定 */
 }
 section:hover {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
