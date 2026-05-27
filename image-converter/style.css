@@ -122,15 +122,7 @@ button:hover {
   color: #ffffff;
 }
 
-/* リサイズ専用実行ボタン（重要度が高いため目立たせる） */
-#btnResizeImage {
-  background-color: #3b82f6;
-  color: #ffffff;
-  border: none;
-}
-#btnResizeImage:hover {
-  background-color: #2563eb;
-}
+
 
 /* 数値入力欄 */
 input[type="number"] {
