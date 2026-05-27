@@ -1,39 +1,43 @@
 @charset "UTF-8";
 
-/* ==========================================
-   1. 全体のベースデザイン
-   ========================================== */
+/* =========================================================
+   1. ページ全体のベースデザイン
+   ========================================================= */
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans JP", sans-serif;
   background-color: #f4f6f9;
   color: #333;
   margin: 0;
-  /* ★ 左右の余白を同じ（40px）に戻し、上下をゆったり広げます（左端だけを広げるのをやめます） */
-  padding: 50px 40px; 
-  /* ★ 中に入っている要素（h1やsection）をすべて縦並びのセンターに集める魔法 */
+
+  /* 画面全体に余白をつけて中央寄せのレイアウトにする */
+  padding: 50px 40px;
+
+  /* 子要素（h1, section など）を縦方向に中央揃え */
   display: flex;
   flex-direction: column;
-  align-items: center; 
+  align-items: center;
 }
 
+/* タイトル */
 h1 {
-  /* ★ タイトルを中央寄せに戻します */
   text-align: center;
   color: #1a202c;
   font-size: 1.85rem;
   margin-bottom: 10px;
+
+  /* セクションカードと幅を合わせる */
   width: 100%;
-  max-width: 650px; /* カードの幅と合わせる */
+  max-width: 650px;
 }
 
-/* 横棒（hr）はデザイン崩れを防ぐため非表示 */
+/* hr はデザイン上不要なので非表示 */
 hr {
   display: none;
 }
 
-/* ==========================================
-   2. 左右2分割レイアウト（親コンテナ）
-   ========================================== */
+/* =========================================================
+   2. 左右2カラム構造（※現在は1カラム運用）
+   ========================================================= */
 .app-container {
   display: flex;
   gap: 25px;
@@ -42,7 +46,7 @@ hr {
   align-items: flex-start;
 }
 
-/* 左側：操作パネル群 */
+/* 左側のメイン操作パネル */
 .main-panel {
   flex: 1;
   display: flex;
@@ -50,61 +54,67 @@ hr {
   gap: 20px;
 }
 
-/* ==========================================
+/* =========================================================
    3. 各機能のカード型セクション
-   ========================================== */
+   ========================================================= */
 section {
   background: #ffffff;
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+
+  /* ふわっと浮くカード影 */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05),
+              0 2px 4px -1px rgba(0, 0, 0, 0.03);
+
   transition: transform 0.2s, box-shadow 0.2s;
-  border: none !important;
-  
-  /* 📐 ここでカードの横幅を小さく絞ります */
-  max-width: 650px; /* ★ 横幅が広がりすぎないように上限（650px）を設定 */
-  width: 100%;       /* ★ 画面が狭いときは自動で縮むように指定 */
+
+  /* カード幅の最大値（広がりすぎ防止） */
+  max-width: 650px;
+  width: 100%;
 }
+
 section:hover {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
 }
 
+/* セクションタイトル */
 section h2 {
   font-size: 1.15rem;
   color: #2d3748;
   margin-top: 0;
   margin-bottom: 16px;
+
+  /* 下線で区切る */
   padding-bottom: 8px;
   border-bottom: 2px solid #edf2f7;
 }
 
-/* ボタンや入力欄を並べる行（ボタンが上下に伸びるのを防ぎ、コンパクトに横並びにする） */
+/* =========================================================
+   4. ボタン行（横並びレイアウト）
+   ========================================================= */
 .item {
   display: flex;
-  flex-direction: row;     /* ★ しっかり横並びにする */
-  align-items: center;     /* ★ 上下の真ん中で高さを揃える（これで上下に伸びなくなります） */
-  justify-content: flex-start; /* ★ 左詰めで並べる */
-  flex-wrap: wrap;         /* ★ 画面が狭いときは自動で折り返す */
-  gap: 12px;               /* ★ ボタン同士の間隔 */
+  flex-direction: row;
+  align-items: center;     /* ボタンの高さを揃える */
+  justify-content: flex-start;
+  flex-wrap: wrap;         /* スマホで折り返し */
+  gap: 12px;
   margin-bottom: 12px;
   width: 100%;
 }
 
-/* 操作パネル内のボタンが勝手に広がらないようにする調整 */
+/* ボタンが勝手に伸びないように調整 */
 .main-panel button {
-  flex: 0 1 auto;          /* ★ 必要以上に縦横に伸びるのを防ぐ */
-  width: auto;             /* ★ 文字の横幅に合わせる */
-  padding: 8px 16px;       /* ★ ボタン内の上下左右の余白をすっきり整える */
-  height: cubic-bezier;    /* ★ 高さを自動（文字の高さ＋余白）にする */
-}
-.item:last-child {
-  margin-bottom: 0;
+  flex: 0 1 auto;
+  width: auto;
+  padding: 8px 16px;
 }
 
-/* ==========================================
-   4. フォーム部品（ボタン・入力欄・ラジオボタン）
-   ========================================== */
-/* 汎用ボタンスタイル（操作用） */
+/* =========================================================
+   5. ボタン・フォーム部品
+   ========================================================= */
+
+/* 汎用ボタン */
 button {
   background-color: #ffffff;
   color: #3b82f6;
@@ -122,8 +132,6 @@ button:hover {
   color: #ffffff;
 }
 
-
-
 /* 数値入力欄 */
 input[type="number"] {
   border: 1px solid #cbd5e1;
@@ -139,44 +147,42 @@ input[type="number"]:focus {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
-/* ラジオボタンとラベル */
+/* ラジオボタン */
 input[type="radio"] {
   cursor: pointer;
   width: 16px;
   height: 16px;
-  accent-color: #3b82f6; /* ラジオボタンのメインカラーを青に */
+  accent-color: #3b82f6;
 }
+
+/* ラベル */
 label {
   font-size: 0.95rem;
   color: #475569;
   user-select: none;
 }
 
-/* ==========================================
-   5. 右側：右固定プレビュー＆ダウンロードパネル
-   ========================================== */
+/* =========================================================
+   6. プレビュー（右側パネル）
+   ========================================================= */
 .preview-panel {
   width: 380px;
   background: #ffffff;
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+
+  /* 固定表示（スクロールしても右に残る） */
   position: sticky;
-  top: 30px; /* スクロールしても画面上部にピタッとくっついてくる */
+  top: 30px;
+
   max-height: calc(100vh - 100px);
-  overflow-y: auto; /* プレビューが長すぎても内部スクロール可能に */
+  overflow-y: auto;
+
   display: flex;
   flex-direction: column;
 }
 
-.preview-panel h2 {
-  font-size: 1.2rem;
-  margin-top: 0;
-  color: #1a202c;
-  margin-bottom: 15px;
-}
-
-/* ファイル名通知バッジ */
+/* ファイル名バッジ */
 #previewFilename {
   background-color: #eff6ff;
   color: #1e40af;
@@ -188,8 +194,9 @@ label {
   margin-bottom: 15px;
 }
 
-/* プレビュー画像・キャンバスの調整 */
-#previewImage, #pdfPreviewCanvas {
+/* プレビュー画像・PDFキャンバス */
+#previewImage,
+#pdfPreviewCanvas {
   width: 100%;
   border-radius: 8px;
   border: 1px solid #e2e8f0 !important;
@@ -198,7 +205,7 @@ label {
   object-fit: contain;
 }
 
-/* ダウンロードボタンエリア */
+/* ダウンロードボタン群 */
 .action-buttons {
   display: flex;
   flex-direction: column;
@@ -206,7 +213,7 @@ label {
   margin-top: auto;
 }
 
-/* 特大ダウンロードボタン（エメラルドグリーン） */
+/* ダウンロードボタン（緑） */
 #downloadBtn {
   background: linear-gradient(135deg, #10b981, #059669);
   color: white;
@@ -237,9 +244,9 @@ label {
   color: #1f2937;
 }
 
-/* ==========================================
-   6. レスポンシブ対応（画面幅が狭いスマホ等）
-   ========================================== */
+/* =========================================================
+   7. スマホ対応
+   ========================================================= */
 @media (max-width: 850px) {
   .app-container {
     flex-direction: column;
@@ -251,25 +258,26 @@ label {
   }
 }
 
-/* ==========================================
-   8. モーダルウィンドウ（ポップアップ風）
-   ========================================== */
-/* 背景の黒い半透明の膜 */
+/* =========================================================
+   8. モーダル（変換完了ポップアップ）
+   ========================================================= */
+
+/* 背景の黒い半透明 */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.6); /* 背景を暗く */
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000; /* 一番手前に */
-  backdrop-filter: blur(4px); /* 背景をほんのりぼかす */
+  z-index: 1000;
+  backdrop-filter: blur(4px);
 }
 
-/* 真ん中の白い小画面 */
+/* モーダル本体 */
 .modal-content {
   background-color: #ffffff;
   padding: 30px;
@@ -279,12 +287,13 @@ label {
   max-height: 85vh;
   overflow-y: auto;
   position: relative;
+
+  /* ふわっと出るアニメーション */
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
-  /* フワッと浮き上がるアニメーション */
   animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
-/* 閉じるボタン（×） */
+/* 閉じるボタン */
 .modal-close {
   position: absolute;
   top: 15px;
@@ -299,15 +308,17 @@ label {
   color: #334155;
 }
 
+/* モーダルのアニメーション */
 @keyframes modalPop {
   0% { transform: scale(0.9) translateY(20px); opacity: 0; }
   100% { transform: scale(1) translateY(0); opacity: 1; }
 }
 
+/* 注意メッセージ（控えめ） */
 .minimal-alert {
-  font-size: 0.8rem;     /* 少し小さめにして上品に */
-  color: #666;           /* 真っ黒ではなく、少し目に優しいグレー */
-  line-height: 1.6;      /* ★超重要：行と行の間のスキマを広げて読みやすくする */
-  margin-bottom: 25px;   /* 下のカードとの間に少しだけ余白を作る */
-  text-align: center;    /* 中央寄せ（カードやタイトルと揃える） */
+  font-size: 0.8rem;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 25px;
+  text-align: center;
 }
