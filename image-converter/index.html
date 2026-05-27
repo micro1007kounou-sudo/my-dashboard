@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>画像・PDF 変換ツール</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+  <h1>画像・PDF 変換ツール</h1>
+
+  <!-- 画像 → 画像 -->
+  <section>
+    <h2>🔄 画像 → 画像</h2>
+
+    <div class="item">
+      <button id="btnPngToJpg">PNG → JPG</button>
+      <input type="file" id="inputPngToJpg" accept="image/png" hidden>
+    </div>
+
+    <div class="item">
+      <button id="btnJpgToPng">JPG → PNG</button>
+      <input type="file" id="inputJpgToPng" accept="image/jpeg" hidden>
+    </div>
+  </section>
+
+  <!-- 画像 → PDF -->
+  <section>
+    <h2>📄 画像 → PDF</h2>
+
+    <div class="item">
+      <button id="btnPngToPdf">PNG → PDF</button>
+      <input type="file" id="inputPngToPdf" accept="image/png" hidden>
+    </div>
+
+    <div class="item">
+      <button id="btnJpgToPdf">JPG → PDF</button>
+      <input type="file" id="inputJpgToPdf" accept="image/jpeg" hidden>
+    </div>
+  </section>
+
+
+<section>
+  <h2>📄 PDF結合</h2>
+
+    <div class="item" >
+  <button id="btnMultiImagesToPdf">複数画像 → 1つのPDFに結合</button>
+  <input type="file" id="inputMultiImagesToPdf" accept="image/png, image/jpeg" multiple hidden>
+</div>
+
+  <div class="item">
+    <button id="btnMultiPdfToPdf">複数のPDF → 1つのPDFに結合</button>
+    <input type="file" id="inputMultiPdfToPdf" accept="application/pdf" multiple hidden>
+  </div>
+</section>
+
+<section>
+  <h2>✂️ PDF 分割</h2>
+  <div class="item">
+    <button id="btnSplitPdf">PDFを選択してページごとに分割</button>
+    <input type="file" id="inputSplitPdf" accept="application/pdf" hidden>
+  </div>
+
+  <div class="item" style="margin-top: 10px;">
+  <button id="btnSplitPdfToPng">PDFを選択してPNG画像に分割</button>
+  <input type="file" id="inputSplitPdfToPng" accept="application/pdf" hidden>
+</div>
+
+</section>
+  <!-- PDF → 画像 -->
+  <section>
+    <h2>🖼 PDF → 画像</h2>
+<div id="pdfOptions" style="margin: 10px 0;">
+  <label><input type="radio" name="pdfMode" value="single" checked> 1ページ目だけ変換</label>
+  <br>
+  <label><input type="radio" name="pdfMode" value="all"> 全ページ変換（ZIP）</label>
+</div>
+
+    <div class="item">
+      <button id="btnPdfToPng">PDF → PNG</button>
+      <input type="file" id="inputPdfToPng" accept="application/pdf" hidden>
+    </div>
+
+    <div class="item">
+      <button id="btnPdfToJpg">PDF → JPG</button>
+      <input type="file" id="inputPdfToJpg" accept="application/pdf" hidden>
+    </div>
+  </section>
+
+<section style="margin-top: 30px; padding-top: 20px; border-top: 2px dashed #999;">
+  <h2>📐 画像リサイズ・容量一括調整</h2>
+  
+<div class="item" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
+    <div>
+      <input type="radio" id="modeWidth" name="resizeMode" value="width" checked>
+      <label for="modeWidth" style="font-weight: bold; cursor: pointer;">横幅 (px) で指定 <span style="font-weight: normal; color: #555; font-size: 0.9em;">[拡大、縮小10-5000pxまで指定可能]</span></label>
+    </div>
+    
+    <div>
+      <input type="radio" id="modeSize" name="resizeMode" value="size">
+      <label for="modeSize" style="font-weight: bold; cursor: pointer;">狙う容量 (MB) で指定 <span style="font-weight: normal; color: #555; font-size: 0.9em;">[縮小のみ0.01-5MBまでの範囲指定が可能]</span></label>
+    </div>
+  </div>
+
+  <div class="item">
+    <span id="inputWidthWrapper">
+      <label for="resizeWidth">目標の横幅: </label>
+      
+      <input type="number" id="resizeWidth" value="1200" min="10" max="5000" style="width: 70px; padding: 3px; text-align: center;"> px
+    </span>
+
+    <span id="inputSizeWrapper" style="display: none;">
+      <label for="resizeMaxSize">目標の容量: </label>
+      <input type="number" id="resizeMaxSize" value="1.0" step="0.01" min="0.01" max="5.0" style="width: 60px; padding: 3px; text-align: center;"> MB 以下に抑える
+    </span>
+    
+    <button id="btnResizeImage" style="margin-left: 15px;">複数画像を選択して一括実行</button>
+    <input type="file" id="inputResizeImage" accept="image/png, image/jpeg" multiple hidden>
+  </div>
+</section>
+<hr>
+
+<h2>プレビュー</h2>
+
+<p id="previewFilename" style="display:none; font-weight:bold;"></p>
+
+<!-- 画像プレビュー -->
+<img id="previewImage" style="max-width: 100%; display: none; border: 1px solid #ccc;">
+
+<!-- PDFプレビュー（ここに追加） -->
+<canvas id="pdfPreviewCanvas" style="display:none; border:1px solid #ccc; max-width:100%;"></canvas>
+
+<button id="downloadBtn" style="display: none;">ダウンロード</button>
+<button id="openNewTabBtn" style="display: none;">別タブで開く</button>
+
+
+<!-- PDF.js -->
+<script src="pdf.min.js"></script>
+<script src="pdf.worker.min.js"></script>
+
+<!-- JSZip（ここが必要） -->
+<script src="pdf-lib.min.js"></script>
+<script src="jszip.min.js"></script>
+
+<!-- ★ これを必ず追加（以前はこれがあった） -->
+<script src="jspdf.umd.min.js"></script>
+
+<!-- あなたのメインスクリプト -->
+<script src="script.js"></script>
+
+
+</body>
+</html>
