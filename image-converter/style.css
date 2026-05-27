@@ -1,0 +1,248 @@
+@charset "UTF-8";
+
+/* ==========================================
+   1. 全体のベースデザイン
+   ========================================== */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans JP", sans-serif;
+  background-color: #f4f6f9; /* ほんのり上品な薄いグレー */
+  color: #333;
+  margin: 0;
+  padding: 30px 20px;
+}
+
+h1 {
+  text-align: center;
+  color: #1a202c;
+  font-size: 1.85rem;
+  margin-bottom: 30px;
+}
+
+/* 横棒（hr）はデザイン崩れを防ぐため非表示 */
+hr {
+  display: none;
+}
+
+/* ==========================================
+   2. 左右2分割レイアウト（親コンテナ）
+   ========================================== */
+.app-container {
+  display: flex;
+  gap: 25px;
+  max-width: 1200px;
+  margin: 0 auto;
+  align-items: flex-start;
+}
+
+/* 左側：操作パネル群 */
+.main-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ==========================================
+   3. 各機能のカード型セクション
+   ========================================== */
+section {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: none !important; /* 既存の点線などをリセット */
+}
+section:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+}
+
+section h2 {
+  font-size: 1.15rem;
+  color: #2d3748;
+  margin-top: 0;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #edf2f7;
+}
+
+/* ボタンや入力欄を並べる行（ボタンが上下に伸びるのを防ぎ、コンパクトに横並びにする） */
+.item {
+  display: flex;
+  flex-direction: row;     /* ★ しっかり横並びにする */
+  align-items: center;     /* ★ 上下の真ん中で高さを揃える（これで上下に伸びなくなります） */
+  justify-content: flex-start; /* ★ 左詰めで並べる */
+  flex-wrap: wrap;         /* ★ 画面が狭いときは自動で折り返す */
+  gap: 12px;               /* ★ ボタン同士の間隔 */
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+/* 操作パネル内のボタンが勝手に広がらないようにする調整 */
+.main-panel button {
+  flex: 0 1 auto;          /* ★ 必要以上に縦横に伸びるのを防ぐ */
+  width: auto;             /* ★ 文字の横幅に合わせる */
+  padding: 8px 16px;       /* ★ ボタン内の上下左右の余白をすっきり整える */
+  height: cubic-bezier;    /* ★ 高さを自動（文字の高さ＋余白）にする */
+}
+.item:last-child {
+  margin-bottom: 0;
+}
+
+/* ==========================================
+   4. フォーム部品（ボタン・入力欄・ラジオボタン）
+   ========================================== */
+/* 汎用ボタンスタイル（操作用） */
+button {
+  background-color: #ffffff;
+  color: #3b82f6;
+  border: 1.5px solid #3b82f6;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+button:hover {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+/* リサイズ専用実行ボタン（重要度が高いため目立たせる） */
+#btnResizeImage {
+  background-color: #3b82f6;
+  color: #ffffff;
+  border: none;
+}
+#btnResizeImage:hover {
+  background-color: #2563eb;
+}
+
+/* 数値入力欄 */
+input[type="number"] {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.95rem;
+  color: #334155;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+input[type="number"]:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* ラジオボタンとラベル */
+input[type="radio"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  accent-color: #3b82f6; /* ラジオボタンのメインカラーを青に */
+}
+label {
+  font-size: 0.95rem;
+  color: #475569;
+  user-select: none;
+}
+
+/* ==========================================
+   5. 右側：右固定プレビュー＆ダウンロードパネル
+   ========================================== */
+.preview-panel {
+  width: 380px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 30px; /* スクロールしても画面上部にピタッとくっついてくる */
+  max-height: calc(100vh - 100px);
+  overflow-y: auto; /* プレビューが長すぎても内部スクロール可能に */
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-panel h2 {
+  font-size: 1.2rem;
+  margin-top: 0;
+  color: #1a202c;
+  margin-bottom: 15px;
+}
+
+/* ファイル名通知バッジ */
+#previewFilename {
+  background-color: #eff6ff;
+  color: #1e40af;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  border-left: 4px solid #3b82f6;
+  word-break: break-all;
+  margin-bottom: 15px;
+}
+
+/* プレビュー画像・キャンバスの調整 */
+#previewImage, #pdfPreviewCanvas {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+  margin-bottom: 20px;
+  object-fit: contain;
+}
+
+/* ダウンロードボタンエリア */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: auto;
+}
+
+/* 特大ダウンロードボタン（エメラルドグリーン） */
+#downloadBtn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  padding: 14px;
+  font-size: 1.05rem;
+  border-radius: 8px;
+  width: 100%;
+  box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+}
+#downloadBtn:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-1px);
+}
+
+/* 別タブボタン */
+#openNewTabBtn {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  padding: 10px;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  width: 100%;
+}
+#openNewTabBtn:hover {
+  background: #e2e8f0;
+  color: #1f2937;
+}
+
+/* ==========================================
+   6. レスポンシブ対応（画面幅が狭いスマホ等）
+   ========================================== */
+@media (max-width: 850px) {
+  .app-container {
+    flex-direction: column;
+  }
+  .preview-panel {
+    width: 100%;
+    position: static;
+    max-height: none;
+  }
+}

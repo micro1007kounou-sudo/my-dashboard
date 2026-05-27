@@ -74,7 +74,10 @@ document.getElementById("inputPngToJpg").addEventListener("change", async (e) =>
       a.download = convertedName;
       a.click();
     };
+// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
+    scrollToPreview();
 
+    
     // 別タブで開く
 openBtn.onclick = () => {
   const blob = dataURLtoBlob(jpgData); // pngData の場合も同じ
@@ -162,7 +165,8 @@ document.getElementById("inputJpgToPng").addEventListener("change", async (e) =>
       a.download = convertedName;
       a.click();
     };
-
+// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
+    scrollToPreview();
     // 別タブで開く
 openBtn.onclick = () => {
   const blob = dataURLtoBlob(pngData); // ← これが正しい
@@ -245,6 +249,8 @@ dlBtn.onclick = () => {
   a.click();
 };
 
+// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
+    scrollToPreview();
 
     // 別タブで開く
     openBtn.onclick = () => {
@@ -310,7 +316,8 @@ document.getElementById("inputJpgToPdf").addEventListener("change", async (e) =>
       a.download = convertedName;
       a.click();
     };
-
+// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
+    scrollToPreview();
     // 別タブで開く（PDF ビューア）
     openBtn.onclick = () => {
       window.open(pdfUrl, "_blank");
@@ -394,7 +401,8 @@ document.getElementById("inputPdfToPng").addEventListener("change", async (e) =>
         a.download = convertedName;
         a.click();
       };
-
+// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
+    scrollToPreview();
       // 別タブで開く
       openBtn.onclick = () => {
         const blob = dataURLtoBlob(pngData, "image/png");
@@ -566,7 +574,8 @@ document.getElementById("inputPdfToJpg").addEventListener("change", async (e) =>
         a.download = convertedName;
         a.click();
       };
-
+// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
+    scrollToPreview();
       // 別タブで開く
       openBtn.onclick = () => {
         const blob = dataURLtoBlob(jpgData, "image/jpeg");
@@ -621,7 +630,8 @@ document.getElementById("inputPdfToJpg").addEventListener("change", async (e) =>
         a.download = `${baseName}_converted_all.zip`;
         a.click();
       };
-
+// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
+    scrollToPreview();
       // プレビューは1ページ目だけ表示
       const firstPage = await pdf.getPage(1);
       const viewport = firstPage.getViewport({ scale: 2 });
@@ -736,7 +746,8 @@ document.getElementById("inputMultiImagesToPdf").addEventListener("change", asyn
       a.download = convertedName;
       a.click();
     };
-
+// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
+    scrollToPreview();
     openBtn.onclick = () => {
       window.open(pdfUrl, "_blank");
     };
@@ -808,7 +819,8 @@ document.getElementById("inputMultiPdfToPdf").addEventListener("change", async (
       a.download = convertedName;
       a.click();
     };
-
+// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
+    scrollToPreview();
     openBtn.onclick = () => {
       window.open(pdfUrl, "_blank");
     };
@@ -890,6 +902,8 @@ document.getElementById("inputSplitPdf").addEventListener("change", async (e) =>
       a.download = convertedName;
       a.click();
     };
+// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
+    scrollToPreview();
 
   } catch (error) {
     console.error(error);
@@ -971,6 +985,9 @@ document.getElementById("inputSplitPdfToPng").addEventListener("change", async (
         a.click();
       };
     };
+// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
+    scrollToPreview();
+
   } catch (error) {
     console.error(error);
     nameBox.textContent = "画像の分割中にエラーが発生しました。";
@@ -1136,6 +1153,9 @@ document.getElementById("inputResizeImage").addEventListener("change", async (e)
       a.click();
     };
 
+// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
+    scrollToPreview();
+
   } catch (error) {
     console.error(error);
     nameBox.textContent = "一括リサイズ中にエラーが発生しました。";
@@ -1143,3 +1163,16 @@ document.getElementById("inputResizeImage").addEventListener("change", async (e)
 
   e.target.value = "";
 });
+
+// ===== 6. ダウンロードボタンへの自動スクロール機能（ズレ防止タイマー付き） =====
+function scrollToPreview() {
+  // 💡 0.1秒（100ミリ秒）だけ処理を遅らせることで、
+  // ブラウザがボタンの配置と画面の組み立てを完全に終えるのを待ちます
+  setTimeout(() => {
+    const downloadBtn = document.getElementById('downloadBtn');
+    if (downloadBtn && downloadBtn.style.display !== 'none') {
+      // 画面のちょうど中央（center）に滑らかにスクロール
+      downloadBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 100); // 100msのウェイト（一瞬なので目視では遅延は分かりません）
+}
