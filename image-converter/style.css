@@ -246,3 +246,56 @@ label {
     max-height: none;
   }
 }
+
+/* ==========================================
+   8. モーダルウィンドウ（ポップアップ風）
+   ========================================== */
+/* 背景の黒い半透明の膜 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); /* 背景を暗く */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* 一番手前に */
+  backdrop-filter: blur(4px); /* 背景をほんのりぼかす */
+}
+
+/* 真ん中の白い小画面 */
+.modal-content {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+  /* フワッと浮き上がるアニメーション */
+  animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* 閉じるボタン（×） */
+.modal-close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.modal-close:hover {
+  color: #334155;
+}
+
+@keyframes modalPop {
+  0% { transform: scale(0.9) translateY(20px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}

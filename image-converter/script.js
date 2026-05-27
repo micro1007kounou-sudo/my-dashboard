@@ -74,8 +74,7 @@ document.getElementById("inputPngToJpg").addEventListener("change", async (e) =>
       a.download = convertedName;
       a.click();
     };
-// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
-    scrollToPreview();
+
 
     
     // 別タブで開く
@@ -165,8 +164,7 @@ document.getElementById("inputJpgToPng").addEventListener("change", async (e) =>
       a.download = convertedName;
       a.click();
     };
-// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
-    scrollToPreview();
+
     // 別タブで開く
 openBtn.onclick = () => {
   const blob = dataURLtoBlob(pngData); // ← これが正しい
@@ -249,8 +247,7 @@ dlBtn.onclick = () => {
   a.click();
 };
 
-// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
-    scrollToPreview();
+
 
     // 別タブで開く
     openBtn.onclick = () => {
@@ -316,8 +313,7 @@ document.getElementById("inputJpgToPdf").addEventListener("change", async (e) =>
       a.download = convertedName;
       a.click();
     };
-// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
-    scrollToPreview();
+
     // 別タブで開く（PDF ビューア）
     openBtn.onclick = () => {
       window.open(pdfUrl, "_blank");
@@ -401,8 +397,7 @@ document.getElementById("inputPdfToPng").addEventListener("change", async (e) =>
         a.download = convertedName;
         a.click();
       };
-// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
-    scrollToPreview();
+
       // 別タブで開く
       openBtn.onclick = () => {
         const blob = dataURLtoBlob(pngData, "image/png");
@@ -574,8 +569,7 @@ document.getElementById("inputPdfToJpg").addEventListener("change", async (e) =>
         a.download = convertedName;
         a.click();
       };
-// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
-    scrollToPreview();
+
       // 別タブで開く
       openBtn.onclick = () => {
         const blob = dataURLtoBlob(jpgData, "image/jpeg");
@@ -630,8 +624,7 @@ document.getElementById("inputPdfToJpg").addEventListener("change", async (e) =>
         a.download = `${baseName}_converted_all.zip`;
         a.click();
       };
-// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
-    scrollToPreview();
+
       // プレビューは1ページ目だけ表示
       const firstPage = await pdf.getPage(1);
       const viewport = firstPage.getViewport({ scale: 2 });
@@ -746,8 +739,7 @@ document.getElementById("inputMultiImagesToPdf").addEventListener("change", asyn
       a.download = convertedName;
       a.click();
     };
-// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
-    scrollToPreview();
+
     openBtn.onclick = () => {
       window.open(pdfUrl, "_blank");
     };
@@ -819,8 +811,7 @@ document.getElementById("inputMultiPdfToPdf").addEventListener("change", async (
       a.download = convertedName;
       a.click();
     };
-// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
-    scrollToPreview();
+
     openBtn.onclick = () => {
       window.open(pdfUrl, "_blank");
     };
@@ -902,8 +893,7 @@ document.getElementById("inputSplitPdf").addEventListener("change", async (e) =>
       a.download = convertedName;
       a.click();
     };
-// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
-    scrollToPreview();
+
 
   } catch (error) {
     console.error(error);
@@ -985,8 +975,7 @@ document.getElementById("inputSplitPdfToPng").addEventListener("change", async (
         a.click();
       };
     };
-// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
-    scrollToPreview();
+
 
   } catch (error) {
     console.error(error);
@@ -1153,8 +1142,7 @@ document.getElementById("inputResizeImage").addEventListener("change", async (e)
       a.click();
     };
 
-// ★ ここに追記！処理が終わったのでプレビューへ画面を動かす
-    scrollToPreview();
+
 
   } catch (error) {
     console.error(error);
@@ -1164,15 +1152,39 @@ document.getElementById("inputResizeImage").addEventListener("change", async (e)
   e.target.value = "";
 });
 
-// ===== 6. ダウンロードボタンへの自動スクロール機能（ズレ防止タイマー付き） =====
-function scrollToPreview() {
-  // 💡 0.1秒（100ミリ秒）だけ処理を遅らせることで、
-  // ブラウザがボタンの配置と画面の組み立てを完全に終えるのを待ちます
-  setTimeout(() => {
-    const downloadBtn = document.getElementById('downloadBtn');
-    if (downloadBtn && downloadBtn.style.display !== 'none') {
-      // 画面のちょうど中央（center）に滑らかにスクロール
-      downloadBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+// ===== 6. モーダル自動開閉システム =====
+
+// ダウンロードボタンが出現したら、モーダルを自動で開く監視カメラ
+const modalObserver = new MutationObserver((mutations) => {
+  mutations.forEach((mutation) => {
+    if (mutation.attributeName === 'style') {
+      const downloadBtn = document.getElementById('downloadBtn');
+      const modal = document.getElementById('customModal');
+      
+      // ダウンロードボタンが表示状態になったらモーダルをドカンと出す
+      if (downloadBtn && downloadBtn.style.display !== 'none') {
+        modal.style.display = 'flex';
+      }
     }
-  }, 100); // 100msのウェイト（一瞬なので目視では遅延は分かりません）
+  });
+});
+
+const dlBtnTarget = document.getElementById('downloadBtn');
+if (dlBtnTarget) {
+  modalObserver.observe(dlBtnTarget, { attributes: true });
 }
+
+// 「×」ボタンを押したらモーダルを閉じる処理
+document.getElementById('btnModalClose').onclick = () => {
+  document.getElementById('customModal').style.display = 'none';
+  // 次回また動くように、ダウンロードボタンとファイル名をリセット（非表示に）しておく
+  document.getElementById('downloadBtn').style.display = 'none';
+  document.getElementById('previewFilename').style.display = 'none';
+};
+
+// 背景の黒い部分をクリックしても閉じられるようにする（親切設計）
+//document.getElementById('customModal').onclick = (e) => {
+//  if (e.target === document.getElementById('customModal')) {
+//    document.getElementById('btnModalClose').click();
+//  }
+//};
