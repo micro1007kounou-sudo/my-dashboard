@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>プライベートチャット（2人専用）</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="chat-container">
+
+  <div class="chat-header">
+    プライベートチャット（2人専用）<br>
+    あなたのIP: <span id="selfIp">取得中...</span><br>
+    相手のIP: <span id="otherIp">未接続</span>
+  </div>
+
+  <div class="messages" id="messages"></div>
+
+  <div class="input-area">
+    <input id="msgInput" type="text" placeholder="メッセージを入力…">
+    <button id="sendBtn">送信</button>
+  </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
