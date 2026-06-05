@@ -3,10 +3,12 @@ const fs = require("fs");
 const path = require("path");
 const WebSocket = require("ws");
 
-// HTTP サーバー（battle.html / css / js を配信）
+// HTTP サーバー
 const server = http.createServer((req, res) => {
     let filePath = "." + req.url;
-    if (filePath === "./") filePath = "./battle.html";
+
+    // ★ ここを index.html に固定する（重要）
+    if (filePath === "./") filePath = "./index.html";
 
     const ext = path.extname(filePath);
     const map = {
@@ -35,9 +37,6 @@ wss.on("connection", (ws) => {
     const playerId = `P${nextPlayerId++}`;
     ws.playerId = playerId;
 
-    console.log("connected:", playerId);
-
-    // 初回メッセージ
     ws.send(JSON.stringify({
         type: "welcome",
         playerId
@@ -45,18 +44,12 @@ wss.on("connection", (ws) => {
 
     ws.on("message", (msg) => {
         const data = JSON.parse(msg);
-        console.log("recv:", data);
 
-        // 全員にブロードキャスト
         wss.clients.forEach(client => {
             if (client.readyState === WebSocket.OPEN) {
                 client.send(JSON.stringify(data));
             }
         });
-    });
-
-    ws.on("close", () => {
-        console.log("disconnected:", playerId);
     });
 });
 
