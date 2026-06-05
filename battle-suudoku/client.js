@@ -22,12 +22,22 @@ ws.addEventListener("message", (event) => {
     console.log("recv:", data);
 
     switch (data.type) {
+
+
         case "welcome":
-            // プレイヤーID受信
+            // 自分の情報を反映
             myId = data.playerId;
-            document.getElementById("info").textContent = `あなた: ${myId}`;
+            // HTMLの「my-status」の文字を書き換える
+            document.getElementById("my-status").textContent = `あなた: ${myId} (IP: ${data.playerIp})`;
             break;
 
+        case "playerJoined":
+            // 相手の情報を反映
+            if (data.playerId !== myId) {
+                // HTMLの「other-status」の文字を書き換える
+                document.getElementById("other-status").textContent = `相手: ${data.playerId} (IP: ${data.playerIp})`;
+            }
+            break;
         case "puzzle":
             // 初期盤面（問題）受信
             drawPuzzle(data.puzzle);

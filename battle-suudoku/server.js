@@ -54,34 +54,73 @@ for (let r = 0; r < 9; r++) {
     }
 }
 
-// WebSocket 接続時の処理
-wss.on("connection", (ws) => {
+// =================================================================
+// プレイヤー接続時のメイン処理（ここから丸ごと差し替えてください）
+// =================================================================
+wss.on("connection", (ws, req) => {
     const playerId = `P${nextPlayerId++}`;
     ws.playerId = playerId;
 
-    console.log(`Player connected: ${playerId}`);
+    // --- 1. 安全なIPアドレスの取得 ---
+    let ip = "不明なIP";
+    try {
+        if (req && req.socket && req.socket.remoteAddress) {
+            ip = req.socket.remoteAddress;
+            // IPv6射影アドレス（::ffff:192.168.x.x）からIPv4部分を抽出
+            if (ip.includes("::ffff:")) {
+                ip = ip.split("::ffff:")[1];
+            } else if (ip === "::1") {
+                ip = "127.0.0.1 (Local)";
+            }
+        }
+    } catch (err) {
+        console.error("IP取得エラー:", err);
+    }
+    ws.playerIp = ip; // サーバー側で記憶
 
-    // 1. welcome を送信（IDの通知）
+    console.log(`ユーザー接続: ${playerId} (IP: ${ip})`);
+
+    // --- 2. 各プレイヤーへの初期通知 ---
+    
+    // A. 接続した本人に welcome を送信（IDとIPを伝える）
     ws.send(JSON.stringify({
         type: "welcome",
-        playerId
+        playerId: playerId,
+        playerIp: ip
     }));
 
-    // 2. 共有の「初期パズル（問題）」を送信
+    // B. 他の全員に、新しいプレイヤーの参加（とIP）を通知
+    broadcast({
+        type: "playerJoined",
+        playerId: playerId,
+        playerIp: ip
+    });
+
+    // C. 新しく入った人に、すでに接続している先輩プレイヤーのIPを教えてあげる
+    wss.clients.forEach(client => {
+        if (client !== ws && client.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+                type: "playerJoined",
+                playerId: client.playerId,
+                playerIp: client.playerIp
+            }));
+        }
+    });
+
+    // D. 現在の「パズル問題」を送信
     ws.send(JSON.stringify({
         type: "puzzle",
         puzzle: initialPuzzle
     }));
 
-    // 3. すでにゲームが始まっている場合、現在までに埋まっているマスを同期する
+    // E. 途中参加の場合のため、現在の盤面状況（誰がどこを埋めたか）を同期
     for (let r = 0; r < 9; r++) {
         for (let c = 0; c < 9; c++) {
-            // 初期問題以外のマスで、すでに誰かが正解しているマスがあれば通知
             if (currentBoard[r][c].num !== 0 && currentBoard[r][c].owner !== "system") {
                 ws.send(JSON.stringify({
                     type: "placeNumber",
-                    r,
-                    c,
+                    r: r,
+                    c: c,
                     num: currentBoard[r][c].num,
                     playerId: currentBoard[r][c].owner
                 }));
@@ -89,26 +128,62 @@ wss.on("connection", (ws) => {
         }
     }
 
-    // メッセージ処理（チャット・クリックなど）
-    ws.on("message", (msg) => {
-        const data = JSON.parse(msg);
-
-        // 動作確認用ログ
-        if (data.type === "cellClick") {
-            console.log(`player ${data.playerId} clicked r=${data.r}, c=${data.c}`);
-            return; // クリックログは全員に送る必要がないのでここで終了
+    // --- 3. 受信メッセージの処理（個別イベント） ---
+    ws.on("message", (message) => {
+        let data;
+        try {
+            data = JSON.parse(message);
+        } catch (e) {
+            return;
         }
-        // ====== server.js の ws.on("message", ...) 内に追加 ======
 
-        // --- 盤面リセット要求の処理 ---
+        // ◆ 数字入力の同期と正誤判定
+        if (data.type === "placeNumber") {
+            const r = data.r;
+            const c = data.c;
+            const num = data.num;
+
+            // 初期問題マスは上書き不可
+            if (initialPuzzle[r][c] !== 0) return;
+
+            // 正解判定
+            if (solutionBoard[r][c] === num) {
+                currentBoard[r][c] = { num: num, owner: ws.playerId };
+                broadcast({
+                    type: "placeNumber",
+                    r: r,
+                    c: c,
+                    num: num,
+                    playerId: ws.playerId
+                });
+            } else {
+                // 間違えた場合はペナルティ通知（クライアント側で5秒赤ピカ震え）
+                ws.send(JSON.stringify({
+                    type: "penalty",
+                    r: r,
+                    c: c
+                }));
+            }
+            return;
+        }
+
+        // ◆ チャットメッセージの転送
+        if (data.type === "chat") {
+            broadcast({
+                type: "chat",
+                playerId: ws.playerId,
+                text: data.text
+            });
+            return;
+        }
+
+        // ◆ 「新しい盤面で開始」ボタンの処理
         if (data.type === "requestReset") {
-            console.log(`盤面リセットが要求されました（送信者: ${ws.playerId}, 難易度: ${data.difficulty}）`);
+            console.log(`盤面リセットが要求されました（難易度: ${data.difficulty}）`);
 
-            // 1. 新しい正解盤面を生成
             solutionBoard = Array.from({ length: 9 }, () => Array(9).fill(0));
             generateFullBoard(solutionBoard);
 
-            // 2. 送られてきた難易度に応じて空白数を決定（デフォルトは40）
             let blanks = 40;
             let difficultyName = "中級";
 
@@ -123,15 +198,12 @@ wss.on("connection", (ws) => {
                 difficultyName = "上級 (空白50マス)";
             }
 
-            // 3. 新しい初期問題を指定された空白数で生成
             initialPuzzle = makePuzzle(solutionBoard, blanks);
 
-            // 4. 現在のリアルタイム盤面（所有者データ）をリセット
             currentBoard = Array.from({ length: 9 }, () => 
                 Array(9).fill(null).map(() => ({ num: 0, owner: "system" }))
             );
 
-            // 初期パズルの数字をセット
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
                     if (initialPuzzle[r][c] !== 0) {
@@ -140,84 +212,34 @@ wss.on("connection", (ws) => {
                 }
             }
 
-            // 5. 全員に新しいパズルを送り、画面を上書きさせる
             broadcast({
                 type: "puzzle",
                 puzzle: initialPuzzle
             });
 
-            // チャットへのシステム通知にも難易度を表示
             broadcast({
                 type: "chat",
                 playerId: "システム",
-                text: `🔄 ${ws.playerId} が難易度【${difficultyName}】で盤面をリセットしました！`
+                text: `🔄 ${ws.playerId} が難易度【${difficultyName}】で盤面を新しくしました！`
             });
             
             return;
         }
-        // --- 数字が入力された時の処理 ---
-        if (data.type === "placeNumber") {
-            const { r, c, num, playerId } = data;
+    });
 
-            // すでに埋まっているマス、または初期問題のマスなら完全に無視
-            if (currentBoard[r][c].num !== 0) return;
-
-            // 【チェック1】数独のルールとして矛盾していないか（重複チェック）
-            let tempBoard = currentBoard.map(row => row.map(cell => cell.num));
-            if (!isValid(tempBoard, r, c, num)) {
-                console.log(`[矛盾入力] ${playerId} try ${num} at r=${r}, c=${c} (重複あり)`);
-                
-                // 矛盾しているため、本人にだけ「入力失敗」を通知
-                ws.send(JSON.stringify({
-                    type: "inputError",
-                    r,
-                    c,
-                    reason: "conflict"
-                }));
-                return;
-            }
-
-            // 【チェック2】サーバー側の完成盤面（正解）と一致しているか
-            const correctAnswer = solutionBoard[r][c];
-
-            if (num === correctAnswer) {
-                console.log(`[正解] ${playerId} placed ${num} at r=${r}, c=${c}`);
-                
-                // サーバーの現在の状態を更新
-                currentBoard[r][c] = { num, owner: playerId };
-
-                // 正解した時だけ、全員にブロードキャスト（陣地獲得！）
-                broadcast({
-                    type: "placeNumber",
-                    r,
-                    c,
-                    num,
-                    playerId
-                });
-            } else {
-                console.log(`[間違い] ${playerId} try ${num} at r=${r}, c=${c} (答えが違う)`);
-                
-                // 答えが違うため、本人にだけ「入力失敗」を通知
-                ws.send(JSON.stringify({
-                    type: "inputError",
-                    r,
-                    c,
-                    reason: "wrong"
-                }));
-            }
-            return;
-        }
-
-// =========================================================================
-
-
-
-
-        // チャットなどはそのまま全員にブロードキャスト
-        broadcast(data);
+    // --- 4. 切断時の処理 ---
+    ws.on("close", () => {
+        console.log(`ユーザー切断: ${ws.playerId}`);
+        broadcast({
+            type: "chat",
+            playerId: "システム",
+            text: `❌ ${ws.playerId} が退室しました。`
+        });
     });
 });
-
+// =================================================================
+// 接続処理ブロック 終わり
+// =================================================================
 // 全員にデータを送るヘルパー関数
 function broadcast(data) {
     wss.clients.forEach(client => {
