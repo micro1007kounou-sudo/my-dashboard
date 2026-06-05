@@ -1,52 +1,22 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <link rel="stylesheet" href="battle.css">
-
 <meta charset="UTF-8">
-<title>陣取り数独テスト</title>
-
-
+<title>陣取り数独（対戦版）</title>
+<link rel="stylesheet" href="battle.css">
 </head>
 <body>
 
-<h2>陣取り数独テスト</h2>
+<h2>陣取り数独（対戦版）</h2>
+<div id="info">接続待ち...</div>
+
 <div id="board-container"></div>
 
-<script>
-  console.log("inline script loaded");
+<h3>チャット</h3>
+<div id="chat-box"></div>
+<input id="chat-input" type="text" placeholder="メッセージ">
+<button id="chat-send">送信</button>
 
-  function createBoard() {
-    const container = document.getElementById("board-container");
-    console.log("container:", container);
-    container.innerHTML = "";
-
-    for (let r = 0; r < 9; r++) {
-      for (let c = 0; c < 9; c++) {
-        const cell = document.createElement("div");
-        cell.classList.add("cell");
-        cell.dataset.r = r;
-        cell.dataset.c = c;
-        cell.textContent = ""; // 初期は空
-
-        cell.addEventListener("click", () => {
-          const v = prompt(`(${r},${c}) 数字を入力 (1-9)`);
-          if (!v) return;
-          const num = Number(v);
-          if (num < 1 || num > 9) return;
-          cell.textContent = num;
-        });
-
-        container.appendChild(cell);
-      }
-    }
-
-    console.log("cells:", document.querySelectorAll(".cell").length);
-  }
-
-  // DOM構築後に実行
-  window.addEventListener("DOMContentLoaded", createBoard);
-</script>
-
+<script src="client.js"></script>
 </body>
 </html>
