@@ -1,7 +1,10 @@
 console.log("client.js loaded");
 
 // WebSocket 接続
-const ws = new WebSocket("ws://localhost:8080");
+// ====== client.js の 2行目を以下に書き換え ======
+
+// アクセス元のURLからIPアドレス（ホスト名）を自動取得してWebSocketのURLを組み立てる
+const ws = new WebSocket(`ws://${window.location.hostname}:8080`);
 let myId = null;
 let selectedCell = null;
 let isLocked = false; // ★エラー時の操作ロックフラグ
@@ -23,7 +26,6 @@ ws.addEventListener("message", (event) => {
 
     switch (data.type) {
 
-
         case "welcome":
             // 自分の情報を反映
             myId = data.playerId;
@@ -38,8 +40,9 @@ ws.addEventListener("message", (event) => {
                 document.getElementById("other-status").textContent = `相手: ${data.playerId} (IP: ${data.playerIp})`;
             }
             break;
+
         case "puzzle":
-            // 初期盤面（問題）受信
+            // 初期盤面（問題）受信（この中で全マスの色が完全リセットされます）
             drawPuzzle(data.puzzle);
             break;
 
@@ -69,7 +72,7 @@ ws.addEventListener("message", (event) => {
             }
             break;
 
-        case "inputError":
+        case "penalty":
             // サーバーからエラー（重複・間違い）が返ってきたときの処理
             const errIndex = data.r * 9 + data.c;
             const errCell = document.querySelectorAll(".cell")[errIndex];
@@ -77,12 +80,11 @@ ws.addEventListener("message", (event) => {
             // 1. 操作不可（ロック）状態にする
             isLocked = true;
 
-            // 2. 画面上のinfo欄にメッセージを表示
-            const infoEl = document.getElementById("info");
-            const originalText = infoEl.textContent; // 元の「あなた: P1」などを保存
-            infoEl.textContent = "❌ 重複または間違いです！（5秒間操作不可）";
-            infoEl.style.color = "red";
-            infoEl.style.fontWeight = "bold";
+            // 2. 盤面のすぐ上の専用エリアに警告メッセージを表示
+            const errorMsgEl = document.getElementById("error-message");
+            if (errorMsgEl) {
+                errorMsgEl.textContent = "❌ 重複または間違いです！（5秒間操作不可）";
+            }
 
             // 3. マスを赤く光らせて揺らす
             errCell.classList.add("error-shake");
@@ -91,14 +93,14 @@ ws.addEventListener("message", (event) => {
             setTimeout(() => {
                 errCell.classList.remove("error-shake");
                 
-                // メッセージとスタイルを元に戻す
-                infoEl.textContent = originalText;
-                infoEl.style.color = "";
-                infoEl.style.fontWeight = "";
+                // メッセージを消去して元に戻す
+                if (errorMsgEl) {
+                    errorMsgEl.textContent = "";
+                }
 
                 // 操作不可を解除
                 isLocked = false;
-            }, 5000); 
+            }, 6000); 
             break;
     }
 });
@@ -145,18 +147,27 @@ function createBoard() {
 // 初期問題の描画
 function drawPuzzle(puzzle) {
     const cells = document.querySelectorAll(".cell");
+    
+    // 選択状態（selected）も引き継がせないようにリセット
+    selectedCell = null;
+
+    // 新しいゲームが始まったら、古いエラーメッセージも消しておく
+    const errorMsgEl = document.getElementById("error-message");
+    if (errorMsgEl) errorMsgEl.textContent = "";
 
     for (let r = 0; r < 9; r++) {
         for (let c = 0; c < 9; c++) {
             const index = r * 9 + c;
             const cell = cells[index];
 
-            if (puzzle[r][c] === 0) {
-                cell.textContent = "";
-                cell.classList.remove("problem", "mine", "other", "error-shake");
-            } else {
+            // 新しい数字を入れる前に、前の試合の「数字」と「すべての色クラス」を完全に剥ぎ取る
+            cell.textContent = "";
+            cell.classList.remove("problem", "mine", "other", "selected", "error-shake");
+
+            // その上で、今回の新しいパズルのデータを流し込む
+            if (puzzle[r][c] !== 0) {
                 cell.textContent = puzzle[r][c];
-                cell.classList.add("problem");
+                cell.classList.add("problem"); // 新しい問題マス化（グレー）
             }
         }
     }
@@ -218,8 +229,6 @@ document.addEventListener("keydown", (e) => {
     }));
 });
 
-// ====== client.js の一番最後にあるリセットボタンの処理を差し替え ======
-
 // リセットボタンが押されたら難易度を添えてサーバーへ通知
 document.getElementById("reset-btn").addEventListener("click", () => {
     if (isLocked) return; 
@@ -230,7 +239,7 @@ document.getElementById("reset-btn").addEventListener("click", () => {
     if (confirm("盤面をリセットして、新しいゲームを開始しますか？")) {
         ws.send(JSON.stringify({
             type: "requestReset",
-            difficulty: selectedDifficulty // ★難易度をサーバーに送る
+            difficulty: selectedDifficulty
         }));
     }
 });
