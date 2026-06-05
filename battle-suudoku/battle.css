@@ -1,0 +1,63 @@
+/* --- 盤面コンテナ --- */
+#board-container {
+    display: grid;
+    grid-template-columns: repeat(9, 40px);
+    grid-template-rows: repeat(9, 40px);
+    gap: 0;
+    margin: 20px auto;
+    width: fit-content;
+    height: fit-content;
+    border: 3px solid black; /* 外枠 */
+}
+
+/* --- 基本セル --- */
+.cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: 40px;
+    height: 40px;
+    border: 1px solid #999;
+    font-size: 20px;
+    background: white;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+/* --- 3×3 ブロックの太線 --- */
+.cell[data-r="0"] { border-top: 3px solid black; }
+.cell[data-r="3"] { border-top: 3px solid black; }
+.cell[data-r="6"] { border-top: 3px solid black; }
+.cell[data-r="8"] { border-bottom: 3px solid black; }
+
+.cell[data-c="0"] { border-left: 3px solid black; }
+.cell[data-c="3"] { border-left: 3px solid black; }
+.cell[data-c="6"] { border-left: 3px solid black; }
+.cell[data-c="8"] { border-right: 3px solid black; }
+
+/* --- 問題セル（ロックセル） --- */
+.cell.problem {
+    background: rgb(238, 238, 238);
+    font-weight: bold;
+}
+
+/* --- 陣取り（自分・相手） --- */
+.cell.mine {
+    background: #ffdddd;
+}
+
+.cell.other {
+    background: #ddddff;
+}
+
+/* --- チャット欄 --- */
+#chat-box {
+    width: 360px;
+    height: 150px;
+    border: 1px solid #ccc;
+    overflow-y: auto;
+    margin-top: 10px;
+    padding: 5px;
+    font-size: 14px;
+}

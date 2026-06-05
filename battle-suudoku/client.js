@@ -35,3 +35,49 @@ function handleCellClick(r, c) {
     const cell = document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
     cell.textContent = num;
 }
+
+console.log("client.js loaded");
+
+// WebSocket 接続
+const ws = new WebSocket("ws://localhost:8080");
+let myId = null;
+
+ws.addEventListener("open", () => {
+    console.log("connected to server");
+});
+
+ws.addEventListener("message", (event) => {
+    const data = JSON.parse(event.data);
+    console.log("recv:", data);
+
+    if (data.type === "welcome") {
+        myId = data.playerId;
+        document.getElementById("info").textContent = `あなた: ${myId}`;
+    }
+
+    // テスト：サーバーからのメッセージをチャット欄に表示
+    if (data.type === "chat") {
+        addChatMessage(data.message);
+    }
+});
+
+document.getElementById("chat-send").addEventListener("click", () => {
+    const msg = document.getElementById("chat-input").value;
+    if (!msg) return;
+
+    ws.send(JSON.stringify({
+        type: "chat",
+        message: msg,
+        playerId: myId
+    }));
+
+    document.getElementById("chat-input").value = "";
+});
+
+function addChatMessage(text) {
+    const box = document.getElementById("chat-box");
+    const div = document.createElement("div");
+    div.textContent = text;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+}

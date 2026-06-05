@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>WebSocket Test</title>
+</head>
+<body>
+
+<h2>WebSocket 動作確認</h2>
+
+<div id="log" style="white-space: pre-wrap; border:1px solid #ccc; padding:10px; width:300px; height:200px; overflow-y:auto;"></div>
+
+<input id="msg" type="text" placeholder="メッセージ">
+<button id="send">送信</button>
+
+<script>
+const log = (t) => {
+    const box = document.getElementById("log");
+    box.textContent += t + "\n";
+    box.scrollTop = box.scrollHeight;
+};
+
+const ws = new WebSocket("ws://localhost:8080");
+
+ws.addEventListener("open", () => {
+    log("接続しました");
+});
+
+ws.addEventListener("message", (event) => {
+    log("受信: " + event.data);
+});
+
+document.getElementById("send").addEventListener("click", () => {
+    const text = document.getElementById("msg").value;
+    ws.send(JSON.stringify({ type: "chat", text }));
+    document.getElementById("msg").value = "";
+});
+</script>
+
+</body>
+</html>
