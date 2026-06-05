@@ -1,0 +1,51 @@
+ #board-container {
+        display: grid;
+        grid-template-columns: repeat(9, 40px);
+        grid-template-rows: repeat(9, 40px);
+        gap: 2px;
+        margin-bottom: 10px;
+    }
+
+    .cell {
+        width: 40px;
+        height: 40px;
+        border: 1px solid #ccc;
+        text-align: center;
+        line-height: 40px;
+        font-size: 20px;
+        cursor: pointer;
+        user-select: none;
+        background: white;
+    }
+
+    /* 問題セル（ロックセル） */
+    .cell.problem {
+        background: rgb(238, 238, 238);
+        font-weight: bold;
+    }
+
+    /* 自分の陣地 */
+    .cell.mine {
+        background: #ffdddd;
+    }
+
+    /* 相手の陣地 */
+    .cell.other {
+        background: #ddddff;
+    }
+
+    /* チャット欄 */
+    #chat-box {
+        width: 360px;
+        height: 150px;
+        border: 1px solid #ccc;
+        overflow-y: auto;
+        margin-top: 10px;
+        padding: 5px;
+        font-size: 14px;
+    }
+    .cell {
+    display: flex;        /* ← これが重要 */
+    justify-content: center;
+    align-items: center;
+}
