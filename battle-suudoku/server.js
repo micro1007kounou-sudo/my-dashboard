@@ -64,6 +64,26 @@ for (let r = 0; r < 9; r++) {
 // 3. プレイヤー接続時のメイン処理
 // ==========================================
 wss.on("connection", (ws, req) => {
+// 👇 ★【ここから追加】3人目の入室制限ロジック ★ 👇
+    // すでに2人が接続している場合（自分を含めて3人目になった場合）は拒否する
+    if (wss.clients.size > 2) {
+        console.log("接続拒否: 満員です（3人目以降のアクセス）");
+        
+        // 満員であることを本人に通知
+        ws.send(JSON.stringify({
+            type: "chat",
+            playerId: "システム",
+            text: "🚨 現在他のプレイヤーが対戦中です。満員のため接続できません。"
+        }));
+        
+        // 1秒後に通信を安全に切断する
+        setTimeout(() => {
+            ws.close();
+        }, 1000);
+        return; // これ以降の参加処理（P3の割り当てなど）をすべてキャンセル
+    }
+
+
     const playerId = `P${nextPlayerId++}`;
     ws.playerId = playerId;
 
