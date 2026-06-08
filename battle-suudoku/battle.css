@@ -259,27 +259,31 @@ h2, h3 {
 #spec {
     width: 100%;
     max-width: 400px;      /* 盤面のサイズ（400px）にピッタリ合わせる */
-    margin: 30px auto;
-    padding: 10px 20px;
+    margin: 20px auto;
+    padding: 10px 18px;
     text-align: left;      /* 箇条書きを読みやすく左詰めに */
     line-height: 1.7;
-    font-size: 15px;       /* スマホでも見やすい標準サイズ */
+    font-size: 13px;       /* スマホでも見やすい標準サイズ */
     background: #fafafa;
     border: 1px solid #ddd;
     border-radius: 6px;
     box-sizing: border-box;
+
+    /* 👇 【追加】フレックスボックスの引っ張り効果を無効化するお守り */
+    display: block !important; 
 }
 
+
 #spec h2 {
-    font-size: 16px;
-    margin-top: 5px;
-    margin-bottom: 10px;
+    font-size: 14px;
+    margin-top: 4px;
+    margin-bottom: 4px;
     border-bottom: 2px solid #ddd;
     padding-bottom: 3px;
 }
 
 #footer {
-    margin-top: 20px;
+    margin-top: 0px;
     margin-bottom: 30px;
     width: 100%;
 }
@@ -288,7 +292,7 @@ h2, h3 {
 @media (max-width: 480px) {
     #spec {
         max-width: 336px;   /* スマホ時の盤面幅（360px - 左右余白24px）に合わせる */
-        font-size: 14px;
+        font-size: 13px;
         padding: 10px 15px;
     }
 }
