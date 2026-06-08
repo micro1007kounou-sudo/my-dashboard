@@ -237,7 +237,7 @@ wss.on("connection", (ws, req) => {
             // 初期問題マスなら処理を拒否
             if (initialPuzzle[r][c] !== 0) return;
             
-            // 👇 ★【追加】すでに誰かが正解しているマス（0以外）なら、2回目の処理を無視するガード
+            // 👇 ★すでに誰かが正解しているマス（0以外）なら、2回目の処理を無視するガード
             if (currentBoard[r][c].num !== 0) return;
             
             // 送られた数字が正解と一致している場合
@@ -297,7 +297,7 @@ wss.on("connection", (ws, req) => {
                         scores: scores,
                         winnerId: winnerId,
                         isDraw: isDraw,
-                        // 👇 【追加】お互いの最終的な間違い回数を一緒に全員へ送る！
+                        // 👇 お互いの最終的な間違い回数を一緒に全員へ送る！
                         penaltyCounts: penaltyCounts 
                     });
 
@@ -319,7 +319,15 @@ wss.on("connection", (ws, req) => {
             } else {
                 // ❌ 送られた数字が間違っていた場合
                 
-                // 👇 【追加】間違えたプレイヤー(P1またはP2)の間違いカウントを1増やす
+                // 👇 【2倍防止ガード】
+                // 本人がすでにペナルティロック中（ws.isPenalized）であれば、
+                // スマホ等のチャタリング（2回連続送信）とみなしてカウントアップも通知も完全に無視する
+                if (ws.isPenalized) return;
+
+                // ロック状態をONにする
+                ws.isPenalized = true;
+
+                // 間違えたプレイヤー(P1またはP2)の間違いカウントを1増やす
                 if (ws.playerId === "P1" || ws.playerId === "P2") {
                     penaltyCounts[ws.playerId]++;
                 }
@@ -330,6 +338,11 @@ wss.on("connection", (ws, req) => {
                     r: r,
                     c: c
                 }));
+
+                // クライアント側のロック時間（5〜6秒）に合わせて、サーバー側の多重カウントガードも自動解除する
+                setTimeout(() => {
+                    ws.isPenalized = false;
+                }, 5500);
             }
             return;
         }
@@ -347,7 +360,7 @@ wss.on("connection", (ws, req) => {
         // ◆ 「新しい盤面で開始」リセット処理
         if (data.type === "requestReset") {
             console.log(`盤面リセットが要求されました（難易度: ${data.difficulty}）`);
-            // 👇 【追加】間違いカウントもゼロにリセット
+            // 👇 間違いカウントもゼロにリセット
             penaltyCounts = { P1: 0, P2: 0 };
             
             solutionBoard = Array.from({ length: 9 }, () => Array(9).fill(0));
