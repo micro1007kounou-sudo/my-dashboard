@@ -35,7 +35,6 @@ const server = http.createServer((req, res) => {
 // WebSocket サーバーの紐づけ
 const wss = new WebSocket.Server({ server });
 
-let nextPlayerId = 1;
 
 // ==========================================
 // 2. 盤面データのグローバル管理
@@ -109,9 +108,7 @@ wss.on("connection", (ws, req) => {
     ws.playerId = playerId;
     // 👆 ★【ここまで】★ 👆
 
-    // --- この下の「ws.playerIp = ip;」などはそのまま ---
-    const playerId = `P${nextPlayerId++}`;
-    ws.playerId = playerId;
+
 
     // --- 安全なIPアドレスの取得 ---
     let ip = "不明なIP";
