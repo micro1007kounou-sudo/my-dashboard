@@ -46,9 +46,12 @@ ws.addEventListener("message", (event) => {
             drawPuzzle(data.puzzle);
             break;
 
+// ======= client.js: switch文の中の case "chat": を以下のように修正 =======
+
         case "chat":
-            // チャット受信
-            addChatMessage(`${data.playerId}: ${data.text}`);
+            // 送信者が「システム」かどうかをチェックして2番目の引数に渡す（true または false）
+            const isSystem = (data.playerId === "system" || data.playerId === "システム");
+            addChatMessage(`${data.playerId}: ${data.text}`, isSystem);
             break;
 
         case "placeNumber":
@@ -89,7 +92,7 @@ ws.addEventListener("message", (event) => {
             // 3. マスを赤く光らせて揺らす
             errCell.classList.add("error-shake");
             
-            // 4. 5秒後（5000ミリ秒後）に元に戻す
+            // 4. 6秒後（6000ミリ秒後）に元に戻す
             setTimeout(() => {
                 errCell.classList.remove("error-shake");
                 
@@ -99,14 +102,47 @@ ws.addEventListener("message", (event) => {
                 }
 
                 // 操作不可を解除
-                isLocked = false;
+                isLocked = false;5
             }, 6000); 
             break;
+        // ======= client.js: switch文の中に追加 =======
+
+// ======= client.js: switch文の中の case "gameClear": を以下に差し替え =======
+
+        case "gameClear":
+            // 1. 自分と相手のスコア（マス数）を計算
+            const myScore = data.scores[myId] || 0;
+            let otherId = "相手";
+            let otherScore = 0;
+            Object.keys(data.scores).forEach(id => {
+                if (id !== myId) {
+                    otherId = id;
+                    otherScore = data.scores[id];
+                }
+            });
+
+            // 2. メッセージの本文を組み立て
+            let alertText = "";
+            if (data.isDraw) {
+                alertText = `【ゲーム終了：引き分け】\nあなた: ${myScore}マス / 相手: ${otherScore}マス`;
+            } else if (data.winnerId === myId) {
+                alertText = `🏆【ゲーム終了：あなたの勝利！】🏆\nあなた: ${myScore}マス / 相手: ${otherScore}マス`;
+            } else {
+                alertText = `💀【ゲーム終了：あなたの敗北…】💀\nあなた: ${myScore}マス / ${otherId}: ${otherScore}マス`;
+            }
+
+            // ★ 3. リセットのときと同じ、浮き上がるメッセージボックス（アラート）を表示！
+            alert(alertText);
+            
+            // 入力をロック
+            isLocked = true;
+            break; 
     }
 });
-
 // ーーー チャット送信処理 ーーー
-document.getElementById("chat-send").addEventListener("click", () => {
+
+// ボタンクリックとEnterキーの両方で使う、共通の送信処理
+function performChatSend() {
     const msg = document.getElementById("chat-input").value;
     if (!msg) return;
 
@@ -117,16 +153,67 @@ document.getElementById("chat-send").addEventListener("click", () => {
     }));
 
     document.getElementById("chat-input").value = "";
+}
+
+// 1. 送信ボタンがクリックされたとき
+document.getElementById("chat-send").addEventListener("click", () => {
+    performChatSend();
 });
 
-function addChatMessage(text) {
+// 2. 入力欄でEnterキーが押されたとき（誤爆防止付き）
+document.getElementById("chat-input").addEventListener("keydown", (e) => {
+    // Enterキー以外の入力なら何もしない
+    if (e.key !== "Enter") return;
+
+    // 日本語入力の「変換を確定するためのEnter」なら送信せずに無視する
+    if (e.isComposing) return;
+
+    // 確定した状態でEnterが押されたら送信を実行
+    performChatSend();
+});
+// ====== client.js の チャット送信処理のすぐ下に追加 ======
+
+// 3. チャット履歴をクリアボタンが押されたとき
+document.getElementById("chat-clear").addEventListener("click", () => {
+    const box = document.getElementById("chat-box");
+    if (box) {
+        box.innerHTML = ""; // チャットログの文字（HTML）をすべて空っぽにする
+        addChatMessage("🧹 チャット履歴をクリアしました。", true); // 分かりやすいように通知
+    }
+});
+// ======= client.js: addChatMessage 関数を以下のように修正 =======
+
+// ======= client.js: addChatMessage 関数を以下に丸ごと差し替え =======
+
+function addChatMessage(text, isSystem = false) { 
     const box = document.getElementById("chat-box");
     const div = document.createElement("div");
     div.textContent = text;
     box.appendChild(div);
     box.scrollTop = box.scrollHeight;
-}
 
+    // ─── ★ ここからポップアップの処理 ───
+    
+    // システム以外の「プレイヤー同士のチャット」の時だけポップアップを出す
+    if (!isSystem) {
+        // すでに前のポップアップが出ている場合は古いものを消す
+        const oldToast = document.getElementById("chat-popup-toast");
+        if (oldToast) oldToast.remove();
+
+        // 新しいポップアップ用の要素を作る
+        const toast = document.createElement("div");
+        toast.id = "chat-popup-toast";
+        toast.textContent = `💬 ${text}`;
+
+        // 画面全体（body）に貼り付ける（これで確実に表示されます！）
+        document.body.appendChild(toast);
+
+        // 2秒で自動消滅するようにしました！
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+}
 // ーーー 盤面制御ロジック ーーー
 
 // 空の9×9盤面を生成
@@ -150,7 +237,7 @@ function drawPuzzle(puzzle) {
     
     // 選択状態（selected）も引き継がせないようにリセット
     selectedCell = null;
-
+    isLocked = false; // ★ ここを追加！新しいゲーム開始時にロックを解除する
     // 新しいゲームが始まったら、古いエラーメッセージも消しておく
     const errorMsgEl = document.getElementById("error-message");
     if (errorMsgEl) errorMsgEl.textContent = "";
@@ -231,7 +318,6 @@ document.addEventListener("keydown", (e) => {
 
 // リセットボタンが押されたら難易度を添えてサーバーへ通知
 document.getElementById("reset-btn").addEventListener("click", () => {
-    if (isLocked) return; 
 
     // セレクトボックスから選択されている難易度（"easy", "normal", "hard"）を取得
     const selectedDifficulty = document.getElementById("difficulty-select").value;

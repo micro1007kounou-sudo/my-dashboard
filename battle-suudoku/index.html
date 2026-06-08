@@ -16,11 +16,13 @@
 
 <div id="control-panel">
   <label for="difficulty-select">難易度:</label>
-  <select id="difficulty-select">
-    <option value="easy">初級 (空白30)</option>
-    <option value="normal" selected>中級 (空白40)</option>
-    <option value="hard">上級 (空白50)</option>
-  </select>
+<select id="difficulty-select">
+  <option value="sudden_death">⚡早押し勝負 (空白1マス)</option>
+  <option value="super_easy">超初級 (空白5マス)</option> 
+  <option value="easy">初級 (空白30)</option>
+  <option value="normal" selected>中級 (空白40)</option>
+  <option value="hard">上級 (空白50)</option>
+</select>
   <button id="reset-btn">新しい盤面で開始</button>
 </div>
 
@@ -28,7 +30,6 @@
 
 <div id="board-container"></div>
 
-<h3>チャット</h3>
 <button id="chat-clear" style="margin-bottom: 5px; padding: 2px 8px; cursor: pointer; font-size: 12px;">チャット履歴をクリア</button>
 
 <div id="chat-box"></div>

@@ -137,18 +137,22 @@ wss.on("connection", (ws, req) => {
             return;
         }
 
+        // server.js の「placeNumber」の処理部分を以下に差し替え
+
         // ◆ 数字入力の同期と正誤判定
+        // ======= server.js: data.type === "placeNumber" の中身を以下に差し替え =======
+
         if (data.type === "placeNumber") {
             const r = data.r;
             const c = data.c;
             const num = data.num;
 
-            // 初期問題マスは上書き不可
             if (initialPuzzle[r][c] !== 0) return;
 
-            // 正解判定
             if (solutionBoard[r][c] === num) {
                 currentBoard[r][c] = { num: num, owner: ws.playerId };
+                
+                // 1. 正解した数字を全員に同期
                 broadcast({
                     type: "placeNumber",
                     r: r,
@@ -156,8 +160,69 @@ wss.on("connection", (ws, req) => {
                     num: num,
                     playerId: ws.playerId
                 });
+
+                // 2. 全マスの埋まり具合と、各プレイヤーの獲得マス数を集計
+                let isGameCleared = true;
+                const scores = {}; // 各プレイヤーのマス数を入れる箱
+
+                for (let i = 0; i < 9; i++) {
+                    for (let j = 0; j < 9; j++) {
+                        const cell = currentBoard[i][j];
+                        if (cell.num === 0) {
+                            isGameCleared = false; // 空白が1つでもあれば未終了
+                        } else if (cell.owner !== "system") {
+                            // プレイヤーが埋めたマスをカウント
+                            scores[cell.owner] = (scores[cell.owner] || 0) + 1;
+                        }
+                    }
+                }
+
+                // 3. すべて埋まったら勝敗を判定して通知
+                if (isGameCleared) {
+                    const players = Object.keys(scores);
+                    let winnerId = null;
+                    let isDraw = false;
+
+                    if (players.length === 1) {
+                        winnerId = players[0];
+                    } else if (players.length > 1) {
+                        const p1 = players[0];
+                        const p2 = players[1];
+                        const s1 = scores[p1] || 0;
+                        const s2 = scores[p2] || 0;
+
+                        if (s1 > s2) {
+                            winnerId = p1;
+                        } else if (s2 > s1) {
+                            winnerId = p2;
+                        } else {
+                            isDraw = true; // 同点
+                        }
+                    }
+
+                    // 全員に結果を通知
+                    broadcast({
+                        type: "gameClear",
+                        scores: scores,
+                        winnerId: winnerId,
+                        isDraw: isDraw
+                    });
+
+                    // チャット欄へアナウンス
+                    let resultText = "🎉 ゲーム終了！ ";
+                    if (isDraw) {
+                        resultText += "引き分けです！";
+                  
+                    }
+                    
+                    broadcast({
+                        type: "chat",
+                        playerId: "システム",
+                        text: resultText
+                    });
+                }
+
             } else {
-                // 間違えた場合はペナルティ通知（クライアント側で5秒赤ピカ震え）
                 ws.send(JSON.stringify({
                     type: "penalty",
                     r: r,
@@ -178,16 +243,24 @@ wss.on("connection", (ws, req) => {
         }
 
         // ◆ 「新しい盤面で開始」ボタンの処理
+// ======= server.js: data.type === "requestReset" の中の条件分岐を以下に修正 =======
+
         if (data.type === "requestReset") {
             console.log(`盤面リセットが要求されました（難易度: ${data.difficulty}）`);
-
             solutionBoard = Array.from({ length: 9 }, () => Array(9).fill(0));
             generateFullBoard(solutionBoard);
 
             let blanks = 40;
             let difficultyName = "中級";
 
-            if (data.difficulty === "easy") {
+            // ★ ここに「super_easy」の判定を新しく割り込ませます
+            if (data.difficulty === "sudden_death") {
+                blanks = 1;
+                difficultyName = "⚡早押し勝負 (空白1マス)";
+            } else if (data.difficulty === "super_easy") {
+                blanks = 5;
+                difficultyName = "超初級 (空白5マス)";
+            } else if (data.difficulty === "easy") {
                 blanks = 30;
                 difficultyName = "初級 (空白30マス)";
             } else if (data.difficulty === "normal") {
@@ -197,6 +270,7 @@ wss.on("connection", (ws, req) => {
                 blanks = 50;
                 difficultyName = "上級 (空白50マス)";
             }
+            // ...（この後に続く initialPuzzle = makePuzzle(...) などの処理はそのまま）
 
             initialPuzzle = makePuzzle(solutionBoard, blanks);
 
@@ -220,7 +294,7 @@ wss.on("connection", (ws, req) => {
             broadcast({
                 type: "chat",
                 playerId: "システム",
-                text: `🔄 ${ws.playerId} が難易度【${difficultyName}】で盤面を新しくしました！`
+                text: `🔄 ${ws.playerId} が【${difficultyName}】で盤面をリセット！`
             });
             
             return;

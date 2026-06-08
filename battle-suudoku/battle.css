@@ -8,7 +8,7 @@ body {
     text-align: center;       /* テキストの基本を中央揃え */
     font-family: sans-serif;
     margin: 0;
-    padding: 20px;
+    padding: 10px;
     background-color: #fafafa;
 }
 
@@ -103,7 +103,7 @@ h2, h3 {
     grid-template-columns: repeat(9, 40px);
     grid-template-rows: repeat(9, 40px);
     gap: 0;
-    margin: 15px auto;
+    margin: 5px auto;
     width: fit-content;
     height: fit-content;
     border: 3px solid black;
@@ -189,7 +189,7 @@ h2, h3 {
     overflow-y: auto;
     margin: 5px auto 10px auto;
     padding: 5px;
-    font-size: 14px;
+    font-size: 12px;
     background: white;
 }
 
@@ -218,4 +218,37 @@ h2, h3 {
     background: #eee;
     border-radius: 0 4px 4px 0;
     box-sizing: border-box;
+}
+
+/* ==========================================
+   6. 自動で消える通知ポップアップ（タイトル下・確実表示版）
+   ========================================== */
+#chat-popup-toast {
+    /* 画面全体に対して固定（これで消えるトラブルを防ぎます） */
+    position: fixed;
+    
+    /* ★ 画面の天井から100px〜120pxほど下げた「タイトル直下」のベストポジション */
+    top: 110px;          
+    left: 50%;
+    transform: translateX(-50%); 
+    
+    background: rgba(0, 0, 0, 0.85); 
+    color: #fff;
+    padding: 10px 20px;   
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: bold;
+    white-space: nowrap;  
+    z-index: 9999; /* どんな要素よりも最前面に出す */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    pointer-events: none; 
+    
+    /* 上からふわっと少し落ちてくるアニメーション */
+    animation: toastFadeInDown 0.2s ease-out;
+}
+
+/* 🎬 上から少しだけ下がって出現する動き */
+@keyframes toastFadeInDown {
+    from { opacity: 0; transform: translate(-50%, -10px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
 }
