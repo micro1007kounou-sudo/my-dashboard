@@ -328,10 +328,18 @@ wss.on("connection", (ws, req) => {
     // --- 4. 切断時の処理 ---
     ws.on("close", () => {
         console.log(`ユーザー切断: ${ws.playerId}`);
+        
+        // 1. チャット欄へ退室アナウンスを流す（既存のコード）
         broadcast({
             type: "chat",
             playerId: "システム",
             text: `❌ ${ws.playerId} が退室しました。`
+        });
+
+        // 👇 ★【ここを追加】画面の「相手：〇〇」を消すための合図を全員に送る ★ 👇
+        broadcast({
+            type: "playerLeft",
+            playerId: ws.playerId
         });
     });
 });

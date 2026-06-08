@@ -138,6 +138,19 @@ ws.addEventListener("message", (event) => {
             // 入力をロック
             isLocked = true;
             break; 
+
+            // ======= client.js の switch (data.type) の中に追加 =======
+
+        case "playerLeft":
+            // 誰かが退室したという通知をサーバーから受信したとき
+            // 退室したのが「自分以外（＝相手）」だったら、画面の表示をリセットする
+            if (data.playerId !== myId) {
+                const otherStatusEl = document.getElementById("other-status");
+                if (otherStatusEl) {
+                    otherStatusEl.textContent = "相手: (接続を待っています）";
+                }
+            }
+            break;
     }
 });
 
