@@ -252,3 +252,43 @@ h2, h3 {
         max-width: 266px;   /* ボタンと合わせて336pxになるよう調整 */
     }
 }
+
+/* ==========================================
+   📄 仕様文（#spec）とフッターのスタイル
+   ========================================== */
+#spec {
+    width: 100%;
+    max-width: 400px;      /* 盤面のサイズ（400px）にピッタリ合わせる */
+    margin: 30px auto;
+    padding: 10px 20px;
+    text-align: left;      /* 箇条書きを読みやすく左詰めに */
+    line-height: 1.7;
+    font-size: 15px;       /* スマホでも見やすい標準サイズ */
+    background: #fafafa;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+#spec h2 {
+    font-size: 16px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 3px;
+}
+
+#footer {
+    margin-top: 20px;
+    margin-bottom: 30px;
+    width: 100%;
+}
+
+/* 📱 スマホ画面（480px以下）での微調整 */
+@media (max-width: 480px) {
+    #spec {
+        max-width: 336px;   /* スマホ時の盤面幅（360px - 左右余白24px）に合わせる */
+        font-size: 14px;
+        padding: 10px 15px;
+    }
+}
