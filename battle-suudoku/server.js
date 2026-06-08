@@ -202,7 +202,9 @@ wss.on("connection", (ws, req) => {
 
             // 初期問題マスなら処理を拒否
             if (initialPuzzle[r][c] !== 0) return;
-
+            
+// 👇 ★【追加】すでに誰かが正解しているマス（0以外）なら、2回目の処理を無視するガード
+            if (currentBoard[r][c].num !== 0) return;
             // 送られた数字が正解と一致している場合
             if (solutionBoard[r][c] === num) {
                 currentBoard[r][c] = { num: num, owner: ws.playerId };
