@@ -1,25 +1,33 @@
 console.log("client.js loaded");
 
-// WebSocket 接続
-// ====== client.js の 2行目を以下に書き換え ======
+// ==========================================
+// 1. WebSocket 接続設定（本番・ローカル自動切り替え版）
+// ==========================================
+// GitHub Pages（https）からRender（wss）へ安全に繋ぐための設定です
+const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+const host = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? `${window.location.hostname}:8080` // 自分のPCでテストするとき（ポートはserver.jsと合わせます）
+    : "battle-sudoku-server.onrender.com"; // ★Renderで発行されるあなたのドメイン名に後で書き換えます
 
-// アクセス元のURLからIPアドレス（ホスト名）を自動取得してWebSocketのURLを組み立てる
-const ws = new WebSocket(`ws://${window.location.hostname}:8080`);
+const ws = new WebSocket(`${protocol}//${host}`);
+
 let myId = null;
 let selectedCell = null;
-let isLocked = false; // ★エラー時の操作ロックフラグ
+let isLocked = false; // エラー時の操作ロックフラグ
 
 const boardContainer = document.getElementById("board-container");
 
 // 最初の一度だけ盤面のHTML（空のマス）を生成
 createBoard();
 
-// ーーー 接続・通信イベント ーーー
+// ==========================================
+// 2. 接続・通信イベント処理
+// ==========================================
 ws.addEventListener("open", () => {
     console.log("connected to server");
 });
 
-// 受信処理を1つに集約
+// サーバーからの受信処理を1つに集約
 ws.addEventListener("message", (event) => {
     const data = JSON.parse(event.data);
     console.log("recv:", data);
@@ -29,27 +37,23 @@ ws.addEventListener("message", (event) => {
         case "welcome":
             // 自分の情報を反映
             myId = data.playerId;
-            // HTMLの「my-status」の文字を書き換える
             document.getElementById("my-status").textContent = `あなた: ${myId} (IP: ${data.playerIp})`;
             break;
 
         case "playerJoined":
             // 相手の情報を反映
             if (data.playerId !== myId) {
-                // HTMLの「other-status」の文字を書き換える
                 document.getElementById("other-status").textContent = `相手: ${data.playerId} (IP: ${data.playerIp})`;
             }
             break;
 
         case "puzzle":
-            // 初期盤面（問題）受信（この中で全マスの色が完全リセットされます）
+            // 初期盤面（問題）受信（全マスの色が完全リセットされます）
             drawPuzzle(data.puzzle);
             break;
 
-// ======= client.js: switch文の中の case "chat": を以下のように修正 =======
-
         case "chat":
-            // 送信者が「システム」かどうかをチェックして2番目の引数に渡す（true または false）
+            // 送信者が「システム」かどうかをチェックして2番目の引数に渡す
             const isSystem = (data.playerId === "system" || data.playerId === "システム");
             addChatMessage(`${data.playerId}: ${data.text}`, isSystem);
             break;
@@ -92,7 +96,7 @@ ws.addEventListener("message", (event) => {
             // 3. マスを赤く光らせて揺らす
             errCell.classList.add("error-shake");
             
-            // 4. 6秒後（6000ミリ秒後）に元に戻す
+            // 4. 6秒後に元に戻す
             setTimeout(() => {
                 errCell.classList.remove("error-shake");
                 
@@ -102,12 +106,9 @@ ws.addEventListener("message", (event) => {
                 }
 
                 // 操作不可を解除
-                isLocked = false;5
+                isLocked = false;
             }, 6000); 
             break;
-        // ======= client.js: switch文の中に追加 =======
-
-// ======= client.js: switch文の中の case "gameClear": を以下に差し替え =======
 
         case "gameClear":
             // 1. 自分と相手のスコア（マス数）を計算
@@ -131,7 +132,7 @@ ws.addEventListener("message", (event) => {
                 alertText = `💀【ゲーム終了：あなたの敗北…】💀\nあなた: ${myScore}マス / ${otherId}: ${otherScore}マス`;
             }
 
-            // ★ 3. リセットのときと同じ、浮き上がるメッセージボックス（アラート）を表示！
+            // 3. 結果のポップアップアラートを表示
             alert(alertText);
             
             // 入力をロック
@@ -139,8 +140,10 @@ ws.addEventListener("message", (event) => {
             break; 
     }
 });
-// ーーー チャット送信処理 ーーー
 
+// ==========================================
+// 3. チャット送信・管理処理
+// ==========================================
 // ボタンクリックとEnterキーの両方で使う、共通の送信処理
 function performChatSend() {
     const msg = document.getElementById("chat-input").value;
@@ -160,31 +163,25 @@ document.getElementById("chat-send").addEventListener("click", () => {
     performChatSend();
 });
 
-// 2. 入力欄でEnterキーが押されたとき（誤爆防止付き）
+// 2. 入力欄でEnterキーが押されたとき（日本語変換の誤爆防止付き）
 document.getElementById("chat-input").addEventListener("keydown", (e) => {
-    // Enterキー以外の入力なら何もしない
     if (e.key !== "Enter") return;
-
-    // 日本語入力の「変換を確定するためのEnter」なら送信せずに無視する
-    if (e.isComposing) return;
-
-    // 確定した状態でEnterが押されたら送信を実行
+    if (e.isComposing) return; // 日本語入力の確定Enterなら送信しない
     performChatSend();
 });
-// ====== client.js の チャット送信処理のすぐ下に追加 ======
 
 // 3. チャット履歴をクリアボタンが押されたとき
 document.getElementById("chat-clear").addEventListener("click", () => {
     const box = document.getElementById("chat-box");
     if (box) {
-        box.innerHTML = ""; // チャットログの文字（HTML）をすべて空っぽにする
-        addChatMessage("🧹 チャット履歴をクリアしました。", true); // 分かりやすいように通知
+        box.innerHTML = ""; // チャットログをすべて空っぽにする
+        addChatMessage("🧹 チャット履歴をクリアしました。", true); // システム通知を出す
     }
 });
-// ======= client.js: addChatMessage 関数を以下のように修正 =======
 
-// ======= client.js: addChatMessage 関数を以下に丸ごと差し替え =======
-
+// ==========================================
+// 4. チャットポップアップ（トースト通知）処理
+// ==========================================
 function addChatMessage(text, isSystem = false) { 
     const box = document.getElementById("chat-box");
     const div = document.createElement("div");
@@ -192,33 +189,34 @@ function addChatMessage(text, isSystem = false) {
     box.appendChild(div);
     box.scrollTop = box.scrollHeight;
 
-    // ─── ★ ここからポップアップの処理 ───
-    
-    // システム以外の「プレイヤー同士のチャット」の時だけポップアップを出す
+    // プレイヤー同士のチャットの時だけ、画面上部に3秒間ポップアップを出す
     if (!isSystem) {
         // すでに前のポップアップが出ている場合は古いものを消す
         const oldToast = document.getElementById("chat-popup-toast");
         if (oldToast) oldToast.remove();
 
-        // 新しいポップアップ用の要素を作る
+        // 新しいポップアップ要素の作成
         const toast = document.createElement("div");
         toast.id = "chat-popup-toast";
         toast.textContent = `💬 ${text}`;
 
-        // 画面全体（body）に貼り付ける（これで確実に表示されます！）
+        // 画面全体（body）に貼り付け
         document.body.appendChild(toast);
 
-        // 2秒で自動消滅するようにしました！
+        // 3秒（3000ミリ秒）経ったら自動消滅
         setTimeout(() => {
             toast.remove();
         }, 3000);
     }
 }
-// ーーー 盤面制御ロジック ーーー
 
-// 空の9×9盤面を生成
+// ==========================================
+// 5. 盤面制御・ゲームロジック
+// ==========================================
+
+// 空の9×9盤面を生成（初回一度のみ実行）
 function createBoard() {
-    boardContainer.innerHTML = ""; // 念のため初期化
+    boardContainer.innerHTML = ""; // 盤面を初期化
     for (let r = 0; r < 9; r++) {
         for (let c = 0; c < 9; c++) {
             const cell = document.createElement("div");
@@ -231,14 +229,15 @@ function createBoard() {
     }
 }
 
-// 初期問題の描画
+// 初期問題の描画（ゲーム開始・リセット時）
 function drawPuzzle(puzzle) {
     const cells = document.querySelectorAll(".cell");
     
-    // 選択状態（selected）も引き継がせないようにリセット
+    // 選択状態とエラーによる操作ロックをリセット
     selectedCell = null;
-    isLocked = false; // ★ ここを追加！新しいゲーム開始時にロックを解除する
-    // 新しいゲームが始まったら、古いエラーメッセージも消しておく
+    isLocked = false; 
+    
+    // 前の試合のエラーメッセージを消去
     const errorMsgEl = document.getElementById("error-message");
     if (errorMsgEl) errorMsgEl.textContent = "";
 
@@ -247,32 +246,32 @@ function drawPuzzle(puzzle) {
             const index = r * 9 + c;
             const cell = cells[index];
 
-            // 新しい数字を入れる前に、前の試合の「数字」と「すべての色クラス」を完全に剥ぎ取る
+            // 前の試合の「数字」と「デザインクラス」を完全に解除
             cell.textContent = "";
             cell.classList.remove("problem", "mine", "other", "selected", "error-shake");
 
-            // その上で、今回の新しいパズルのデータを流し込む
+            // 新しいパズルの問題データを流し込む
             if (puzzle[r][c] !== 0) {
                 cell.textContent = puzzle[r][c];
-                cell.classList.add("problem"); // 新しい問題マス化（グレー）
+                cell.classList.add("problem"); // 問題マス（グレー背景）に設定
             }
         }
     }
 }
 
-// マスクリック処理
+// マスクリック時のイベント処理
 boardContainer.addEventListener("click", (e) => {
-    if (isLocked) return; // ★操作不可ならクリックを無視
+    if (isLocked) return; // 操作不可（ペナルティ中）ならクリックを無視
 
     const cell = e.target;
     if (!cell.classList.contains("cell")) return;
     
-    // 初期問題のマス、またはすでに誰かが正解しているマスは選択させない
+    // 初期問題、またはすでに誰かが正解しているマスは選択不可
     if (cell.classList.contains("problem") || cell.classList.contains("mine") || cell.classList.contains("other")) return;
 
     selectedCell = cell;
 
-    // 選択中のマスをハイライト
+    // 選択されたマスをハイライト
     document.querySelectorAll(".cell").forEach(c => c.classList.remove("selected"));
     cell.classList.add("selected");
 
@@ -280,7 +279,7 @@ boardContainer.addEventListener("click", (e) => {
     const c = cell.dataset.c;
     console.log(`clicked: r=${r}, c=${c}`);
 
-    // サーバーへクリック通知
+    // サーバーへ選択マスの座標を通知
     ws.send(JSON.stringify({
         type: "cellClick",
         r: Number(r),
@@ -289,24 +288,24 @@ boardContainer.addEventListener("click", (e) => {
     }));
 });
 
-// キーボード入力処理
+// キーボードによる数字入力処理
 document.addEventListener("keydown", (e) => {
-    if (isLocked) return; // ★操作不可なら入力を無視
+    if (isLocked) return; // 操作不可なら入力を無視
     if (!selectedCell) return;
     
-    // チャット入力欄にフォーカスがある時は数字入力を無視する（誤爆防止）
+    // チャット入力欄に入力中のときは数字の誤爆を防ぐ
     if (document.activeElement === document.getElementById("chat-input")) return;
 
     const key = e.key;
 
-    // 1〜9 以外は無視
+    // 1〜9 以外のキー入力は無視
     if (!/^[1-9]$/.test(key)) return;
 
     const r = Number(selectedCell.dataset.r);
     const c = Number(selectedCell.dataset.c);
     const num = Number(key);
 
-    // サーバーへ送信
+    // サーバーへ入力された数字を送信
     ws.send(JSON.stringify({
         type: "placeNumber",
         r,
@@ -316,10 +315,9 @@ document.addEventListener("keydown", (e) => {
     }));
 });
 
-// リセットボタンが押されたら難易度を添えてサーバーへ通知
+// リセットボタンクリック時の処理
 document.getElementById("reset-btn").addEventListener("click", () => {
-
-    // セレクトボックスから選択されている難易度（"easy", "normal", "hard"）を取得
+    // 選択されている難易度（"easy", "normal", "hard"）を取得
     const selectedDifficulty = document.getElementById("difficulty-select").value;
 
     if (confirm("盤面をリセットして、新しいゲームを開始しますか？")) {
