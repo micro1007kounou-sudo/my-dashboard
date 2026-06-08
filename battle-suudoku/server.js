@@ -110,22 +110,30 @@ wss.on("connection", (ws, req) => {
 
 
 
-    // --- 安全なIPアドレスの取得 ---
+// --- 安全なIPアドレスの取得 ---
     let ip = "不明なIP";
     try {
-        if (req && req.socket && req.socket.remoteAddress) {
+        // 👇 ★ここから書き換え★ Renderの玄関口サーバーが渡してくれる本物のIPをチェック
+        if (req && req.headers && req.headers["x-forwarded-for"]) {
+            // カンマ区切りで複数入っていることがあるので、先頭（一番最初の送信元）を取得
+            ip = req.headers["x-forwarded-for"].split(",")[0].trim();
+        } else if (req && req.socket && req.socket.remoteAddress) {
+            // ローカル環境（自分のPC）などの場合は今まで通りここを通る
             ip = req.socket.remoteAddress;
-            // IPv6射影アドレス（::ffff:192.168.x.x）からIPv4部分を抽出
-            if (ip.includes("::ffff:")) {
-                ip = ip.split("::ffff:")[1];
-            } else if (ip === "::1") {
-                ip = "127.0.0.1 (Local)";
-            }
         }
+
+        // IPv6射影アドレス（::ffff:192.168.x.x）からIPv4部分を抽出
+        if (ip.includes("::ffff:")) {
+            ip = ip.split("::ffff:")[1];
+        } else if (ip === "::1" || ip === "127.0.0.1") {
+            ip = "127.0.0.1 (Local)";
+        }
+        // 👆 ★ここまで★
+        
     } catch (err) {
         console.error("IP取得エラー:", err);
     }
-    ws.playerIp = ip; 
+    ws.playerIp = ip;
 
     console.log(`ユーザー接続: ${playerId} (IP: ${ip})`);
 
