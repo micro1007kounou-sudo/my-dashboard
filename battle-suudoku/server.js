@@ -64,26 +64,52 @@ for (let r = 0; r < 9; r++) {
 // 3. プレイヤー接続時のメイン処理
 // ==========================================
 wss.on("connection", (ws, req) => {
-// 👇 ★【ここから追加】3人目の入室制限ロジック ★ 👇
-    // すでに2人が接続している場合（自分を含めて3人目になった場合）は拒否する
-    if (wss.clients.size > 2) {
-        console.log("接続拒否: 満員です（3人目以降のアクセス）");
+
+    // 👇 ★【リロード対策版】満員チェックロジックに書き換え ★ 👇
+    // 実際に「通信が完全に開いている（OPEN）プレイヤー」の数を数える
+    let activePlayers = 0;
+    wss.clients.forEach(client => {
+        // 自分自身（まだ処理中の新しい接続）以外の、すでに動いているクライアントを数える
+        if (client !== ws && client.readyState === WebSocket.OPEN) {
+            activePlayers++;
+        }
+    });
+
+    // すでに2人のアクティブなプレイヤーがいる場合は、3人目として弾く
+    if (activePlayers >= 2) {
+        console.log(`接続拒否: 満員です（現在のアクティブ人数: ${activePlayers}人）`);
         
-        // 満員であることを本人に通知
         ws.send(JSON.stringify({
             type: "chat",
             playerId: "システム",
             text: "🚨 現在他のプレイヤーが対戦中です。満員のため接続できません。"
         }));
         
-        // 1秒後に通信を安全に切断する
         setTimeout(() => {
             ws.close();
         }, 1000);
-        return; // これ以降の参加処理（P3の割り当てなど）をすべてキャンセル
+        return; 
     }
 
+// --- 既存の満員チェックのすぐ下 ---
 
+    // 👇 ★【追加】常に P1 または P2 の空いている方を割り当てるロジック ★ 👇
+    // 現在接続中のプレイヤーのIDを調べる
+    let hasP1 = false;
+    let hasP2 = false;
+    wss.clients.forEach(client => {
+        if (client !== ws && client.readyState === WebSocket.OPEN) {
+            if (client.playerId === "P1") hasP1 = true;
+            if (client.playerId === "P2") hasP2 = true;
+        }
+    });
+
+    // 空いている方を割り当てる（両方いなければP1）
+    const playerId = !hasP1 ? "P1" : "P2";
+    ws.playerId = playerId;
+    // 👆 ★【ここまで】★ 👆
+
+    // --- この下の「ws.playerIp = ip;」などはそのまま ---
     const playerId = `P${nextPlayerId++}`;
     ws.playerId = playerId;
 
