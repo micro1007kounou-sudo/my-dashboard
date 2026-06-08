@@ -8,24 +8,22 @@ body {
     text-align: center;       /* テキストの基本を中央揃え */
     font-family: sans-serif;
     margin: 0;
-    padding: 10px;
+    padding: 0 12px;          /* 左右に 12px のちょうどいい余白を作ります */
     background-color: #fafafa;
-    padding: 0 12px;           /* 👈 【追加】左右に 12px のちょうどいい余白を作ります */
-    box-sizing: border-box;    /* 👈 【追加】余白のせいで画面が横にはみ出るのを防ぐお守り */
+    box-sizing: border-box;   /* 余白のせいで画面が横にはみ出るのを防ぐお守り */
 }
 
 h2, h3 {
-    margin: 10px auto;
+    margin: 15px auto 5px auto;
+    font-size: 20px;
 }
 
 /* ==========================================
-   2. ステータス・コントロール（横並びエリア）
+   2. ステータス・コントロール
    ========================================== */
-
-/* プレイヤー情報（1行目） */
 #player-status {
     margin: 5px 0 10px 0;
-    font-size: 15px;
+    font-size: 14px;
     background-color: #f8f9fa;
     padding: 6px 15px;
     border-radius: 20px;
@@ -33,45 +31,27 @@ h2, h3 {
     display: inline-block;
 }
 
-#my-status {
-    color: #cc0000; /* 自分は赤 */
-    font-weight: bold;
-}
+#my-status { color: #cc0000; font-weight: bold; }
+#other-status { color: #0000cc; font-weight: bold; }
+#status-separator { color: #ccc; margin: 0 10px; }
 
-#other-status {
-    color: #0000cc; /* 相手は青 */
-    font-weight: bold;
-}
-
-#status-separator {
-    color: #ccc;
-    margin: 0 10px;
-}
-
-/* 難易度・開始ボタンのコンテナ（2行目：ここを確実に横並びに固定） */
 #control-panel {
-    display: block !important; /* 横並びブロックとして独立させる */
+    display: block !important;
     margin: 5px auto 15px auto;
     text-align: center;
     width: 100%;
 }
 
-/* 内側の要素を一直線上に並べる */
 #control-panel label,
 #difficulty-select,
 #reset-btn {
     display: inline-block !important;
-    vertical-align: middle; /* 上下の高さを中央で綺麗に揃える */
-    white-space: nowrap;    /* 途中で絶対に改行させない */
-    margin: 0 4px;          /* 左右に程よい隙間を作る */
+    vertical-align: middle;
+    white-space: nowrap;
+    margin: 0 4px;
 }
 
-#control-panel label {
-    font-size: 14px;
-    font-weight: bold;
-    color: #333;
-}
-
+#control-panel label { font-size: 14px; font-weight: bold; color: #333; }
 #difficulty-select {
     padding: 6px 10px;
     font-size: 14px;
@@ -84,7 +64,7 @@ h2, h3 {
 #reset-btn {
     padding: 6px 14px;
     font-size: 14px;
-    background-color: #4caf50; /* 綺麗なグリーン */
+    background-color: #4caf50;
     color: white;
     border: none;
     border-radius: 4px;
@@ -92,77 +72,78 @@ h2, h3 {
     font-weight: bold;
     transition: background-color 0.2s;
 }
-
-#reset-btn:hover {
-    background-color: #45a049;
-}
+#reset-btn:hover { background-color: #45a049; }
 
 /* ==========================================
-   3. 数独の盤面（9×9）
+   3. 数独の盤面（★一人用の黄金比率を完全移植★）
    ========================================== */
-/* ===================================================
-   盤面の外枠とセンタリングの修正
-   =================================================== */
 #board-container {
     display: grid;
     grid-template-columns: repeat(9, 1fr);
     
-    /* 👇 【修正】スマホでのズレを完全に防ぐ設定 */
     width: 100%;
-    max-width: 450px;          /* 画面が大きな端末でも広がりすぎない上限 */
-    margin: 0 auto !important; /* 左右のマージンを自動にして完全に中央寄せ */
-    padding: 0;                /* 内側の余白を一度ゼロにして計算を狂わせない */
+    max-width: 400px;          /* 👈 【修正】PCでは一人用と同じ400px */
+    margin: 0 auto !important; /* 👈 【修正】完全にセンター寄せ */
+    padding: 0;
+    box-sizing: border-box;
+    aspect-ratio: 1 / 1;       /* 👈 【修正】これでスマホでも確実に正方形を維持 */
     
-    /* 👇 【修正】外枠の太線を「内側」に向けて引くことで、消えるのを防ぐ */
-    border: 3px solid #333;
-    box-sizing: border-box;    
+    border: 3px solid black;   /* 外枠の太線 */
 }
 
 .cell {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 40px;
-    height: 40px;
+    
+    /* 👇 【修正】40px固定を廃止！親の幅に合わせて自動計算（一人用と同じ挙動） */
+    width: 100%;
+    height: 100%;
+    
     border: 1px solid #999;
-    font-size: 20px;
+    font-size: clamp(16px, 4vw, 22px); /* 👈 【修正】文字サイズもスマホ〜PCで自動調整 */
+    font-weight: bold;
     background: white;
     cursor: pointer;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent; /* スマホのタップの影を消す */
 }
 
-/* 3×3 ブロックの太線区切り */
-.cell[data-r="0"] { border-top: 3px solid black; }
-.cell[data-r="3"] { border-top: 3px solid black; }
-.cell[data-r="6"] { border-top: 3px solid black; }
-.cell[data-r="8"] { border-bottom: 3px solid black; }
+/* 🧩 3×3 ブロックの太線区切り（一人用の確実な指定を継承） */
+#board-container .cell[data-r="0"] { border-top: 3px solid black; }
+#board-container .cell[data-r="3"] { border-top: 3px solid black; }
+#board-container .cell[data-r="6"] { border-top: 3px solid black; }
+#board-container .cell[data-r="8"] { border-bottom: 3px solid black; }
 
-.cell[data-c="0"] { border-left: 3px solid black; }
-.cell[data-c="3"] { border-left: 3px solid black; }
-.cell[data-c="6"] { border-left: 3px solid black; }
-.cell[data-c="8"] { border-right: 3px solid black; }
+#board-container .cell[data-c="0"] { border-left: 3px solid black; }
+#board-container .cell[data-c="3"] { border-left: 3px solid black; }
+#board-container .cell[data-c="6"] { border-left: 3px solid black; }
+#board-container .cell[data-c="8"] { border-right: 3px solid black; }
 
-/* マス選択時の青枠 */
-.selected {
-    outline: 2px solid #00f;
-    z-index: 10; /* 枠線を一番上に表示 */
+/* マス選択時の黄色ハイライト（一人用の見やすさを重視） */
+.cell.selected {
+    background-color: #fff59d !important;
+    z-index: 10;
 }
 
 /* 特殊マス（問題・陣地） */
 .cell.problem {
-    background: rgb(238, 238, 238);
+    background: rgb(238, 238, 238) !important;
+    color: black !important;
     font-weight: bold;
 }
 
 .cell.mine {
-    background: #ffdddd; /* 自分の陣地（薄赤） */
+    background: #ffdddd !important; /* 自分の陣地（薄赤） */
+    color: #cc0000 !important;
 }
 
 .cell.other {
-    background: #ddddff; /* 相手の陣地（薄青） */
+    background: #ddddff !important; /* 相手の陣地（薄青） */
+    color: #0000cc !important;
 }
 
-/* 5秒間赤く光って震えるペナルティ効果 */
+/* ペナルティ（5秒間赤く光って震える） */
 .error-shake {
     animation: shake 0.4s ease-in-out;
     background-color: #ff3333 !important;
@@ -191,25 +172,27 @@ h2, h3 {
 }
 
 #chat-box {
-    text-align: left; /* チャットのログは読みやすく左詰め */
-    width: 360px;
-    height: 150px;
+    text-align: left;
+    width: 100%;
+    max-width: 400px;
+    height: 120px;
     border: 1px solid #ccc;
     overflow-y: auto;
     margin: 5px auto 10px auto;
     padding: 5px;
     font-size: 12px;
     background: white;
+    box-sizing: border-box;
 }
 
-/* 入力欄と送信ボタンの横並び */
 #chat-input, #chat-send {
     display: inline-block;
     vertical-align: middle;
 }
 
 #chat-input {
-    width: 290px;
+    width: calc(100% - 70px);
+    max-width: 330px;
     padding: 7px;
     font-size: 16px;
     box-sizing: border-box;
@@ -230,17 +213,13 @@ h2, h3 {
 }
 
 /* ==========================================
-   6. 自動で消える通知ポップアップ（タイトル下・確実表示版）
+   5. 通知トーストポップアップ
    ========================================== */
 #chat-popup-toast {
-    /* 画面全体に対して固定（これで消えるトラブルを防ぎます） */
     position: fixed;
-    
-    /* ★ 画面の天井から100px〜120pxほど下げた「タイトル直下」のベストポジション */
     top: 110px;          
     left: 50%;
     transform: translateX(-50%); 
-    
     background: rgba(0, 0, 0, 0.85); 
     color: #fff;
     padding: 10px 20px;   
@@ -248,16 +227,28 @@ h2, h3 {
     font-size: 15px;
     font-weight: bold;
     white-space: nowrap;  
-    z-index: 9999; /* どんな要素よりも最前面に出す */
+    z-index: 9999;
     box-shadow: 0 4px 12px rgba(0,0,0,0.25);
     pointer-events: none; 
-    
-    /* 上からふわっと少し落ちてくるアニメーション */
     animation: toastFadeInDown 0.2s ease-out;
 }
 
-/* 🎬 上から少しだけ下がって出現する動き */
 @keyframes toastFadeInDown {
     from { opacity: 0; transform: translate(-50%, -10px); }
     to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* ==========================================
+   6. 📱 スマホ専用調整（480px以下）
+   ========================================== */
+@media (max-width: 480px) {
+    #board-container {
+        max-width: 360px;   /* 👈 【修正】スマホでは一人用と同じ360pxに制限 */
+    }
+    #chat-box {
+        max-width: 336px;   /* 盤面の幅（360 - 左右余白24）にピッタリ合わせる */
+    }
+    #chat-input {
+        max-width: 266px;   /* ボタンと合わせて336pxになるよう調整 */
+    }
 }
