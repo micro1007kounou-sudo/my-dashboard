@@ -271,8 +271,11 @@ function drawPuzzle(puzzle) {
         }
     }
 }
+// ==========================================
+// 5. 盤面制御・ゲームロジック
+// ==========================================
 
-// マスクリック時のイベント処理
+// マスクリック時のイベント処理（★スマホキーボード召喚を追記★）
 boardContainer.addEventListener("click", (e) => {
     if (isLocked) return; // 操作不可（ペナルティ中）ならクリックを無視
 
@@ -292,6 +295,13 @@ boardContainer.addEventListener("click", (e) => {
     const c = cell.dataset.c;
     console.log(`clicked: r=${r}, c=${c}`);
 
+    // 👇 ★【ここを追加】タップした瞬間に裏の隠し入力欄にフォーカスを当てて、スマホの数字キーボードを開く
+    const hiddenInput = document.getElementById("hidden-input");
+    if (hiddenInput) {
+        hiddenInput.value = ""; // 前の文字をクリア
+        hiddenInput.focus();    // キーボードを召喚！
+    }
+
     // サーバーへ選択マスの座標を通知
     ws.send(JSON.stringify({
         type: "cellClick",
@@ -301,7 +311,7 @@ boardContainer.addEventListener("click", (e) => {
     }));
 });
 
-// キーボードによる数字入力処理
+// PC用：キーボードによる数字入力処理（ここは元のまま残します）
 document.addEventListener("keydown", (e) => {
     if (isLocked) return; // 操作不可なら入力を無視
     if (!selectedCell) return;
@@ -326,6 +336,39 @@ document.addEventListener("keydown", (e) => {
         num,
         playerId: myId
     }));
+});
+
+// 👇 ★【ここを新しく追加】スマホ用：画面キーボードからの入力を監視する処理 ★ 👇
+document.getElementById("hidden-input").addEventListener("input", (e) => {
+    if (isLocked || !selectedCell) return;
+
+    // スマホキーボードで入力された最新の1文字を取得
+    const val = e.target.value;
+    const key = val.charAt(val.length - 1);
+
+    // 1〜9 の数字じゃなければ無視
+    if (!/^[1-9]$/.test(key)) {
+        e.target.value = ""; // 変な文字なら消す
+        return;
+    }
+
+    const r = Number(selectedCell.dataset.r);
+    const c = Number(selectedCell.dataset.c);
+    const num = Number(key);
+
+    console.log(`スマホキーボード入力: r=${r}, c=${c}, num=${num}`);
+
+    // サーバーへ入力された数字を送信
+    ws.send(JSON.stringify({
+        type: "placeNumber",
+        r,
+        c,
+        num,
+        playerId: myId
+    }));
+
+    // 次の入力に備えて、隠し入力欄の中身を空っぽに戻しておく
+    e.target.value = "";
 });
 
 // リセットボタンクリック時の処理
