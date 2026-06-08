@@ -100,17 +100,22 @@ h2, h3 {
 /* ==========================================
    3. 数独の盤面（9×9）
    ========================================== */
+/* ===================================================
+   盤面の外枠とセンタリングの修正
+   =================================================== */
 #board-container {
     display: grid;
-    grid-template-columns: repeat(9, 40px);
-    grid-template-rows: repeat(9, 40px);
-    gap: 0;
-    margin: 5px auto;
-    width: fit-content;
-    height: fit-content;
-    border: 3px solid black;
-    max-width: 100%;           /* 👈 【追加】画面幅を超えて大きくならないようにする */
-    margin: 0 auto;            /* 👈 【追加】盤面を画面の真ん中にきれいにセンタリングする */
+    grid-template-columns: repeat(9, 1fr);
+    
+    /* 👇 【修正】スマホでのズレを完全に防ぐ設定 */
+    width: 100%;
+    max-width: 450px;          /* 画面が大きな端末でも広がりすぎない上限 */
+    margin: 0 auto !important; /* 左右のマージンを自動にして完全に中央寄せ */
+    padding: 0;                /* 内側の余白を一度ゼロにして計算を狂わせない */
+    
+    /* 👇 【修正】外枠の太線を「内側」に向けて引くことで、消えるのを防ぐ */
+    border: 3px solid #333;
+    box-sizing: border-box;    
 }
 
 .cell {
