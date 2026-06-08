@@ -10,6 +10,8 @@ body {
     margin: 0;
     padding: 10px;
     background-color: #fafafa;
+    padding: 0 12px;           /* 👈 【追加】左右に 12px のちょうどいい余白を作ります */
+    box-sizing: border-box;    /* 👈 【追加】余白のせいで画面が横にはみ出るのを防ぐお守り */
 }
 
 h2, h3 {
@@ -107,7 +109,8 @@ h2, h3 {
     width: fit-content;
     height: fit-content;
     border: 3px solid black;
-    
+    max-width: 100%;           /* 👈 【追加】画面幅を超えて大きくならないようにする */
+    margin: 0 auto;            /* 👈 【追加】盤面を画面の真ん中にきれいにセンタリングする */
 }
 
 .cell {
