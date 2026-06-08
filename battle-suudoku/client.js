@@ -110,7 +110,7 @@ ws.addEventListener("message", (event) => {
             }, 6000); 
             break;
 
-        case "gameClear":
+case "gameClear":
             // 1. 自分と相手のスコア（マス数）を計算
             const myScore = data.scores[myId] || 0;
             let otherId = "相手";
@@ -122,9 +122,23 @@ ws.addEventListener("message", (event) => {
                 }
             });
 
-            // 👇 【追加】サーバーから届いた間違い回数を取得（なければ0回）
+            // サーバーから届いた間違い回数を取得（なければ0回）
             const p1Penalties = data.penaltyCounts ? (data.penaltyCounts.P1 || 0) : 0;
             const p2Penalties = data.penaltyCounts ? (data.penaltyCounts.P2 || 0) : 0;
+
+            // 👇 ★【追加】自分が P1 か P2 かによって、間違い回数のラベル表記を「あなた/相手」に変換する
+            let myPenalties = 0;
+            let otherPenalties = 0;
+
+            if (myId === "P1") {
+                // 自分が P1 の場合
+                myPenalties = p1Penalties;
+                otherPenalties = p2Penalties;
+            } else {
+                // 自分が P2 の場合
+                myPenalties = p2Penalties;
+                otherPenalties = p1Penalties;
+            }
 
             // 2. メッセージの本文を組み立て
             let alertText = "";
@@ -136,10 +150,10 @@ ws.addEventListener("message", (event) => {
                 alertText = `💀【ゲーム終了：あなたの敗北…】💀\nあなた: ${myScore}マス / ${otherId}: ${otherScore}マス`;
             }
 
-            // 👇 【追加】ポップアップのテキストに間違い回数をドッキング！
+            // 👇 ★【修正】P1, P2 表記ではなく「あなた」と「相手」に変換してドッキング
             alertText += `\n\n【お手付き回数】\n`;
-            alertText += `P1 の間違い: ${p1Penalties} 回\n`;
-            alertText += `P2 の間違い: ${p2Penalties} 回`;
+            alertText += `あなた の間違い: ${myPenalties} 回\n`;
+            alertText += `相手 (${otherId}) の間違い: ${otherPenalties} 回`;
 
             // 3. 結果のポップアップアラートを表示
             alert(alertText);
