@@ -60,6 +60,9 @@ for (let r = 0; r < 9; r++) {
         }
     }
 }
+// 👇 【追加】プレイヤーごとの間違い回数を記録するオブジェクト
+let penaltyCounts = { P1: 0, P2: 0 };
+
 
 // ==========================================
 // 3. プレイヤー接続時のメイン処理（20分自動キック融合版）
@@ -225,7 +228,7 @@ wss.on("connection", (ws, req) => {
             return;
         }
 
-        // ◆ 数字入力の同期と正誤判定
+// ◆ 数字入力の同期と正誤判定（お手付きカウント融合版）
         if (data.type === "placeNumber") {
             const r = data.r;
             const c = data.c;
@@ -236,6 +239,7 @@ wss.on("connection", (ws, req) => {
             
             // 👇 ★【追加】すでに誰かが正解しているマス（0以外）なら、2回目の処理を無視するガード
             if (currentBoard[r][c].num !== 0) return;
+            
             // 送られた数字が正解と一致している場合
             if (solutionBoard[r][c] === num) {
                 currentBoard[r][c] = { num: num, owner: ws.playerId };
@@ -292,7 +296,9 @@ wss.on("connection", (ws, req) => {
                         type: "gameClear",
                         scores: scores,
                         winnerId: winnerId,
-                        isDraw: isDraw
+                        isDraw: isDraw,
+                        // 👇 【追加】お互いの最終的な間違い回数を一緒に全員へ送る！
+                        penaltyCounts: penaltyCounts 
                     });
 
                     // チャット欄へシステムアナウンス
@@ -311,6 +317,13 @@ wss.on("connection", (ws, req) => {
                 }
 
             } else {
+                // ❌ 送られた数字が間違っていた場合
+                
+                // 👇 【追加】間違えたプレイヤー(P1またはP2)の間違いカウントを1増やす
+                if (ws.playerId === "P1" || ws.playerId === "P2") {
+                    penaltyCounts[ws.playerId]++;
+                }
+
                 // 間違っていた場合は本人にペナルティ（ロック）を通知
                 ws.send(JSON.stringify({
                     type: "penalty",
@@ -334,6 +347,9 @@ wss.on("connection", (ws, req) => {
         // ◆ 「新しい盤面で開始」リセット処理
         if (data.type === "requestReset") {
             console.log(`盤面リセットが要求されました（難易度: ${data.difficulty}）`);
+            // 👇 【追加】間違いカウントもゼロにリセット
+            penaltyCounts = { P1: 0, P2: 0 };
+            
             solutionBoard = Array.from({ length: 9 }, () => Array(9).fill(0));
             generateFullBoard(solutionBoard);
 

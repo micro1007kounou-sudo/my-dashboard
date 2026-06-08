@@ -122,6 +122,10 @@ ws.addEventListener("message", (event) => {
                 }
             });
 
+            // 👇 【追加】サーバーから届いた間違い回数を取得（なければ0回）
+            const p1Penalties = data.penaltyCounts ? (data.penaltyCounts.P1 || 0) : 0;
+            const p2Penalties = data.penaltyCounts ? (data.penaltyCounts.P2 || 0) : 0;
+
             // 2. メッセージの本文を組み立て
             let alertText = "";
             if (data.isDraw) {
@@ -132,12 +136,17 @@ ws.addEventListener("message", (event) => {
                 alertText = `💀【ゲーム終了：あなたの敗北…】💀\nあなた: ${myScore}マス / ${otherId}: ${otherScore}マス`;
             }
 
+            // 👇 【追加】ポップアップのテキストに間違い回数をドッキング！
+            alertText += `\n\n【お手付き回数】\n`;
+            alertText += `P1 の間違い: ${p1Penalties} 回\n`;
+            alertText += `P2 の間違い: ${p2Penalties} 回`;
+
             // 3. 結果のポップアップアラートを表示
             alert(alertText);
             
             // 入力をロック
             isLocked = true;
-            break; 
+            break;
 
             // ======= client.js の switch (data.type) の中に追加 =======
 
