@@ -107,10 +107,7 @@ h2, h3 {
     width: fit-content;
     height: fit-content;
     border: 3px solid black;
-    max-width: 100%;           /* 画面からはみ出るのを防ぐ */
-    padding: 0 12px;           /* 左右に 12px のちょうどいい余白を作る */
-    box-sizing: border-box;    /* 余白を含めて画面幅に綺麗に収めるお守り */
-    margin: 0 auto;            /* 盤面を画面の真ん中にセンタリング */
+    
 }
 
 .cell {
