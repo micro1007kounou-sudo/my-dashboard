@@ -2,6 +2,8 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const WebSocket = require("ws");
+// 📄 server.js の最上部（ライブラリ読み込みの下など）
+const TIMEOUT_LIMIT = 20 * 60 * 1000; // 20分をミリ秒に変換 (1200000ms)
 
 // ==========================================
 // 1. サーバーポート設定（本番・ローカル自動対応）
@@ -60,9 +62,36 @@ for (let r = 0; r < 9; r++) {
 }
 
 // ==========================================
-// 3. プレイヤー接続時のメイン処理
+// 3. プレイヤー接続時のメイン処理（20分自動キック融合版）
 // ==========================================
 wss.on("connection", (ws, req) => {
+
+    // ─── 👇 【追加】20分タイマーの管理ポケットと延長関数 ───
+    ws.timeoutTimer = null;
+
+    function resetTimeout() {
+        if (ws.timeoutTimer) clearTimeout(ws.timeoutTimer); // 既存のタイマーをリセット
+
+        // 新しく20分間のカウントダウンをスタート
+        ws.timeoutTimer = setTimeout(() => {
+            console.log(`[自動キック] 20分間無操作のため、${ws.playerId || '未確定プレイヤー'} を強制切断します`);
+            try {
+                // クライアントのチャット欄に通知を送る
+                ws.send(JSON.stringify({ 
+                    type: "chat", 
+                    playerId: "システム", 
+                    text: "🚨 20分間操作がなかったため、自動的に接続が切断されました。" 
+                }));
+            } catch (e) { /* すでに切断されている場合は無視 */ }
+            
+            ws.close(); // 接続を強制遮断
+        }, TIMEOUT_LIMIT);
+    }
+
+    // 入室した瞬間から、最初の20分のカウントダウンを開始
+    resetTimeout();
+    // ─── 👆 【追加ここまで】 ───
+
 
     // 👇 ★【リロード対策版】満員チェックロジックに書き換え ★ 👇
     // 実際に「通信が完全に開いている（OPEN）プレイヤー」の数を数える
@@ -85,12 +114,11 @@ wss.on("connection", (ws, req) => {
         }));
         
         setTimeout(() => {
+            if (ws.timeoutTimer) clearTimeout(ws.timeoutTimer); // 弾かれた場合はタイマーを消去
             ws.close();
         }, 1000);
         return; 
     }
-
-// --- 既存の満員チェックのすぐ下 ---
 
     // 👇 ★【追加】常に P1 または P2 の空いている方を割り当てるロジック ★ 👇
     // 現在接続中のプレイヤーのIDを調べる
@@ -109,8 +137,7 @@ wss.on("connection", (ws, req) => {
     // 👆 ★【ここまで】★ 👆
 
 
-
-// --- 安全なIPアドレスの取得 ---
+    // --- 安全なIPアドレスの取得 ---
     let ip = "不明なIP";
     try {
         // 👇 ★ここから書き換え★ Renderの玄関口サーバーが渡してくれる本物のIPをチェック
@@ -187,6 +214,10 @@ wss.on("connection", (ws, req) => {
 
     // --- 受信メッセージの個別イベント処理 ---
     ws.on("message", (message) => {
+        
+        // ─── 👇 【追加】メッセージが届いたら20分タイマーをリフレッシュする ───
+        resetTimeout();
+
         let data;
         try {
             data = JSON.parse(message);
@@ -203,7 +234,7 @@ wss.on("connection", (ws, req) => {
             // 初期問題マスなら処理を拒否
             if (initialPuzzle[r][c] !== 0) return;
             
-// 👇 ★【追加】すでに誰かが正解しているマス（0以外）なら、2回目の処理を無視するガード
+            // 👇 ★【追加】すでに誰かが正解しているマス（0以外）なら、2回目の処理を無視するガード
             if (currentBoard[r][c].num !== 0) return;
             // 送られた数字が正解と一致している場合
             if (solutionBoard[r][c] === num) {
@@ -362,7 +393,10 @@ wss.on("connection", (ws, req) => {
     ws.on("close", () => {
         console.log(`ユーザー切断: ${ws.playerId}`);
         
-        // 1. チャット欄へ退室アナウンスを流す（既存のコード）
+        // ─── 👇 【追加】自分で切断したら、動いている20分タイマーを完全消去 ───
+        if (ws.timeoutTimer) clearTimeout(ws.timeoutTimer);
+
+        // 1. チャット欄へ退室アナウンスを流す
         broadcast({
             type: "chat",
             playerId: "システム",
@@ -376,6 +410,7 @@ wss.on("connection", (ws, req) => {
         });
     });
 });
+
 // ==========================================
 // 4. 全員へ一斉送信するためのヘルパー関数
 // ==========================================
