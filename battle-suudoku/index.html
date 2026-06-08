@@ -37,6 +37,21 @@
 <input id="chat-input" type="text" placeholder="メッセージ">
 <button id="chat-send">送信</button>
 
+<div id="spec">
+  <h2>アプリ仕様（対戦版）</h2>
+  <p>・マスをタップ（クリック）して選択し、キーボードで1〜9の数字を入力します。</p>
+  <p>・正解すると自分の陣地（薄赤）になり、1ポイント獲得します。</p>
+  <p>・間違えると5秒間のペナルティ（ロック状態）となり、その間は入力できません。</p>
+  <p>・すべての空欄マスが埋まった時点で、獲得マス数の多いプレイヤーの勝利となります。</p>
+  <p>・「新しい盤面で開始」ボタンを押すと、全員の画面が新しいゲームへリセットされます。</p>
+</div>
+
+<div id="footer"></div>
+<script>
+  fetch("../footer.html")
+    .then(res => res.text())
+    .then(html => document.getElementById("footer").innerHTML = html);
+</script>
 <script src="client.js"></script>
 </body>
 </html>
