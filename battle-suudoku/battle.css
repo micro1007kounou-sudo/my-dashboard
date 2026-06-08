@@ -82,11 +82,11 @@ h2, h3 {
     grid-template-columns: repeat(9, 1fr);
     
     width: 100%;
-    max-width: 400px;          /* 👈 【修正】PCでは一人用と同じ400px */
-    margin: 0 auto !important; /* 👈 【修正】完全にセンター寄せ */
+    max-width: 400px;          /* PCでは一人用と同じ400px */
+    margin: 0 auto !important; /* 完全にセンター寄せ */
     padding: 0;
     box-sizing: border-box;
-    aspect-ratio: 1 / 1;       /* 👈 【修正】これでスマホでも確実に正方形を維持 */
+    aspect-ratio: 1 / 1;       /* これでスマホでも確実に正方形を維持 */
     
     border: 3px solid black;   /* 外枠の太線 */
 }
@@ -96,12 +96,12 @@ h2, h3 {
     justify-content: center;
     align-items: center;
     
-    /* 👇 【修正】40px固定を廃止！親の幅に合わせて自動計算（一人用と同じ挙動） */
+    /* 40px固定を廃止！親の幅に合わせて自動計算（一人用と同じ挙動） */
     width: 100%;
     height: 100%;
     
     border: 1px solid #999;
-    font-size: clamp(16px, 4vw, 22px); /* 👈 【修正】文字サイズもスマホ〜PCで自動調整 */
+    font-size: clamp(16px, 4vw, 22px); /* 文字サイズもスマホ〜PCで自動調整 */
     font-weight: bold;
     background: white;
     cursor: pointer;
@@ -120,7 +120,7 @@ h2, h3 {
 #board-container .cell[data-c="6"] { border-left: 3px solid black; }
 #board-container .cell[data-c="8"] { border-right: 3px solid black; }
 
-/* マス選択時の黄色ハイライト（一人用の見やすさを重視） */
+/* マス選択時の黄色ハイライト */
 .cell.selected {
     background-color: #fff59d !important;
     z-index: 10;
@@ -143,12 +143,15 @@ h2, h3 {
     color: #0000cc !important;
 }
 
-/* ペナルティ（5秒間赤く光って震える） */
-.error-shake {
+/* 👇 ★【修正】ペナルティ（5秒間赤く光って震える）★ 👇 */
+/* .cell.selected.error-shake と重ねて書くことで、黄色の important を力技で上書きします */
+.cell.error-shake,
+.cell.selected.error-shake {
     animation: shake 0.4s ease-in-out;
-    background-color: #ff3333 !important;
-    color: white !important;
-    transition: background-color 0.5s ease;
+    background-color: #ff3333 !important; /* パッと鮮やかな赤に */
+    color: white !important;               /* 文字も白抜きにして見やすく */
+    border: 2px solid #cc0000 !important;  /* 枠線も濃い赤にして警告感をアップ */
+    z-index: 20;                           /* 黄色（z-index: 10）より手前に出す */
 }
 
 @keyframes shake {
@@ -243,7 +246,7 @@ h2, h3 {
    ========================================== */
 @media (max-width: 480px) {
     #board-container {
-        max-width: 360px;   /* 👈 【修正】スマホでは一人用と同じ360pxに制限 */
+        max-width: 360px;   /* スマホでは一人用と同じ360pxに制限 */
     }
     #chat-box {
         max-width: 336px;   /* 盤面の幅（360 - 左右余白24）にピッタリ合わせる */
@@ -269,10 +272,9 @@ h2, h3 {
     border-radius: 6px;
     box-sizing: border-box;
 
-    /* 👇 【追加】フレックスボックスの引っ張り効果を無効化するお守り */
+    /* フレックスボックスの引っ張り効果を無効化するお守り */
     display: block !important; 
 }
-
 
 #spec h2 {
     font-size: 14px;
