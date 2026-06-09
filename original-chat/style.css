@@ -156,6 +156,9 @@ body {
   text-align: left;
   border-radius: 10px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+
+  /* 👇 ★【追加】余白のせいで右側にはみ出すのを絶対に防ぐ魔法のコード */
+  box-sizing: border-box; 
 }
 
 .chat-notice strong {
