@@ -51,17 +51,22 @@ body {
    💬 2. チャット履歴枠（高さ固定・スクロール・角丸）
    ========================================== */
 #messages {
-  height: 45vh;               /* スマホの縦幅45%分に自動調整 */
-  min-height: 350px;          /* PCでも潰れすぎない最低保証値 */
-  overflow-y: auto;         
-  background-color: #ffffff;
-  border: 1px solid #e5e5ea;
-  border-radius: 12px;
-  padding: 15px;
-  margin-bottom: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  width: 100%;
-  box-sizing: border-box; 
+    /* 👇 ★【修正】45vh から 53vh に少しだけ縦長に広げます！ */
+    height: 55vh;               
+    
+    /* 💻 PCなどの大きな画面用も、350px から 400px にアップ */
+    min-height: 400px;          
+    
+    /* その他の overflow-y: auto や背景、角丸などはそのまま触らずでOK */
+    overflow-y: auto;         
+    background-color: #ffffff;
+    border: 1px solid #e5e5ea;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    width: 100%;
+    box-sizing: border-box; 
 }
 
 /* ==========================================
