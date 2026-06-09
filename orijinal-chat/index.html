@@ -9,15 +9,25 @@
 
 <div class="chat-notice">
   ブラウザを閉じると、あなたの画面の内容はすべて消去されます。相手側には残りますが、相手がブラウザを閉じた時点で相手側の内容も完全に消去されます。<br>
+  メッセージはサーバーに一切保存されません。
 </div>
 
+<div id="login-screen" class="chat-container" style="max-width: 400px; margin: 50px auto; padding: 20px; text-align: center;">
+  <h2>チャットに入室</h2>
+  <div style="margin-bottom: 15px;">
+    <input id="usernameInput" type="text" placeholder="あなたの名前" style="width: 80%; padding: 8px;">
+  </div>
+  <div style="margin-bottom: 20px;">
+    <input id="roomInput" type="text" placeholder="共通の合言葉（パスワード）" style="width: 80%; padding: 8px;">
+  </div>
+  <button id="joinBtn" style="padding: 10px 20px; cursor: pointer;">入室する</button>
+</div>
 
-<div class="chat-container">
-
+<div class="chat-container" id="chat-screen" style="display: none;">
   <div class="chat-header">
-    プライベートチャット<br>
-    あなたのIP: <span id="selfIp">取得中...</span><br>
-    相手のIP: <span id="otherIp">未接続</span>
+    プライベートチャット（合言葉: <span id="roomName">-</span>）<br>
+    あなた: <span id="selfName">-</span><br>
+    相手: <span id="otherName">未接続</span>
   </div>
 
   <div class="messages" id="messages"></div>
@@ -26,7 +36,6 @@
     <input id="msgInput" type="text" placeholder="メッセージを入力…">
     <button id="sendBtn">送信</button>
   </div>
-
 </div>
 
 <script src="script.js"></script>
