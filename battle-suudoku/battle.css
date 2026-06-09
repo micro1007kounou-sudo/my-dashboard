@@ -375,8 +375,8 @@ h2, h3 {
     pointer-events: auto;
     
     /* 👇 ★ここを強化！ぼかし（blur）の数値を 4px から 15px にアップ */
-    backdrop-filter: blur(15px); 
-    -webkit-backdrop-filter: blur(15px); /* Safari（iPhone）用のお守り */
+    backdrop-filter: blur(10px); 
+    -webkit-backdrop-filter: blur(10px); /* Safari（iPhone）用のお守り */
 }
 
 /* 中央に表示される巨大なカウントダウン数字 */
