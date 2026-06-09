@@ -122,14 +122,12 @@ ws.addEventListener("message", (event) => {
             }, 6000); 
             break;
 
-case "gameClear":
+        case "gameClear":
             // 1. 自分と相手のスコア（マス数）を計算
             const myScore = data.scores[myId] || 0;
-            let otherId = "相手";
             let otherScore = 0;
             Object.keys(data.scores).forEach(id => {
                 if (id !== myId) {
-                    otherId = id;
                     otherScore = data.scores[id];
                 }
             });
@@ -138,16 +136,14 @@ case "gameClear":
             const p1Penalties = data.penaltyCounts ? (data.penaltyCounts.P1 || 0) : 0;
             const p2Penalties = data.penaltyCounts ? (data.penaltyCounts.P2 || 0) : 0;
 
-            // 👇 ★【追加】自分が P1 か P2 かによって、間違い回数のラベル表記を「あなた/相手」に変換する
+            // 自分が P1 か P2 かによって、間違い回数のラベル表記を「あなた/相手」に変換する
             let myPenalties = 0;
             let otherPenalties = 0;
 
             if (myId === "P1") {
-                // 自分が P1 の場合
                 myPenalties = p1Penalties;
                 otherPenalties = p2Penalties;
             } else {
-                // 自分が P2 の場合
                 myPenalties = p2Penalties;
                 otherPenalties = p1Penalties;
             }
@@ -155,17 +151,21 @@ case "gameClear":
             // 2. メッセージの本文を組み立て
             let alertText = "";
             if (data.isDraw) {
-                alertText = `【ゲーム終了：引き分け】\nあなた: ${myScore}マス / 相手: ${otherScore}マス`;
+                alertText = `【ゲーム終了：引き分け】\n\n`;
             } else if (data.winnerId === myId) {
-                alertText = `🏆【ゲーム終了：あなたの勝利！】🏆\nあなた: ${myScore}マス / 相手: ${otherScore}マス`;
+                alertText = `🏆【ゲーム終了：あなたの勝利！】🏆\n\n`;
             } else {
-                alertText = `💀【ゲーム終了：あなたの敗北…】💀\nあなた: ${myScore}マス / ${otherId}: ${otherScore}マス`;
+                alertText = `💀【ゲーム終了：あなたの敗北…】💀\n\n`;
             }
 
-            // 👇 ★【修正】P1, P2 表記ではなく「あなた」と「相手」に変換してドッキング
-            alertText += `\n\n【お手付き回数】\n`;
+            // 👇 【修正】カッコ表記をすべて消去し、「あなた」「相手」のみに統一
+            alertText += `【獲得マス数】\n`;
+            alertText += `あなた: ${myScore} マス\n`;
+            alertText += `相手: ${otherScore} マス\n\n`;
+
+            alertText += `【お手付き回数】\n`;
             alertText += `あなた の間違い: ${myPenalties} 回\n`;
-            alertText += `相手 (${otherId}) の間違い: ${otherPenalties} 回`;
+            alertText += `相手 の間違い: ${otherPenalties} 回`;
 
             // 3. 結果のポップアップアラートを表示
             alert(alertText);
