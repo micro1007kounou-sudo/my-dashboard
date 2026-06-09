@@ -33,9 +33,17 @@ joinBtn.addEventListener("click", () => {
 const WS_URL = "wss://orijinal-chat.onrender.com"; 
 ws = new WebSocket(WS_URL);
 
-  // 接続完了時に名前と合言葉を送信
+// 接続完了時に名前と合言葉を送信
   ws.addEventListener("open", () => {
     addSystem("サーバーに接続しました。認証中...");
+    
+    // 👇 ★【追加】サーバーが目覚めてWebSocketがつながったので、グレーアウトを消し去る！
+    const overlay = document.getElementById("loading-overlay");
+    if (overlay) {
+      overlay.style.opacity = "0";             // ふわっと透明にして
+      setTimeout(() => overlay.style.display = "none", 500); // 0.5秒後に完全に非表示にする
+    }
+
     ws.send(JSON.stringify({
       type: "join",
       username: myName,
