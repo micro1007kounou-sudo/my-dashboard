@@ -29,8 +29,9 @@ joinBtn.addEventListener("click", () => {
 
   // WebSocket接続（オンライン対応のURL自動判定）
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  const WS_URL = `${protocol}//${window.location.host}`; 
-  ws = new WebSocket(WS_URL);
+// RenderのサーバーURLを直球で指定する（末尾に / は付けない）
+const WS_URL = "wss://orijinal-chat.onrender.com"; 
+ws = new WebSocket(WS_URL);
 
   // 接続完了時に名前と合言葉を送信
   ws.addEventListener("open", () => {
