@@ -7,7 +7,17 @@
 <link rel="stylesheet" href="battle.css">
 </head>
 <body>
+<div id="loading-overlay">
+        <div class="loading-box">
+            <div class="spinner"></div>
+            <h2>サーバー起動中...</h2>
+            <p>スリープからの復帰に30秒ほどかかる場合があります。<br>そのまましばらくお待ちください。</p>
+        </div>
+    </div>
 
+    <div id="countdown-overlay" style="display: none;">
+        <div id="countdown-number">5</div>
+    </div>
 <h2>二人対戦版数独</h2>
 <div id="player-status">
   <span id="my-status">あなた: -- (IP: --)</span>
