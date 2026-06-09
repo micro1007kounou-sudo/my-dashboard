@@ -115,8 +115,40 @@ sendBtn.addEventListener("click", () => {
   addMessage(text, "me");
   ws.send(JSON.stringify({ type: "chat", text }));
   inputEl.value = "";
+// 👇 ★【追加】メッセージを送ったのでタイマーをリセット
+  resetDisconnectTimer(); 
 });
 
 inputEl.addEventListener("keydown", (e) => {
   if (e.key === "Enter") sendBtn.click();
+});
+
+// ==========================================
+// 🕒 20分無操作で自動退室するシステム
+// ==========================================
+let disconnectTimer = null;
+const INACTIVE_LIMIT = 20 * 60 * 1000; // 20分（ミリ秒換算）
+
+// タイマーをリセットして数え直す関数
+function resetDisconnectTimer() {
+  // すでに動いているタイマーがあれば一旦クリア
+  if (disconnectTimer) clearTimeout(disconnectTimer);
+
+  // チャット中（wsが接続中）のときだけタイマーを作動させる
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    disconnectTimer = setTimeout(() => {
+      addSystem("20分間操作がなかったため、自動的に退室しました。");
+      ws.close(); // WebSocketを強制切断（これでサーバー側も退室処理になる）
+      
+      // 画面を最初のログイン画面に戻す
+      setTimeout(() => {
+        location.reload(); // 画面をリロードして安全に初期化
+      }, 3000); // メッセージを読めるように3秒待ってからリロード
+    }, INACTIVE_LIMIT);
+  }
+}
+
+// ユーザーの「操作」を検知するイベント（画面タップ、キー入力、スクロールなど）
+["click", "keydown", "touchstart", "scroll"].forEach((eventType) => {
+  document.addEventListener(eventType, resetDisconnectTimer);
 });
