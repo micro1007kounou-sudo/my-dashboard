@@ -5,16 +5,20 @@ body {
   padding: 20px;
 }
 
+/* ==========================================
+   📦 1. 外枠（邪魔をしていた背後の白いやつ）の修正
+   ========================================== */
 .chat-container {
-max-width: 450px;   /* 最大幅だけ指定 */
-  width: 100%;        /* 画面に合わせて縮む */
-  height: 80vh;
-  margin: 0 auto;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  display: flex;
-  flex-direction: column;
+    max-width: 450px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    
+    /* 🛠️ 修正ポイント */
+    background: transparent;    /* 👈 【超重要】背後の白い背景を「透明」にして消し去ります！ */
+    box-shadow: none;           /* 👈 【超重要】背後の影も消してスッキリさせます */
+    height: auto;               /* 👈 【超重要】高さ固定を解除して、中身にぴったり合わせます */
 }
 
 .chat-header {
@@ -27,11 +31,29 @@ max-width: 450px;   /* 最大幅だけ指定 */
   border-radius: 10px 10px 0 0;
 }
 
-.messages {
-  flex: 1;
-  padding: 12px;
-  overflow-y: auto;
-  background: #f5f5f7;
+#messages {
+    /* 👇 ★【最重要】高さを好みのサイズで「絶対固定」にします！ */
+    height: 480px;            /* 👈 スマホでも画面内に収まりやすい丁度いい高さ（固定値） */
+    overflow-y: auto;         /* 中身が増えたらこの枠内だけでスクロール */
+    
+    background-color: #f9f9f9; 
+    padding: 15px;
+    
+    /* ✨ 綺麗な角丸と枠線をしっかりキープ！ */
+    border: 1px solid #ddd;
+    border-radius: 8px;       
+    
+    /* 👇 ★【超重要】これで下の入力欄との間に「背景の隙間」を作り、くっつきを完全に防ぎます！ */
+    margin-bottom: 15px;      
+}
+
+.input-area {
+    display: flex;
+    padding: 0;               /* 🛠️ 内側の余白をゼロにして、上のmargin-bottomの隙間を綺麗に見せます */
+    gap: 8px;
+
+    /* 🛠️ くっついて太線に見えていた原因の「上の線」を完全に消去します */
+    border-top: none;         
 }
 
 .message-row {
