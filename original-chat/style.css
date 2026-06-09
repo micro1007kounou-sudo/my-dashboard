@@ -33,7 +33,7 @@ body {
 
 #messages {
     /* 👇 ★【最重要】高さを好みのサイズで「絶対固定」にします！ */
-    height: 480px;            /* 👈 スマホでも画面内に収まりやすい丁度いい高さ（固定値） */
+    height: 450px;            /* 👈 スマホでも画面内に収まりやすい丁度いい高さ（固定値） */
     overflow-y: auto;         /* 中身が増えたらこの枠内だけでスクロール */
     
     background-color: #f9f9f9; 
@@ -99,7 +99,7 @@ body {
 .input-area {
   display: flex;
   padding: 10px;
-  border-top: 1px solid #e5e5ea;
+
   gap: 8px;
 }
 
