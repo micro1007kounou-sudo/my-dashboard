@@ -1,98 +1,124 @@
 const http = require("http");
 const fs = require("fs");
-const path = require("path");
-const WebSocket = require("ws");
+const path = require("path"); // 階層問題を解決するためのモジュール
+const { WebSocketServer } = require("ws");
 
-const PORT = process.env.PORT || 3000;
-
-// 静的ファイル配信（ここはそのまま）
+// 1. HTTPサーバーの設定（HTML/CSS/JavaScriptをブラウザに返す）
 const server = http.createServer((req, res) => {
-  let filePath = "." + req.url;
-  if (filePath === "./") filePath = "./index.html";
+  // アクセスされたURLに応じて、読み込むファイルを決定
+  let urlPath = req.url === "/" ? "/index.html" : req.url;
+  
+  // 【超重要】__dirname（このserver.jsがあるフォルダ）を基準にファイルの絶対パスを作る
+  let filePath = path.join(__dirname, urlPath);
+  
+  // 拡張子チェック
   const ext = path.extname(filePath).toLowerCase();
-  const map = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8" };
+  const map = { 
+    ".html": "text/html; charset=utf-8", 
+    ".css": "text/css; charset=utf-8", 
+    ".js": "text/javascript; charset=utf-8" 
+  };
   const contentType = map[ext] || "text/plain; charset=utf-8";
+
+  // ファイルを読み込んでブラウザに送る
   fs.readFile(filePath, (err, content) => {
-    if (err) { res.writeHead(404); res.end(); return; }
+    if (err) { 
+      res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" }); 
+      res.end("ファイルが見つかりません (404 Not Found)"); 
+      return; 
+    }
     res.writeHead(200, { "Content-Type": contentType });
     res.end(content);
   });
 });
 
-const wss = new WebSocket.Server({ server });
-let clients = []; // 全接続管理
+// 2. WebSocketサーバーの設定（チャットのリアルタイム通信）
+const wss = new WebSocketServer({ server });
 
-// 同じ部屋の相手に送信する関数
-function sendToOtherInRoom(senderClient, dataStr) {
-  const other = clients.find(c => c.room === senderClient.room && c.ws !== senderClient.ws);
-  if (other && other.ws.readyState === WebSocket.OPEN) {
-    other.ws.send(dataStr);
-  }
-}
-
-// 部屋のユーザー名情報を同期する関数
-function broadcastRoomInfo(roomName) {
-  const roomMembers = clients.filter(c => c.room === roomName);
-  roomMembers.forEach((client) => {
-    const other = roomMembers.find(c => c.ws !== client.ws);
-    const otherName = other ? other.username : null;
-    client.ws.send(JSON.stringify({ type: "roominfo", otherName }));
-  });
-}
+// 部屋ごとの接続を管理するオブジェクト
+const rooms = {};
 
 wss.on("connection", (ws) => {
-  let currentClient = { ws, room: null, username: null };
-  clients.push(currentClient);
+  let currentRoom = null;
+  let currentName = null;
 
   ws.on("message", (message) => {
     try {
-      const data = JSON.parse(message.toString());
+      const data = JSON.parse(message);
 
-      // 入室＆認証ロジック
+      // 【入室処理】
       if (data.type === "join") {
-        // 同じ合言葉の部屋に何人いるか数える
-        const currentRoomCount = clients.filter(c => c.room === data.room).length;
-        
-        // すでに2人いたら満室としてはじく
-        if (currentRoomCount >= 2) {
-          ws.send(JSON.stringify({ type: "system", text: "この合言葉の部屋はすでに満室（2人専用）です。" }));
+        currentRoom = data.room;
+        currentName = data.username;
+
+        if (!rooms[currentRoom]) {
+          rooms[currentRoom] = [];
+        }
+
+        // 定員2人のチェック
+        if (rooms[currentRoom].length >= 2) {
+          ws.send(JSON.stringify({ type: "system", text: "この部屋は満室（2人）です。入室できません。" }));
           ws.close();
           return;
         }
 
-        currentClient.username = data.username;
-        currentClient.room = data.room;
+        // 部屋に参加
+        rooms[currentRoom].push({ ws, name: currentName });
 
-        ws.send(JSON.stringify({ type: "system", text: `部屋に入室しました。相手の接続を待っています…` }));
-        sendToOtherInRoom(currentClient, JSON.stringify({ type: "system", text: `${data.username} さんが入室しました。` }));
-        
-        broadcastRoomInfo(data.room);
+        // 自分に歓迎メッセージ
+        ws.send(JSON.stringify({ type: "system", text: `${currentRoom} の部屋に入室しました。` }));
+
+        // お互いの名前を確認して通知
+        const members = rooms[currentRoom];
+        if (members.length === 1) {
+          ws.send(JSON.stringify({ type: "roominfo", otherName: "未接続" }));
+        } else if (members.length === 2) {
+          const user1 = members[0];
+          const user2 = members[1];
+
+          user1.ws.send(JSON.stringify({ type: "roominfo", otherName: user2.name }));
+          user2.ws.send(JSON.stringify({ type: "roominfo", otherName: user1.name }));
+
+          user1.ws.send(JSON.stringify({ type: "system", text: `${user2.name} さんが参加しました！` }));
+          user2.ws.send(JSON.stringify({ type: "system", text: `${user1.name} さんと接続されました！` }));
+        }
         return;
       }
 
-      // チャットメッセージ
-      if (data.type === "chat") {
-        sendToOtherInRoom(currentClient, JSON.stringify({ type: "chat", text: data.text }));
+      // 【チャットメッセージ転送処理】
+      if (data.type === "chat" && currentRoom) {
+        if (rooms[currentRoom]) {
+          rooms[currentRoom].forEach((client) => {
+            if (client.ws !== ws) {
+              client.ws.send(JSON.stringify({ type: "chat", text: data.text }));
+            }
+          });
+        }
       }
+
     } catch (e) {
-      console.error(e);
+      console.error("エラー:", e);
     }
   });
 
-  // 切断時
+  // 【切断処理】
   ws.on("close", () => {
-    const savedRoom = currentClient.room;
-    const savedUsername = currentClient.username;
+    if (currentRoom && rooms[currentRoom]) {
+      rooms[currentRoom] = rooms[currentRoom].filter((client) => client.ws !== ws);
 
-    clients = clients.filter(c => c.ws !== ws); // リストから削除
-
-    if (savedRoom) {
-      sendToOtherInRoom(currentClient, JSON.stringify({ type: "system", text: `${savedUsername} さんが退室しました。` }));
-      broadcastRoomInfo(savedRoom);
+      if (rooms[currentRoom].length === 0) {
+        delete rooms[currentRoom];
+      } else {
+        const remainingClient = rooms[currentRoom][0];
+        remainingClient.ws.send(JSON.stringify({ type: "roominfo", otherName: "未接続" }));
+        remainingClient.ws.send(JSON.stringify({ type: "system", text: `${currentName} さんが退室しました。` }));
+      }
     }
   });
 });
 
+// 3. サーバー起動
+const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
