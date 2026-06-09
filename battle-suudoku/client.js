@@ -57,8 +57,11 @@ ws.addEventListener("message", (event) => {
         case "puzzle":
             // 初期盤面（問題）受信（全マスの色が完全リセットされます）
             drawPuzzle(data.puzzle);
-            // 👇 ★【追加】新しい盤面が来たら、5秒のカウントダウンを開始！
-            startCountdown(5);
+
+            // 👇 【修正】サーバーから「新しいゲームだよ」という目印が来ている時だけカウントダウンする
+            if (data.isNewGame) {
+                startCountdown(3);
+            }
             break;
 
         case "chat":
@@ -416,40 +419,38 @@ document.getElementById("reset-btn").addEventListener("click", () => {
     }
 });
 
-// 📄 client.js の一番下などに追記
-
-// 👇 ★【追加】同期カウントダウン処理の関数
+// 👇 【修正版】3秒カウントダウン関数
 function startCountdown(seconds) {
     const overlay = document.getElementById("countdown-overlay");
     const numberEl = document.getElementById("countdown-number");
     
     if (!overlay || !numberEl) return;
 
-    // 1. カウントダウン中は入力を強制ロック！
+    // 1. カウントダウン中は入力を強制ロック
     isLocked = true; 
 
     // 2. カウントダウン画面を表示
     overlay.style.display = "flex";
     
     let currentCount = seconds;
-    numberEl.textContent = currentCount;
+    numberEl.textContent = currentCount; // 👈 画面に最初の数字（3）を即座に反映！
 
     // 1秒ごとに数字を減らすタイマー
     const timer = setInterval(() => {
         currentCount--;
 
         if (currentCount > 0) {
-            // 5, 4, 3, 2, 1 の表示
+            // 3, 2, 1 の表示
             numberEl.textContent = currentCount;
         } else if (currentCount === 0) {
-            // 0の代わりに「START!」や「GO!」を出すとゲーム感が出ます
+            // 0の代わりに「START!」を表示
             numberEl.textContent = "START!";
         } else {
             // カウントダウン終了時の処理
             clearInterval(timer);
             overlay.style.display = "none"; // 画面を隠す
             
-            // 3. ロックを解除して勝負開始！
+            // 3. ロックを解除して勝負開始
             isLocked = false; 
         }
     }, 1000);

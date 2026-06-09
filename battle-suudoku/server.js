@@ -404,7 +404,9 @@ wss.on("connection", (ws, req) => {
             // 新しい問題を全員に配布
             broadcast({
                 type: "puzzle",
-                puzzle: initialPuzzle
+                puzzle: initialPuzzle,
+                // 👇 【追加】リセットボタンから配信された時だけの目印（フラグ）
+                isNewGame: true
             });
 
             // リセットした人をシステムチャットで通知
