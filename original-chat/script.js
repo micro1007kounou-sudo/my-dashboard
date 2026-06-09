@@ -11,7 +11,52 @@ const sendBtn = document.getElementById("sendBtn");
 let ws;
 let myName = "";
 
-// 入室ボタンを押したとき
+// ==========================================
+// 🕒 20分無操作タイマー ＆ 切断防止（ピンポン）の設定
+// ==========================================
+let disconnectTimer = null;
+let pingInterval = null; 
+const INACTIVE_LIMIT = 20 * 60 * 1000; // 20分
+
+// タイマーをリセットして数え直す関数
+function resetDisconnectTimer() {
+  if (disconnectTimer) clearTimeout(disconnectTimer);
+
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    disconnectTimer = setTimeout(() => {
+      addSystem("20分間操作がなかったため、自動的に退室しました。");
+      ws.close();
+      
+      setTimeout(() => {
+        location.reload(); 
+      }, 3000);
+    }, INACTIVE_LIMIT);
+  }
+}
+
+// ユーザーの「操作」を検知するイベント登録
+["click", "keydown", "touchstart", "scroll"].forEach((eventType) => {
+  document.addEventListener(eventType, resetDisconnectTimer);
+});
+
+// サーバーの勝手な切断を防ぐための「生存確認」の仕組み
+function startHeartbeat() {
+  if (pingInterval) clearInterval(pingInterval);
+  pingInterval = setInterval(() => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: "ping" })); 
+    }
+  }, 30000); // 30秒ごと
+}
+
+// 切断されたらピンポンのタイマーを止める関数
+function stopHeartbeat() {
+  if (pingInterval) clearInterval(pingInterval);
+}
+
+// ==========================================
+// 🚀 入室ボタンを押したときの処理
+// ==========================================
 joinBtn.addEventListener("click", () => {
   myName = usernameInput.value.trim();
   const roomName = roomInput.value.trim();
@@ -21,34 +66,44 @@ joinBtn.addEventListener("click", () => {
     return;
   }
 
-  // 👇 ★【追加】入室ボタンが押されたので、ここで初めてサーバー起動待ちのグレーアウトを表示する！
+  // サーバー起動待ちのグレーアウトを表示
   const overlay = document.getElementById("loading-overlay");
   if (overlay) {
     overlay.style.display = "flex";
     overlay.style.opacity = "1";
   }
 
-  // 画面切り替え（チャット画面を表示）
+  // 画面切り替え
   loginScreen.style.display = "none";
   chatScreen.style.display = "block";
   document.getElementById("selfName").textContent = myName;
   document.getElementById("roomName").textContent = roomName;
 
-  // WebSocket接続（RenderのサーバーURLを直球で指定）
+  // WebSocket接続
+  connectWebSocket(roomName);
+});
+
+// ==========================================
+// 🔌 WebSocketの接続・通信処理
+// ==========================================
+function connectWebSocket(roomName) {
   const WS_URL = "wss://orijinal-chat.onrender.com"; 
   ws = new WebSocket(WS_URL);
 
-  // 接続完了時に名前と合言葉を送信
+  // 接続完了時
   ws.addEventListener("open", () => {
     addSystem("サーバーに接続しました。認証中...");
     
-    // 👇 ★【修正】サーバーが目覚めてWebSocketがつながったので、グレーアウトを完全に消し去る！
+    // サーバーが目覚めたのでグレーアウトを消し去る
+    const overlay = document.getElementById("loading-overlay");
     if (overlay) {
-      overlay.style.opacity = "0";             // ふわっと透明にして
-      setTimeout(() => {
-        overlay.style.display = "none";        // 0.5秒後に非表示にする
-      }, 500);
+      overlay.style.opacity = "0";
+      setTimeout(() => { overlay.style.display = "none"; }, 500);
     }
+
+    // 20分タイマーとピンポンを開始
+    resetDisconnectTimer();
+    startHeartbeat();
 
     ws.send(JSON.stringify({
       type: "join",
@@ -65,30 +120,36 @@ joinBtn.addEventListener("click", () => {
       document.getElementById("otherName").textContent = data.otherName || "未接続";
       return;
     }
-
     if (data.type === "system") {
       addSystem(data.text);
       return;
     }
-
     if (data.type === "chat") {
       addMessage(data.text, "other");
       return;
     }
   });
 
-  // 接続エラーが起きたときはグレーアウトを消してあげる（ずっとぐるぐるするのを防ぐ）
+  // エラー発生時
   ws.addEventListener("error", () => {
     addSystem("エラーが発生したか、接続が拒否されました。");
+    const overlay = document.getElementById("loading-overlay");
     if (overlay) overlay.style.display = "none";
+    stopHeartbeat(); // ★ピンポンを停止
   });
   
+  // 切断時
   ws.addEventListener("close", () => {
     addSystem("サーバーとの接続が切れました。");
+    const overlay = document.getElementById("loading-overlay");
     if (overlay) overlay.style.display = "none";
+    stopHeartbeat(); // ★ピンポンを停止
   });
-});
-// メッセージ表示・送信ロジック（基本ロジックはそのまま）
+}
+
+// ==========================================
+// 💬 メッセージ表示・送信ロジック
+// ==========================================
 function addMessage(text, who = "me") {
   const row = document.createElement("div");
   row.className = "message-row " + (who === "me" ? "me" : "");
@@ -115,7 +176,8 @@ sendBtn.addEventListener("click", () => {
   addMessage(text, "me");
   ws.send(JSON.stringify({ type: "chat", text }));
   inputEl.value = "";
-// 👇 ★【追加】メッセージを送ったのでタイマーをリセット
+  
+  // メッセージを送ったので無操作タイマーをリセット
   resetDisconnectTimer(); 
 });
 
@@ -124,47 +186,15 @@ inputEl.addEventListener("keydown", (e) => {
 });
 
 // ==========================================
-// 🕒 20分無操作で自動退室 ＆ サーバー切断防止（ピンポン）
+// 📱 スマホのスリープ復帰対策（数独と同じ処理）
 // ==========================================
-let disconnectTimer = null;
-let pingInterval = null; // ★【追加】定期的に信号を送るタイマー
-const INACTIVE_LIMIT = 20 * 60 * 1000; // 20分（ミリ秒換算）
-
-// タイマーをリセットして数え直す関数
-function resetDisconnectTimer() {
-  if (disconnectTimer) clearTimeout(disconnectTimer);
-
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    disconnectTimer = setTimeout(() => {
-      addSystem("20分間操作がなかったため、自動的に退室しました。");
-      ws.close();
-      
-      setTimeout(() => {
-        location.reload(); 
-      }, 3000);
-    }, INACTIVE_LIMIT);
-  }
-}
-
-// ユーザーの「操作」を検知するイベント
-["click", "keydown", "touchstart", "scroll"].forEach((eventType) => {
-  document.addEventListener(eventType, resetDisconnectTimer);
-});
-
-// ★【追加】サーバーの勝手な切断を防ぐための「生存確認」の仕組み
-function startHeartbeat() {
-  // すでに動いている確認タイマーがあればクリア
-  if (pingInterval) clearInterval(pingInterval);
-
-  // 30秒に1回、サーバーに「生きてるよ」と軽いデータを送る
-  pingInterval = setInterval(() => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: "ping" })); // サーバーにピンポンを送る
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    // す気に入室していて、かつ通信が切れている場合
+    if (myName && (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
+      addSystem("スリープからの復帰を検出しました。再接続しています...");
+      const roomName = roomInput.value.trim();
+      connectWebSocket(roomName); // 再接続を実行
     }
-  }, 30000); // 30秒ごと
-}
-
-// 切断されたらピンポンのタイマーも止める関数
-function stopHeartbeat() {
-  if (pingInterval) clearInterval(pingInterval);
-}
+  }
+});
