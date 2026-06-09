@@ -21,27 +21,33 @@ joinBtn.addEventListener("click", () => {
     return;
   }
 
-  // 画面切り替え
+  // 👇 ★【追加】入室ボタンが押されたので、ここで初めてサーバー起動待ちのグレーアウトを表示する！
+  const overlay = document.getElementById("loading-overlay");
+  if (overlay) {
+    overlay.style.display = "flex";
+    overlay.style.opacity = "1";
+  }
+
+  // 画面切り替え（チャット画面を表示）
   loginScreen.style.display = "none";
   chatScreen.style.display = "block";
   document.getElementById("selfName").textContent = myName;
   document.getElementById("roomName").textContent = roomName;
 
-  // WebSocket接続（オンライン対応のURL自動判定）
-  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-// RenderのサーバーURLを直球で指定する（末尾に / は付けない）
-const WS_URL = "wss://orijinal-chat.onrender.com"; 
-ws = new WebSocket(WS_URL);
+  // WebSocket接続（RenderのサーバーURLを直球で指定）
+  const WS_URL = "wss://orijinal-chat.onrender.com"; 
+  ws = new WebSocket(WS_URL);
 
-// 接続完了時に名前と合言葉を送信
+  // 接続完了時に名前と合言葉を送信
   ws.addEventListener("open", () => {
     addSystem("サーバーに接続しました。認証中...");
     
-    // 👇 ★【追加】サーバーが目覚めてWebSocketがつながったので、グレーアウトを消し去る！
-    const overlay = document.getElementById("loading-overlay");
+    // 👇 ★【修正】サーバーが目覚めてWebSocketがつながったので、グレーアウトを完全に消し去る！
     if (overlay) {
       overlay.style.opacity = "0";             // ふわっと透明にして
-      setTimeout(() => overlay.style.display = "none", 500); // 0.5秒後に完全に非表示にする
+      setTimeout(() => {
+        overlay.style.display = "none";        // 0.5秒後に非表示にする
+      }, 500);
     }
 
     ws.send(JSON.stringify({
@@ -71,15 +77,17 @@ ws = new WebSocket(WS_URL);
     }
   });
 
+  // 接続エラーが起きたときはグレーアウトを消してあげる（ずっとぐるぐるするのを防ぐ）
   ws.addEventListener("error", () => {
     addSystem("エラーが発生したか、接続が拒否されました。");
+    if (overlay) overlay.style.display = "none";
   });
   
   ws.addEventListener("close", () => {
     addSystem("サーバーとの接続が切れました。");
+    if (overlay) overlay.style.display = "none";
   });
 });
-
 // メッセージ表示・送信ロジック（基本ロジックはそのまま）
 function addMessage(text, who = "me") {
   const row = document.createElement("div");

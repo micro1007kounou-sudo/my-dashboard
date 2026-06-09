@@ -129,7 +129,7 @@ max-width: 450px;   /* 最大幅だけ指定 */
   height: 100vh;
   background-color: rgba(0, 0, 0, 0.6); /* 画面を薄暗く */
   z-index: 10000;                       /* 一番手前に表示 */
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: center;
   backdrop-filter: blur(4px);           /* 背景を少しぼかす */
