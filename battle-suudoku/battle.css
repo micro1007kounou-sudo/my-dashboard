@@ -394,27 +394,16 @@ h2, h3 {
     100% { transform: scale(1.1); opacity: 1; }
 }
 .game-title {
-    font-size: 28px;
-    font-weight: 800;
+    font-size: 32px;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #fff;
+    /* 赤と青の光を混ぜて、対戦（P1の赤・P2の青）の火花を表現 */
+    text-shadow: 
+        0 0 4px #fff,
+        0 0 10px #ff3366, /* P1イメージの赤光 */
+        0 0 20px #2196f3; /* P2イメージの青光 */
+    letter-spacing: 4px;   /* 文字の間隔を少し広げてスマートに */
     text-align: center;
-    color: #333;             /* 文字自体はダークグレー */
-    -webkit-text-stroke: 1px #4caf50; /* 文字の輪郭にあなたの緑色を細く入れる */
-    letter-spacing: 6px;
     margin: 20px 0;
-    position: relative;
-    display: inline-block;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-/* タイトルの下にオシャレな2色のアンダーラインを引く */
-.game-title::after {
-    content: "";
-    position: absolute;
-    bottom: -8px;
-    left: 10%;
-    width: 80%;
-    height: 4px;
-    background: linear-gradient(90deg, #ff3366 50%, #2196f3 50%); /* 赤と青のハーフ＆ハーフ */
-    border-radius: 2px;
 }
