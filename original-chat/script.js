@@ -124,31 +124,47 @@ inputEl.addEventListener("keydown", (e) => {
 });
 
 // ==========================================
-// 🕒 20分無操作で自動退室するシステム
+// 🕒 20分無操作で自動退室 ＆ サーバー切断防止（ピンポン）
 // ==========================================
 let disconnectTimer = null;
+let pingInterval = null; // ★【追加】定期的に信号を送るタイマー
 const INACTIVE_LIMIT = 20 * 60 * 1000; // 20分（ミリ秒換算）
 
 // タイマーをリセットして数え直す関数
 function resetDisconnectTimer() {
-  // すでに動いているタイマーがあれば一旦クリア
   if (disconnectTimer) clearTimeout(disconnectTimer);
 
-  // チャット中（wsが接続中）のときだけタイマーを作動させる
   if (ws && ws.readyState === WebSocket.OPEN) {
     disconnectTimer = setTimeout(() => {
       addSystem("20分間操作がなかったため、自動的に退室しました。");
-      ws.close(); // WebSocketを強制切断（これでサーバー側も退室処理になる）
+      ws.close();
       
-      // 画面を最初のログイン画面に戻す
       setTimeout(() => {
-        location.reload(); // 画面をリロードして安全に初期化
-      }, 3000); // メッセージを読めるように3秒待ってからリロード
+        location.reload(); 
+      }, 3000);
     }, INACTIVE_LIMIT);
   }
 }
 
-// ユーザーの「操作」を検知するイベント（画面タップ、キー入力、スクロールなど）
+// ユーザーの「操作」を検知するイベント
 ["click", "keydown", "touchstart", "scroll"].forEach((eventType) => {
   document.addEventListener(eventType, resetDisconnectTimer);
 });
+
+// ★【追加】サーバーの勝手な切断を防ぐための「生存確認」の仕組み
+function startHeartbeat() {
+  // すでに動いている確認タイマーがあればクリア
+  if (pingInterval) clearInterval(pingInterval);
+
+  // 30秒に1回、サーバーに「生きてるよ」と軽いデータを送る
+  pingInterval = setInterval(() => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: "ping" })); // サーバーにピンポンを送る
+    }
+  }, 30000); // 30秒ごと
+}
+
+// 切断されたらピンポンのタイマーも止める関数
+function stopHeartbeat() {
+  if (pingInterval) clearInterval(pingInterval);
+}
