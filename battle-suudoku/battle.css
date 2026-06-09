@@ -360,18 +360,23 @@ h2, h3 {
 /* ==========================================
    ⏱️ リセット時のカウントダウン演出（追加）
    ========================================== */
+/* 📄 battle.css の最下部 */
 #countdown-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0, 0, 0, 0.4); /* 盤面を少し暗くして数字を目立たせる */
-    z-index: 9999;                        /* 盤面やチャットより手前に表示 */
+    background-color: rgba(255, 255, 255, 0.3); /* 背景を明るめの白ベースに */
+    z-index: 9999;
     display: flex;
     justify-content: center;
     align-items: center;
-    pointer-events: auto;                 /* カウントダウン中は下の画面を触らせないガード */
+    pointer-events: auto;
+    
+    /* 👇 ★ここを強化！ぼかし（blur）の数値を 4px から 15px にアップ */
+    backdrop-filter: blur(15px); 
+    -webkit-backdrop-filter: blur(15px); /* Safari（iPhone）用のお守り */
 }
 
 /* 中央に表示される巨大なカウントダウン数字 */
