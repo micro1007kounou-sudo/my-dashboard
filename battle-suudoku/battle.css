@@ -393,3 +393,17 @@ h2, h3 {
     0% { transform: scale(0.8); opacity: 0.5; }
     100% { transform: scale(1.1); opacity: 1; }
 }
+.game-title {
+    font-size: 32px;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #fff;
+    /* 赤と青の光を混ぜて、対戦（P1の赤・P2の青）の火花を表現 */
+    text-shadow: 
+        0 0 4px #fff,
+        0 0 10px #ff3366, /* P1イメージの赤光 */
+        0 0 20px #2196f3; /* P2イメージの青光 */
+    letter-spacing: 4px;   /* 文字の間隔を少し広げてスマートに */
+    text-align: center;
+    margin: 20px 0;
+}
