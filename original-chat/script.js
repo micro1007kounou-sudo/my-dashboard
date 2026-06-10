@@ -128,6 +128,18 @@ function connectWebSocket(roomName) {
       addMessage(data.text, "other");
       return;
     }
+    // ✨【追加】過去ログが一気に届いたときの処理
+    if (data.type === "history") {
+      data.messages.forEach((msg) => {
+        // 過去の発言者が自分の名前と同じなら右（me）、違うなら左（other）に綺麗に振り分ける
+        if (msg.username === myName) {
+          addMessage(msg.text, "me");
+        } else {
+          addMessage(msg.text, "other");
+        }
+      });
+      return;
+    }
   });
 
   // エラー発生時
