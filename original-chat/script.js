@@ -20,7 +20,7 @@ const INACTIVE_LIMIT = 10 * 60 * 60 * 1000; // 10時間
 
 // タイマーをリセットして数え直す関数
 function resetDisconnectTimer() {
-  // 💡 【グループと統一】安全ロック：まだ入室していない（wsが無い）場合はタイマーを動かさない
+  // 💡 安全ロック：まだ入室していない（wsが無い）場合はタイマーを動かさない
   if (!ws || ws.readyState !== WebSocket.OPEN) return;
 
   if (disconnectTimer) clearTimeout(disconnectTimer);
@@ -85,7 +85,7 @@ joinBtn.addEventListener("click", () => {
 });
 
 // ==========================================
-// 🔌 WebSocketの接続・通信処理（グループ同等版）
+// 🔌 WebSocketの接続・通信処理（最強・自動再接続版）
 // ==========================================
 function connectWebSocket(roomName) {
   const WS_URL = "wss://orijinal-chat.onrender.com"; 
@@ -98,7 +98,6 @@ function connectWebSocket(roomName) {
     // 🕒 過去ログが一気に届いたときの処理
     if (data.type === "history") {
       data.messages.forEach((msg) => {
-        // 💡 大文字小文字や前後の空白のズレを無視して確実にガチ比較
         if (myName && msg.username && msg.username.trim() === myName.trim()) {
           addMessage(msg.text, "me");     // 過去の自分の発言 ➡️ 右側（青）
         } else {
@@ -147,20 +146,28 @@ function connectWebSocket(roomName) {
     }));
   });
 
-  // 3. エラー発生時（通常通りストップ）
+  // 3. エラー発生時
   ws.addEventListener("error", () => {
-    addSystem("エラーが発生したか、接続が拒否されました。");
-    const overlay = document.getElementById("loading-overlay");
-    if (overlay) overlay.style.display = "none";
+    console.error("WebSocketエラーが発生しました。");
     stopHeartbeat(); 
   });
   
-  // 4. 切断時（通常通りストップ、自動リトライは無し）
+  // 4. 🚨 切断時（★ここを自動再接続にアップデート！）
   ws.addEventListener("close", () => {
-    addSystem("サーバーとの接続が切れました。");
-    const overlay = document.getElementById("loading-overlay");
-    if (overlay) overlay.style.display = "none";
     stopHeartbeat(); 
+
+    // 💡 すでに入室済み（名前がある）なら、ログイン画面に戻さず裏で繋ぎ直す！
+    if (myName) {
+      addSystem("通信が一時的に途切れました。自動再接続しています...");
+      
+      setTimeout(() => {
+        // 🚀 保管してある roomName を使って、自動で再接続を実行！
+        connectWebSocket(roomName); 
+      }, 1000); // 1秒後にリトライ
+    } else {
+      const overlay = document.getElementById("loading-overlay");
+      if (overlay) overlay.style.display = "none";
+    }
   });
 }
 
