@@ -52,4 +52,11 @@
   <script src="/socket.io/socket.io.js"></script>
   <script src="app.js"></script>
 </body>
+
+<div id="footer"></div>
+<script>
+  fetch("../footer.html")
+    .then(res => res.text())
+    .then(html => document.getElementById("footer").innerHTML = html);
+</script>
 </html>
