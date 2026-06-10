@@ -129,6 +129,21 @@ function connectWebSocket() {
       return;
     }
   });
+    // 📄 group-chat/app.js の受信処理部分（ws.addEventListener("message" 内）
+
+    // 👇 ★【新規】過去ログが一気に届いたときの処理
+    if (data.type === "history") {
+      data.messages.forEach((msg) => {
+        // 過去の自分の発言か、他人の発言かを名前で判定して綺麗に並べる
+        if (msg.username === myName) {
+          addMessage(msg.text, "me");
+        } else {
+          addMessage(msg.text, "other", msg.username);
+        }
+      });
+      return;
+    }
+
 
   ws.addEventListener("error", () => {
     addSystem("エラーが発生したか、接続が拒否されました。");

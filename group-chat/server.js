@@ -32,16 +32,16 @@ const wss = new WebSocketServer({ server });
 
 // 🛠️ 部屋分けを無くし、全員が入る1つの「広場（配列）」にします
 let participants = [];
+let msgHistory = []; // ✨【新規】直近の過去ログを一時保存する箱（最大50件）
 
 // 全員に現在の「オンライン人数」と「参加者名リスト」を伝える共通関数
 function broadcastRoomInfo() {
-  // 👇 ★【修正】現在参加している全員の名前を配列にまとめます
   const currentNames = participants.map(client => client.name);
 
   const infoData = JSON.stringify({
     type: "roominfo",
     count: participants.length,
-    names: currentNames // 👈 ★これを新しく追加！
+    names: currentNames 
   });
 
   participants.forEach((client) => {
@@ -58,8 +58,9 @@ wss.on("connection", (ws) => {
     try {
       const data = JSON.parse(message);
 
-      // 🛠️ フロント側の生存確認（ピンポン）には空で応答して接続維持
+      // ✨【3分切断防止】ピンポンが来たら、即座に「pong」を返して接続を確実に維持する！
       if (data.type === "ping") {
+        ws.send(JSON.stringify({ type: "pong" }));
         return; 
       }
 
@@ -67,7 +68,7 @@ wss.on("connection", (ws) => {
       if (data.type === "join") {
         currentName = data.username;
 
-        // 🛠️ 定員制限は撤去！何人でも配列に追加します
+        // 定員制限なしで配列に追加
         participants.push({ ws, name: currentName });
 
         // 自分に歓迎メッセージ
@@ -76,6 +77,14 @@ wss.on("connection", (ws) => {
           text: `グループチャットに入室しました。現在の参加者はあなたを含めて ${participants.length} 人です。` 
         }));
 
+        // ✨【新規】入室してきた本人に、溜まっている過去ログ（最新50件）を一括送信！
+        if (msgHistory.length > 0) {
+          ws.send(JSON.stringify({
+            type: "history",
+            messages: msgHistory
+          }));
+        }
+
         // 自分以外の全員に、新しい人が入ってきたことを通知
         participants.forEach((client) => {
           if (client.ws !== ws && client.ws.readyState === client.ws.OPEN) {
@@ -83,19 +92,28 @@ wss.on("connection", (ws) => {
           }
         });
 
-        // 🛠️ 全員に最新のオンライン人数を通知
+        // 全員に最新のオンライン人数と名前を通知
         broadcastRoomInfo();
         return;
       }
 
       // 【チャットメッセージ転送処理】
       if (data.type === "chat") {
-        // 🛠️ 誰が送ったメッセージか分かるよう、発言者の「name」を添えて全員（自分以外）に転送
+        // ✨【新規】送られてきたメッセージを過去ログ配列に追加する
+        const newMsg = { username: currentName, text: data.text };
+        msgHistory.push(newMsg);
+
+        // ログが溜まりすぎないよう、最新50件を超えたら古いものを自動削除
+        if (msgHistory.length > 50) {
+          msgHistory.shift(); 
+        }
+
+        // 発言者の「name」を添えて全員（自分以外）に転送
         participants.forEach((client) => {
           if (client.ws !== ws && client.ws.readyState === client.ws.OPEN) {
             client.ws.send(JSON.stringify({ 
               type: "chat", 
-              username: currentName, // 👈 誰の名前かをここに入れる！
+              username: currentName, 
               text: data.text 
             }));
           }
@@ -113,14 +131,19 @@ wss.on("connection", (ws) => {
       // 離脱したユーザーを配列から除外
       participants = participants.filter((client) => client.ws !== ws);
 
-      // 残っている全員に、誰かが退室したこととお知らせ
-      participants.forEach((client) => {
-        if (client.ws.readyState === client.ws.OPEN) {
-          client.ws.send(JSON.stringify({ type: "system", text: `${currentName} さんが退室しました。` }));
-        }
-      });
+      // ✨【防犯・安全対策】全員が完全に退室（0人）したら、過去ログの箱も綺麗に全消去する
+      if (participants.length === 0) {
+        msgHistory = [];
+      } else {
+        // 残っている全員に、誰かが退室したことをお知らせ
+        participants.forEach((client) => {
+          if (client.ws.readyState === client.ws.OPEN) {
+            client.ws.send(JSON.stringify({ type: "system", text: `${currentName} さんが退室しました。` }));
+          }
+        });
+      }
 
-      // 🛠️ 退出後の最新オンライン人数を全員に再通知
+      // 退出後の最新オンライン人数を全員に再通知
       broadcastRoomInfo();
     }
   });
