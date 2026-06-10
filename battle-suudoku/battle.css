@@ -9,7 +9,7 @@ body {
     font-family: sans-serif;
     margin: 0;
     padding: 0 12px;          /* 左右に 12px のちょうどいい余白を作ります */
-    background-color: #fafafa;
+    background-color: #fdfbf0;
     box-sizing: border-box;   /* 余白のせいで画面が横にはみ出るのを防ぐお守り */
 }
 
@@ -81,15 +81,19 @@ h2, h3 {
 #reset-btn {
     padding: 6px 14px;
     font-size: 14px;
-    background-color: #4caf50;
-    color: white;
+    background-color: #7ad3f7; /* 👈 【変更】白文字が綺麗に映えるパステル水色 */
+    color: white;             /* 元の綺麗な白文字のまま */
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-weight: bold;
-    transition: background-color 0.2s;
+    /* transition を削除（ホバー時の変化の準備を無くしました） */
 }
-#reset-btn:hover { background-color: #45a049; }
+
+/* 👈 【変更】ホバー時も背景色をまったく同じにすることで、変化を完全に無くします */
+#reset-btn:hover { 
+    background-color: #7ad3f7; 
+}
 
 /* ==========================================
    3. 数独の盤面（★一人用の黄金比率を完全移植★）
