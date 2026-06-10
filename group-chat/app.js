@@ -115,11 +115,13 @@ function connectWebSocket() {
       return;
     }
 
-    // 👥 現在のオンライン人数と名前リストの更新
+// 👥 現在のオンライン人数と名前リストの更新
     if (data.type === "roominfo") {
       const nameListText = data.names.join("、");
-      document.getElementById("header-online-count").textContent = 
-        "● オンライン: " + data.count + "人 ( " + nameListText + " )";
+      
+      // 👇 textContent ではなく innerHTML を使って、●の緑色（#4caf50）を維持したまま文字を更新します！
+      document.getElementById("header-online-count").innerHTML = 
+        `<span style="color: #4caf50; font-weight: bold; margin-right: 2px;">●</span>オンライン: ${data.count}人 ( ${nameListText} )`;
       return;
     }
 

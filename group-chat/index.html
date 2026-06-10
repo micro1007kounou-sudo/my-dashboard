@@ -3,22 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>オープン・グループチャット</title>
+  <title>グループチャット</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
   <div class="chat-notice">
-    ブラウザを閉じると、あなたの画面の内容はすべて消去されます。相手側には残りますが、<strong>参加者が全員いなくなった時点で、チャット内容は完全に消去</strong>されます。<br>
+    <strong>参加者が全員いなくなった時点で、チャット内容は完全に消去</strong>されます。<br>
     メッセージはサーバーに一切保存されません。
   </div>
 
   <div id="login-screen">
-    <h2 style="text-align: center; margin-bottom: 5px; font-size: 24px;">チャットに入室</h2>
+    <h2 style="text-align: center; margin-bottom: 5px; font-size: 24px;">グループチャットに入室</h2>
     
     <p style="font-size: 13px; color: #666; line-height: 1.6; margin: 15px 0 25px 0; padding: 0; text-align: center;">
       名前を入力するだけで、誰でも自由に参加できるリアルタイムチャットです。<br>
-      全員が退出するとログは全て自動消滅します。(誰かが残ってるときは直近50件まで残ります)
+      全員が退出するとログは全て自動消滅します。
     </p>
 
     <div style="display: flex; flex-direction: column; gap: 12px; max-width: 340px; margin: 0 auto;">
@@ -28,10 +28,17 @@
   </div>
 
   <div id="chat-container" style="display: none;">
-    <div class="chat-header">
-      <span id="header-user-info">あなた: 未入室</span>
-      <span id="header-online-count" style="float: right; color: #34c759;">● オンライン: 0人</span>
-    </div>
+<div class="chat-header">
+  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 6px; margin-bottom: 6px;">
+    <span style="font-size: 14px; color: #2c251e; letter-spacing: 0.5px;">👥 グループチャット</span>
+    <button id="leave-btn" onclick="location.reload();">退出</button>
+  </div>
+
+  <div style="display: flex; justify-content: space-between; font-size: 11px; color: #5c5246; font-weight: normal;">
+    <span id="header-user-info">あなた: ---</span>
+    <span id="header-online-count"><span style="color: #4caf50; font-weight: bold; margin-right: 2px;">●</span>オンライン: 0人</span>
+  </div>
+</div>
 
     <div id="messages"></div>
 

@@ -232,3 +232,22 @@ background: #f4ece1; /* 👈 ★【修正】カフェラテのような優しい
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* ==========================================
+   🚪 新・ヘッダー内の退出ボタン（右上ピタッと配置）
+   ========================================== */
+#leave-btn {
+  background: #a19282;     /* カフェベージュに馴染むモカグレー */
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 12px;       /* 1行目に上がったので、押しやすい幅に少し広げました */
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#leave-btn:hover {
+  background: #c94a4a;     /* カーソルを乗せるとやさしい警告の赤色に */
+}
