@@ -33,12 +33,11 @@ h2, h3 {
 
 
 /* 🟣 自分のステータス（バッジ風） */
-#my-status {background-color: #e2ccff !important; /* 👈 【変更】さらに優しく薄い紫に */
+#my-status {
+    background-color: #e2ccff !important; /* 👈 【変更】さらに優しく薄い紫に */
     color: #4a217c !important;             /* 濃い紫文字 */
-    padding: 6px 12px;
-    border-radius: 8px;
+     border-radius: 8px;
     display: inline-block;
-    margin-right: 10px;
     font-weight: bold;
 }
 
