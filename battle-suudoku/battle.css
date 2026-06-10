@@ -31,8 +31,27 @@ h2, h3 {
     display: inline-block;
 }
 
-#my-status { color: #cc0000; font-weight: bold; }
-#other-status { color: #0000cc; font-weight: bold; }
+
+/* 🟣 自分のステータス（バッジ風） */
+#my-status {
+    background-color: #c394f8 !important; /* 薄紫 */
+    color: #4a217c !important;             /* 濃い紫文字 */
+    padding: 6px 12px;
+    border-radius: 8px;
+    display: inline-block;
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+/* 🔹 相手のステータス（バッジ風） */
+#other-status {
+    background-color: #8ce7e7 !important; /* 薄水色 */
+    color: #165353 !important;             /* 濃い青緑文字 */
+    padding: 6px 12px;
+    border-radius: 8px;
+    display: inline-block;
+    font-weight: bold;
+}
 #status-separator { color: #ccc; margin: 0 10px; }
 
 #control-panel {
@@ -133,14 +152,17 @@ h2, h3 {
     font-weight: bold;
 }
 
-.cell.mine {
-    background: #ffdddd !important; /* 自分の陣地（薄赤） */
-    color: #cc0000 !important;
+.mine {
+    background-color: #c394f8 !important; 
+    color: #4a217c !important; /* 👈 【変更】同系色の深みのある上品な紫 */
+    font-weight: bold;         /* 文字を少し太くしてさらに見やすく */
 }
 
-.cell.other {
-    background: #ddddff !important; /* 相手の陣地（薄青） */
-    color: #0000cc !important;
+/* 🔹 相手：薄水色ベース ＋ 濃い青緑文字 */
+.other {
+    background-color: #8ce7e7 !important; 
+    color: #165353 !important; /* 👈 【変更】同系色の深みのある深い水色（青緑） */
+    font-weight: bold;         /* 文字を少し太くしてさらに見やすく */
 }
 
 /* 👇 ★【修正】ペナルティ（5秒間赤く光って震える）★ 👇 */
