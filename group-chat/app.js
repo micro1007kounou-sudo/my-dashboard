@@ -76,7 +76,7 @@ joinBtn.addEventListener("click", () => {
 });
 
 // ==========================================
-// 🔌 WebSocketの接続・通信処理（順番並び替え＆大文字小文字対策版）
+// 🔌 WebSocketの接続・通信処理（最強・自動再接続＆タイポ修正版）
 // ==========================================
 function connectWebSocket() {
   const WS_URL = "wss://group-chat-w9fd.onrender.com"; 
@@ -89,7 +89,6 @@ function connectWebSocket() {
     // 🕒 過去ログが一気に届いたときの処理
     if (data.type === "history") {
       data.messages.forEach((msg) => {
-        // 前後の空白のズレを安全にカットしてガチ比較
         if (myName && msg.username && msg.username.trim() === myName.trim()) {
           addMessage(msg.text, "me");
         } else {
@@ -143,18 +142,26 @@ function connectWebSocket() {
 
   // 3. エラー発生時
   ws.addEventListener("error", () => {
-    addSystem("エラーが発生したか、接続が拒否されました。");
-    const overlay = document.getElementById("loading-overlay");
-    if (overlay) overlay.style.display = "none";
+    console.error("WebSocketエラーが発生しました。");
     stopHeartbeat(); 
   });
   
-  // 4. 切断時
+  // 4. 🚨 切断時（★グループチャットも裏で自動繋ぎ直し！）
   ws.addEventListener("close", () => {
-    addSystem("サーバーとの接続が切れました。");
-    const overlay = document.getElementById("loading-overlay");
-    if (overlay) overlay.style.display = "none";
     stopHeartbeat(); 
+
+    // 💡 すでに入室済み（名前がある）なら、ログイン画面に戻さず裏で繋ぎ直す！
+    if (myName) {
+      addSystem("通信が一時的に途切れました。自動再接続しています...");
+      
+      setTimeout(() => {
+        // 🚀 保管してある myName をそのまま使って自動で再接続！
+        connectWebSocket(); 
+      }, 1000); // 1秒後にリトライ
+    } else {
+      const overlay = document.getElementById("loading-overlay");
+      if (overlay) overlay.style.display = "none";
+    }
   });
 }
 
@@ -177,10 +184,11 @@ function addMessage(text, who = "me", senderName = "") {
   
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   
+  // 💡 特殊文字のエスケープ（「&gt bridge;」になっていたタイポを修正！）
   const escapedText = text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt bridge;");
+    .replace(/>/g, "&gt;");
     
   const linkedHtml = escapedText.replace(urlRegex, (url) => {
     const linkColor = who === 'me' ? '#ffffff' : '#007aff';
