@@ -1,0 +1,233 @@
+body {
+  font-family: system-ui, sans-serif;
+  background: #f5f5f7;
+  margin: 0;
+  padding: 20px 12px; 
+}
+
+/* ==========================================
+   🔑 ログイン画面（親要素）
+   ========================================== */
+#login-screen {
+  max-width: 450px;          
+  width: 100%;
+  margin: 40px auto;         
+  background: #fff;
+  padding: 30px 24px;        
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-sizing: border-box;
+}
+
+/* ==========================================
+   📦 1. 外枠（背景を透明にしてフッターのめり込み防止）
+   ========================================== */
+/* 🛠️ index.htmlのidに合わせつつ、二人用の完璧なスタイルを維持 */
+#chat-container, .chat-container {
+  max-width: 450px;
+  width: 100%;        
+  margin: 0 auto;     
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  box-shadow: none;
+  height: auto;
+  box-sizing: border-box; 
+}
+
+.chat-header {
+  background: #f0f0f5;
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #111;                
+  font-weight: bold;          
+  border-radius: 10px 10px 0 0;
+}
+
+/* ==========================================
+   💬 2. チャット履歴枠（こだわりの縦長55vh・スクロール）
+   ========================================== */
+#messages {
+  height: 55vh;               
+  min-height: 400px;          
+  overflow-y: auto;         
+  background-color: #ffffff;
+  border: 1px solid #e5e5ea;
+  border-radius: 0 0 12px 12px; /* 🛠️ ヘッダーと綺麗に繋げるため、上の角丸をフラットに */
+  padding: 15px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  width: 100%;
+  box-sizing: border-box; 
+}
+
+/* ==========================================
+   🎈 3. メッセージの吹き出し（極上の配置 ＆ グループ対応）
+   ========================================== */
+.message-row {
+  display: flex;
+  margin-bottom: 12px; /* 名前表示が入るので少しだけ余白をプラス */
+  width: 100%;
+}
+
+.message-row.me {
+  justify-content: flex-end;
+}
+
+/* 👥 【グループ追加】相手の場合は、名前と吹き出しを縦に並べる */
+.message-row.other {
+  justify-content: flex-start;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* 👥 【グループ新規】相手の吹き出しの上の名前スタイル */
+.message-user-name {
+  font-size: 11px;
+  color: #666;
+  margin-left: 4px;
+  margin-bottom: 3px;
+  font-weight: bold; /* ここもお揃いで太字にしてクッキリ！ */
+}
+
+.bubble {
+  max-width: 70%;
+  padding: 8px 12px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.bubble.me {
+  background: #007aff;
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.bubble.other {
+  background: #e5e5ea;
+  color: #000;
+  border-bottom-left-radius: 4px;
+}
+
+.system-message {
+  text-align: center;
+  font-size: 11px;
+  color: #888;
+  margin: 6px 0;
+}
+
+/* ==========================================
+   🚨 4. 上部の注意書き（スマホはみ出し防止完全版）
+   ========================================== */
+.chat-notice {
+  max-width: 450px;
+  width: 100%;        
+  margin: 0 auto 12px auto;
+  background: #f0f0f5;
+  padding: 12px 18px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #555;
+  text-align: left;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-sizing: border-box; 
+}
+
+.chat-notice strong {
+  color: #333;
+}
+
+/* ==========================================
+   ✍️ 5. メッセージ入力エリア（綺麗に統合されたあのスタイル）
+   ========================================== */
+.input-area {
+  display: flex;
+  gap: 8px;
+  background-color: #ffffff;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid #e5e5ea;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  width: 100%;
+  box-sizing: border-box; 
+}
+
+.input-area input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 16px;
+  border: 1px solid #ccc;
+  font-size: 13px;
+}
+
+.input-area button {
+  padding: 8px 14px;
+  border-radius: 16px;
+  border: none;
+  background: #007aff;
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* ==========================================
+   ⏳ 6. サーバー起動待ちのグレーアウト画面
+   ========================================== */
+#loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6); 
+  z-index: 10000;                                     
+  display: none;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(4px);           
+  transition: opacity 0.5s ease;        
+}
+
+.loading-box {
+  background: white;
+  padding: 30px 24px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  max-width: 340px;
+  width: 80%;
+  text-align: center;
+}
+
+.loading-box h2 {
+  color: #333;
+  font-size: 20px;
+  margin: 15px 0 10px 0;
+}
+
+.loading-box p {
+  color: #666;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #4caf50; 
+  border-radius: 50%;
+  margin: 0 auto;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
