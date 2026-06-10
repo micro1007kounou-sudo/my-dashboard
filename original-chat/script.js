@@ -55,7 +55,7 @@ function stopHeartbeat() {
 }
 
 // ==========================================
-// 🚀 入室ボタンを押したときの処理
+// 🚀 入室ボタンを押したときの処理（確定版）
 // ==========================================
 joinBtn.addEventListener("click", () => {
   myName = usernameInput.value.trim();
@@ -79,18 +79,51 @@ joinBtn.addEventListener("click", () => {
   document.getElementById("selfName").textContent = myName;
   document.getElementById("roomName").textContent = roomName;
 
-  // WebSocket接続
-  connectWebSocket(roomName);
+  // 🔌 WebSocketの接続を開始（部屋名と自分の名前を次に渡す）
+  connectWebSocket(roomName, myName);
 });
 
 // ==========================================
-// 🔌 WebSocketの接続・通信処理
+// 🔌 WebSocketの接続・通信処理（過去ログ完全修正版）
 // ==========================================
 function connectWebSocket(roomName) {
   const WS_URL = "wss://orijinal-chat.onrender.com"; 
   ws = new WebSocket(WS_URL);
 
-  // 接続完了時
+  // 1. 📥 【位置変更】まず最初にメッセージ受信の準備を完璧に終わらせる！
+  ws.addEventListener("message", (event) => {
+    const data = JSON.parse(event.data);
+
+    // 🕒 過去ログが一気に届いたときの処理
+    if (data.type === "history") {
+      data.messages.forEach((msg) => {
+        // 💡 大文字小文字や前後の空白のズレを無視して確実にガチ比較
+        if (myName && msg.username && msg.username.trim() === myName.trim()) {
+          addMessage(msg.text, "me");     // 過去の自分の発言 ➡️ 右側（青）
+        } else {
+          addMessage(msg.text, "other");  // 相手の発言 ➡️ 左側（グレー）
+        }
+      });
+      return;
+    }
+
+    if (data.type === "roominfo") {
+      document.getElementById("otherName").textContent = data.otherName || "未接続";
+      return;
+    }
+    
+    if (data.type === "system") {
+      addSystem(data.text);
+      return;
+    }
+    
+    if (data.type === "chat") {
+      addMessage(data.text, "other");
+      return;
+    }
+  });
+
+  // 2. 🔌 接続完了時の処理（網を張り終えた後に、入室届を出す！）
   ws.addEventListener("open", () => {
     addSystem("サーバーに接続しました。認証中...");
     
@@ -101,10 +134,11 @@ function connectWebSocket(roomName) {
       setTimeout(() => { overlay.style.display = "none"; }, 500);
     }
 
-    // 20分タイマーとピンポンを開始
+    // 10時間タイマー（※関数内で10時間に変更したやつ）とピンポンを開始
     resetDisconnectTimer();
     startHeartbeat();
 
+    // 🚀 受信の準備が100%できているので、満を持してサーバーにjoinを送る！
     ws.send(JSON.stringify({
       type: "join",
       username: myName,
@@ -112,53 +146,22 @@ function connectWebSocket(roomName) {
     }));
   });
 
-  // メッセージ受信処理
-  ws.addEventListener("message", (event) => {
-    const data = JSON.parse(event.data);
-
-    if (data.type === "roominfo") {
-      document.getElementById("otherName").textContent = data.otherName || "未接続";
-      return;
-    }
-    if (data.type === "system") {
-      addSystem(data.text);
-      return;
-    }
-    if (data.type === "chat") {
-      addMessage(data.text, "other");
-      return;
-    }
-// ✨【追加】過去ログが一気に届いたときの処理
-    if (data.type === "history") {
-      data.messages.forEach((msg) => {
-        // 過去の発言者が自分の名前と同じなら右（me）、違うなら左（other）に綺麗に振り分ける
-        if (msg.username === myName) {
-          addMessage(msg.text, "me");
-        } else {
-          addMessage(msg.text, "other");
-        }
-      });
-      return;
-    }
-  });
-
-  // エラー発生時
+  // 3. エラー発生時（そのまま維持）
   ws.addEventListener("error", () => {
     addSystem("エラーが発生したか、接続が拒否されました。");
     const overlay = document.getElementById("loading-overlay");
     if (overlay) overlay.style.display = "none";
-    stopHeartbeat(); // ★ピンポンを停止
+    stopHeartbeat(); 
   });
   
-  // 切断時
+  // 4. 切断時（そのまま維持）
   ws.addEventListener("close", () => {
     addSystem("サーバーとの接続が切れました。");
     const overlay = document.getElementById("loading-overlay");
     if (overlay) overlay.style.display = "none";
-    stopHeartbeat(); // ★ピンポンを停止
+    stopHeartbeat(); 
   });
 }
-
 // ==========================================
 // 💬 メッセージ表示・送信ロジック
 // ==========================================
