@@ -18,18 +18,19 @@ let pingInterval = null;
 const INACTIVE_LIMIT = 10 * 60 * 60 * 1000; // 10時間
 
 function resetDisconnectTimer() {
+  // 💡 安全ロック：まだ入室していない（wsが無い）場合はタイマーを動かさない
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
   if (disconnectTimer) clearTimeout(disconnectTimer);
 
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    disconnectTimer = setTimeout(() => {
-      addSystem("10時間操作がなかったため、自動的に退室しました。");
-      ws.close();
-      
-      setTimeout(() => {
-        location.reload(); 
-      }, 3000);
-    }, INACTIVE_LIMIT);
-  }
+  disconnectTimer = setTimeout(() => {
+    addSystem("10時間操作がなかったため、自動的に退室しました。");
+    ws.close();
+    
+    setTimeout(() => {
+      location.reload(); 
+    }, 3000);
+  }, INACTIVE_LIMIT);
 }
 
 ["click", "keydown", "touchstart", "scroll"].forEach((eventType) => {
@@ -75,38 +76,21 @@ joinBtn.addEventListener("click", () => {
 });
 
 // ==========================================
-// 🔌 WebSocketの接続・通信処理
+// 🔌 WebSocketの接続・通信処理（順番並び替え＆大文字小文字対策版）
 // ==========================================
 function connectWebSocket() {
   const WS_URL = "wss://group-chat-w9fd.onrender.com"; 
   ws = new WebSocket(WS_URL);
 
-  ws.addEventListener("open", () => {
-    addSystem("サーバーに接続しました。入室中...");
-    
-    const overlay = document.getElementById("loading-overlay");
-    if (overlay) {
-      overlay.style.opacity = "0";
-      setTimeout(() => { overlay.style.display = "none"; }, 500);
-    }
-
-    resetDisconnectTimer();
-    startHeartbeat();
-
-    ws.send(JSON.stringify({
-      type: "join",
-      username: myName
-    }));
-  });
-
-  // 📥 サーバーからのデータ受信処理
+  // 1. 📥 【最優先】まず最初にメッセージ受信の網（準備）を100%完成させる！
   ws.addEventListener("message", (event) => {
     const data = JSON.parse(event.data);
 
-    // ✨【修正】迷子になっていた過去ログ処理を、メッセージイベントの中に正しく格納！
+    // 🕒 過去ログが一気に届いたときの処理
     if (data.type === "history") {
       data.messages.forEach((msg) => {
-        if (msg.username === myName) {
+        // 前後の空白のズレを安全にカットしてガチ比較
+        if (myName && msg.username && msg.username.trim() === myName.trim()) {
           addMessage(msg.text, "me");
         } else {
           addMessage(msg.text, "other", msg.username);
@@ -115,11 +99,9 @@ function connectWebSocket() {
       return;
     }
 
-// 👥 現在のオンライン人数と名前リストの更新
+    // 👥 現在のオンライン人数と名前リストの更新
     if (data.type === "roominfo") {
       const nameListText = data.names.join("、");
-      
-      // 👇 textContent ではなく innerHTML を使って、●の緑色（#4caf50）を維持したまま文字を更新します！
       document.getElementById("header-online-count").innerHTML = 
         `<span style="color: #4caf50; font-weight: bold; margin-right: 2px;">●</span>オンライン: ${data.count}人 ( ${nameListText} )`;
       return;
@@ -136,8 +118,30 @@ function connectWebSocket() {
       addMessage(data.text, "other", data.username);
       return;
     }
-  }); // 👈 ここで message のイベント処理が綺麗に終わる
+  });
 
+  // 2. 🔌 接続完了時の処理（網を張り終えた後に、満を持して入室届を送信）
+  ws.addEventListener("open", () => {
+    addSystem("サーバーに接続しました。入室中...");
+    
+    const overlay = document.getElementById("loading-overlay");
+    if (overlay) {
+      overlay.style.opacity = "0";
+      setTimeout(() => { overlay.style.display = "none"; }, 500);
+    }
+
+    // ここで初めてタイマーとハートビートを安全に始動
+    resetDisconnectTimer();
+    startHeartbeat();
+
+    // 🚀 サーバーに入室を知らせる
+    ws.send(JSON.stringify({
+      type: "join",
+      username: myName
+    }));
+  });
+
+  // 3. エラー発生時
   ws.addEventListener("error", () => {
     addSystem("エラーが発生したか、接続が拒否されました。");
     const overlay = document.getElementById("loading-overlay");
@@ -145,6 +149,7 @@ function connectWebSocket() {
     stopHeartbeat(); 
   });
   
+  // 4. 切断時
   ws.addEventListener("close", () => {
     addSystem("サーバーとの接続が切れました。");
     const overlay = document.getElementById("loading-overlay");
@@ -170,23 +175,18 @@ function addMessage(text, who = "me", senderName = "") {
   const bubble = document.createElement("div");
   bubble.className = "bubble " + (who === "me" ? "me" : "other");
   
-  // 🔗【URLリンク化処理】
-  // 1. 文字列の中のURLを検出する正規表現
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   
-  // 2. 悪いコードの混入を防ぐために特殊文字を安全にエスケープ
   const escapedText = text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+    .replace(/>/g, "&gt bridge;");
     
-  // 3. URLの部分だけを <a> タグに置き換える（自分と相手でリンクの文字色を調整）
   const linkedHtml = escapedText.replace(urlRegex, (url) => {
     const linkColor = who === 'me' ? '#ffffff' : '#007aff';
     return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: ${linkColor}; text-decoration: underline;">${url}</a>`;
   });
 
-  // 4. textContent の代わりに innerHTML を使ってリンクとして画面に流し込む
   bubble.innerHTML = linkedHtml;
   
   row.appendChild(bubble);
