@@ -1,5 +1,4 @@
 const loginScreen = document.getElementById("login-screen");
-// 前回のHTMLに合わせて id="chat-container" に対応
 const chatScreen = document.getElementById("chat-container");
 const usernameInput = document.getElementById("username-input");
 const joinBtn = document.getElementById("join-btn");
@@ -56,7 +55,6 @@ function stopHeartbeat() {
 joinBtn.addEventListener("click", () => {
   myName = usernameInput.value.trim();
 
-  // 🛠️ 合言葉（部屋名）のチェックを外し、名前だけに簡略化！
   if (!myName) {
     alert("名前を入力してください。");
     return;
@@ -68,14 +66,11 @@ joinBtn.addEventListener("click", () => {
     overlay.style.opacity = "1";
   }
 
-  // 画面切り替え
   loginScreen.style.display = "none";
   chatScreen.style.display = "block";
   
-  // ヘッダーの情報を「あなたの名前」に更新
   document.getElementById("header-user-info").textContent = "あなた: " + myName;
 
-  // WebSocket接続（全員同じメインの部屋へ）
   connectWebSocket();
 });
 
@@ -83,7 +78,6 @@ joinBtn.addEventListener("click", () => {
 // 🔌 WebSocketの接続・通信処理
 // ==========================================
 function connectWebSocket() {
-  // ⚠️ 接続先URLは必要に応じて調整してください
   const WS_URL = "wss://group-chat-w9fd.onrender.com"; 
   ws = new WebSocket(WS_URL);
 
@@ -99,42 +93,19 @@ function connectWebSocket() {
     resetDisconnectTimer();
     startHeartbeat();
 
-    // 🛠️ 合言葉なしで、名前だけを送信して全員同じスペースに入る
     ws.send(JSON.stringify({
       type: "join",
       username: myName
     }));
   });
 
+  // 📥 サーバーからのデータ受信処理
   ws.addEventListener("message", (event) => {
     const data = JSON.parse(event.data);
 
- // 🛠️ グループ用：現在のオンライン人数と名前リストの更新通知を受け取る
-    if (data.type === "roominfo") {
-      // 👥 届いた名前の配列を「、」で繋いだ文字列にする（例: "太郎、花子、次郎"）
-      const nameListText = data.names.join("、");
-      
-      // 右上の表示を「● オンライン: 3人 ( 太郎、花子、次郎 )」の形に更新！
-      document.getElementById("header-online-count").textContent = 
-        "● オンライン: " + data.count + "人 ( " + nameListText + " )";
-      return;
-    }
-    if (data.type === "system") {
-      addSystem(data.text);
-      return;
-    }
-    // 🛠️ チャット受信時：誰の発言（data.username）かも一緒に受け取る
-    if (data.type === "chat") {
-      addMessage(data.text, "other", data.username);
-      return;
-    }
-  });
-    // 📄 group-chat/app.js の受信処理部分（ws.addEventListener("message" 内）
-
-    // 👇 ★【新規】過去ログが一気に届いたときの処理
+    // ✨【修正】迷子になっていた過去ログ処理を、メッセージイベントの中に正しく格納！
     if (data.type === "history") {
       data.messages.forEach((msg) => {
-        // 過去の自分の発言か、他人の発言かを名前で判定して綺麗に並べる
         if (msg.username === myName) {
           addMessage(msg.text, "me");
         } else {
@@ -144,6 +115,26 @@ function connectWebSocket() {
       return;
     }
 
+    // 👥 現在のオンライン人数と名前リストの更新
+    if (data.type === "roominfo") {
+      const nameListText = data.names.join("、");
+      document.getElementById("header-online-count").textContent = 
+        "● オンライン: " + data.count + "人 ( " + nameListText + " )";
+      return;
+    }
+
+    // ⚙️ システムメッセージ
+    if (data.type === "system") {
+      addSystem(data.text);
+      return;
+    }
+
+    // 💬 通常のチャット受信
+    if (data.type === "chat") {
+      addMessage(data.text, "other", data.username);
+      return;
+    }
+  }); // 👈 ここで message のイベント処理が綺麗に終わる
 
   ws.addEventListener("error", () => {
     addSystem("エラーが発生したか、接続が拒否されました。");
@@ -161,13 +152,12 @@ function connectWebSocket() {
 }
 
 // ==========================================
-// 💬 メッセージ表示・送信ロジック（UI練り直し！）
+// 💬 メッセージ表示・送信ロジック
 // ==========================================
 function addMessage(text, who = "me", senderName = "") {
   const row = document.createElement("div");
   row.className = "message-row " + (who === "me" ? "me" : "other");
 
-  // 🛠️ グループ用：相手からのメッセージの場合のみ、吹き出しの上に名前を表示
   if (who === "other") {
     const nameEl = document.createElement("div");
     nameEl.className = "message-user-name";
@@ -177,7 +167,25 @@ function addMessage(text, who = "me", senderName = "") {
 
   const bubble = document.createElement("div");
   bubble.className = "bubble " + (who === "me" ? "me" : "other");
-  bubble.textContent = text;
+  
+  // 🔗【URLリンク化処理】
+  // 1. 文字列の中のURLを検出する正規表現
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  
+  // 2. 悪いコードの混入を防ぐために特殊文字を安全にエスケープ
+  const escapedText = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+    
+  // 3. URLの部分だけを <a> タグに置き換える（自分と相手でリンクの文字色を調整）
+  const linkedHtml = escapedText.replace(urlRegex, (url) => {
+    const linkColor = who === 'me' ? '#ffffff' : '#007aff';
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: ${linkColor}; text-decoration: underline;">${url}</a>`;
+  });
+
+  // 4. textContent の代わりに innerHTML を使ってリンクとして画面に流し込む
+  bubble.innerHTML = linkedHtml;
   
   row.appendChild(bubble);
   messagesEl.appendChild(row);
@@ -197,8 +205,6 @@ sendBtn.addEventListener("click", () => {
   if (!text || !ws) return;
 
   addMessage(text, "me");
-  // サーバー側が「誰のメッセージか」を識別できるよう、名前も一緒に送るか、
-  // サーバー側でセッション管理させます。ここではテキストを送信。
   ws.send(JSON.stringify({ type: "chat", text }));
   inputEl.value = "";
   
