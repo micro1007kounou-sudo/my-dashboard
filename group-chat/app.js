@@ -109,9 +109,14 @@ function connectWebSocket() {
   ws.addEventListener("message", (event) => {
     const data = JSON.parse(event.data);
 
-    // 🛠️ グループ用：現在のオンライン人数の更新通知を受け取る
+ // 🛠️ グループ用：現在のオンライン人数と名前リストの更新通知を受け取る
     if (data.type === "roominfo") {
-      document.getElementById("header-online-count").textContent = "● オンライン: " + data.count + "人";
+      // 👥 届いた名前の配列を「、」で繋いだ文字列にする（例: "太郎、花子、次郎"）
+      const nameListText = data.names.join("、");
+      
+      // 右上の表示を「● オンライン: 3人 ( 太郎、花子、次郎 )」の形に更新！
+      document.getElementById("header-online-count").textContent = 
+        "● オンライン: " + data.count + "人 ( " + nameListText + " )";
       return;
     }
     if (data.type === "system") {

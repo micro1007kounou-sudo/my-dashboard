@@ -33,12 +33,17 @@ const wss = new WebSocketServer({ server });
 // 🛠️ 部屋分けを無くし、全員が入る1つの「広場（配列）」にします
 let participants = [];
 
-// 全員に現在の「オンライン人数」と「最新の状態」を伝える共通関数
+// 全員に現在の「オンライン人数」と「参加者名リスト」を伝える共通関数
 function broadcastRoomInfo() {
+  // 👇 ★【修正】現在参加している全員の名前を配列にまとめます
+  const currentNames = participants.map(client => client.name);
+
   const infoData = JSON.stringify({
     type: "roominfo",
-    count: participants.length
+    count: participants.length,
+    names: currentNames // 👈 ★これを新しく追加！
   });
+
   participants.forEach((client) => {
     if (client.ws.readyState === client.ws.OPEN) {
       client.ws.send(infoData);
