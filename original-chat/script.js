@@ -20,18 +20,19 @@ const INACTIVE_LIMIT = 10 * 60 * 60 * 1000; // 10時間
 
 // タイマーをリセットして数え直す関数
 function resetDisconnectTimer() {
+  // 💡 【グループと統一】安全ロック：まだ入室していない（wsが無い）場合はタイマーを動かさない
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
   if (disconnectTimer) clearTimeout(disconnectTimer);
 
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    disconnectTimer = setTimeout(() => {
-      addSystem("10時間操作がなかったため、自動的に退室しました。");
-      ws.close();
-      
-      setTimeout(() => {
-        location.reload(); 
-      }, 3000);
-    }, INACTIVE_LIMIT);
-  }
+  disconnectTimer = setTimeout(() => {
+    addSystem("10時間操作がなかったため、自動的に退室しました。");
+    ws.close();
+    
+    setTimeout(() => {
+      location.reload(); 
+    }, 3000);
+  }, INACTIVE_LIMIT);
 }
 
 // ユーザーの「操作」を検知するイベント登録
@@ -55,7 +56,7 @@ function stopHeartbeat() {
 }
 
 // ==========================================
-// 🚀 入室ボタンを押したときの処理（確定版）
+// 🚀 入室ボタンを押したときの処理
 // ==========================================
 joinBtn.addEventListener("click", () => {
   myName = usernameInput.value.trim();
@@ -79,18 +80,18 @@ joinBtn.addEventListener("click", () => {
   document.getElementById("selfName").textContent = myName;
   document.getElementById("roomName").textContent = roomName;
 
-  // 🔌 WebSocketの接続を開始（部屋名と自分の名前を次に渡す）
-  connectWebSocket(roomName, myName);
+  // 🔌 WebSocketの接続を開始
+  connectWebSocket(roomName);
 });
 
 // ==========================================
-// 🔌 WebSocketの接続・通信処理（過去ログ完全修正版）
+// 🔌 WebSocketの接続・通信処理（グループ同等版）
 // ==========================================
 function connectWebSocket(roomName) {
   const WS_URL = "wss://orijinal-chat.onrender.com"; 
   ws = new WebSocket(WS_URL);
 
-  // 1. 📥 【位置変更】まず最初にメッセージ受信の準備を完璧に終わらせる！
+  // 1. 📥 【最優先】まず最初にメッセージ受信の準備を完璧に終わらせる！
   ws.addEventListener("message", (event) => {
     const data = JSON.parse(event.data);
 
@@ -134,7 +135,7 @@ function connectWebSocket(roomName) {
       setTimeout(() => { overlay.style.display = "none"; }, 500);
     }
 
-    // 10時間タイマー（※関数内で10時間に変更したやつ）とピンポンを開始
+    // ここで初めて安全にタイマーとピンポンを開始
     resetDisconnectTimer();
     startHeartbeat();
 
@@ -146,7 +147,7 @@ function connectWebSocket(roomName) {
     }));
   });
 
-  // 3. エラー発生時（そのまま維持）
+  // 3. エラー発生時（通常通りストップ）
   ws.addEventListener("error", () => {
     addSystem("エラーが発生したか、接続が拒否されました。");
     const overlay = document.getElementById("loading-overlay");
@@ -154,7 +155,7 @@ function connectWebSocket(roomName) {
     stopHeartbeat(); 
   });
   
-  // 4. 切断時（そのまま維持）
+  // 4. 切断時（通常通りストップ、自動リトライは無し）
   ws.addEventListener("close", () => {
     addSystem("サーバーとの接続が切れました。");
     const overlay = document.getElementById("loading-overlay");
@@ -162,6 +163,7 @@ function connectWebSocket(roomName) {
     stopHeartbeat(); 
   });
 }
+
 // ==========================================
 // 💬 メッセージ表示・送信ロジック
 // ==========================================
@@ -181,7 +183,7 @@ function addMessage(text, who = "me") {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
     
-  // URLをリンク用のaタグに変換（自分の青い吹き出しでは白、相手のグレーでは青リンクにする）
+  // URLをリンク用のaタグに変換
   const linkedHtml = escapedText.replace(urlRegex, (url) => {
     const linkColor = who === 'me' ? '#ffffff' : '#007aff';
     return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: ${linkColor}; text-decoration: underline;">${url}</a>`;
@@ -220,11 +222,10 @@ inputEl.addEventListener("keydown", (e) => {
 });
 
 // ==========================================
-// 📱 スマホのスリープ復帰対策（数独と同じ処理）
+// 📱 スマホのスリープ復帰対策
 // ==========================================
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
-    // す気に入室していて、かつ通信が切れている場合
     if (myName && (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
       addSystem("スリープからの復帰を検出しました。再接続しています...");
       const roomName = roomInput.value.trim();
