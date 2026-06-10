@@ -33,8 +33,7 @@ h2, h3 {
 
 
 /* 🟣 自分のステータス（バッジ風） */
-#my-status {
-    background-color: #c394f8 !important; /* 薄紫 */
+#my-status {background-color: #e2ccff !important; /* 👈 【変更】さらに優しく薄い紫に */
     color: #4a217c !important;             /* 濃い紫文字 */
     padding: 6px 12px;
     border-radius: 8px;
@@ -43,11 +42,10 @@ h2, h3 {
     font-weight: bold;
 }
 
-/* 🔹 相手のステータス（バッジ風） */
+/* 🟢 もしステータス（上のバッジ）の背景も合わせている場合は、ここも変更 */
 #other-status {
-    background-color: #8ce7e7 !important; /* 薄水色 */
-    color: #165353 !important;             /* 濃い青緑文字 */
-    padding: 6px 12px;
+    background-color: #d1f7c4 !important; /* 👈 【変更】マスと同じライムグリーンに */
+    color: #2b591d !important;             /* 👈 【変更】濃いオリーブグリーン */
     border-radius: 8px;
     display: inline-block;
     font-weight: bold;
@@ -153,16 +151,16 @@ h2, h3 {
 }
 
 .mine {
-    background-color: #c394f8 !important; 
+background-color: #e2ccff !important; /* 👈 【変更】さらに優しく薄い紫に */
     color: #4a217c !important; /* 👈 【変更】同系色の深みのある上品な紫 */
     font-weight: bold;         /* 文字を少し太くしてさらに見やすく */
 }
 
-/* 🔹 相手：薄水色ベース ＋ 濃い青緑文字 */
+/* 🟢 相手：背景を薄水色から「パステルライムグリーン」に変更 */
 .other {
-    background-color: #8ce7e7 !important; 
-    color: #165353 !important; /* 👈 【変更】同系色の深みのある深い水色（青緑） */
-    font-weight: bold;         /* 文字を少し太くしてさらに見やすく */
+    background-color: #d1f7c4 !important; /* 👈 【変更】優しく明るいライムグリーン */
+    color: #2b591d !important;            /* 👈 【変更】同系色の濃いオリーブグリーン */
+    font-weight: bold;         
 }
 
 /* 👇 ★【修正】ペナルティ（5秒間赤く光って震える）★ 👇 */

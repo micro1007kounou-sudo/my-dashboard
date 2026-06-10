@@ -346,7 +346,7 @@ boardContainer.addEventListener("click", (e) => {
     }));
 });
 
-// PC用：キーボードによる数字入力処理（ここは元のまま残します）
+// PC用：キーボードによる数字入力処理
 document.addEventListener("keydown", (e) => {
     if (isLocked) return; // 操作不可なら入力を無視
     if (!selectedCell) return;
@@ -371,6 +371,13 @@ document.addEventListener("keydown", (e) => {
         num,
         playerId: myId
     }));
+
+    // -----------------------------------------------------------
+    // 👇 ★【追加】数字を送信したので、そのマスの黄色（選択状態）を解除する
+    // -----------------------------------------------------------
+    selectedCell.classList.remove("selected"); // マスから黄色のデザインクラスを消す
+    selectedCell = null;                      // 変数を空っぽにして選択をリセット
+    document.activeElement.blur();            // ブラウザ標準のフォーカス枠も完全に外す
 });
 
 // 👇 ★【ここを新しく追加】スマホ用：画面キーボードからの入力を監視する処理 ★ 👇
