@@ -84,7 +84,7 @@ joinBtn.addEventListener("click", () => {
 // ==========================================
 function connectWebSocket() {
   // ⚠️ 接続先URLは必要に応じて調整してください
-  const WS_URL = "wss://https://group-chat-w9fd.onrender.com"; 
+  const WS_URL = "wss://group-chat-w9fd.onrender.com"; 
   ws = new WebSocket(WS_URL);
 
   ws.addEventListener("open", () => {
