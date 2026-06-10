@@ -12,11 +12,11 @@ let ws;
 let myName = "";
 
 // ==========================================
-// 🕒 20分無操作タイマー ＆ 切断防止（ピンポン）の設定
+// 🕒 10時間無操作タイマー ＆ 切断防止（ピンポン）の設定
 // ==========================================
 let disconnectTimer = null;
 let pingInterval = null; 
-const INACTIVE_LIMIT = 20 * 60 * 1000; // 20分
+const INACTIVE_LIMIT = 10 * 60 * 60 * 1000; // 10時間
 
 // タイマーをリセットして数え直す関数
 function resetDisconnectTimer() {
@@ -24,7 +24,7 @@ function resetDisconnectTimer() {
 
   if (ws && ws.readyState === WebSocket.OPEN) {
     disconnectTimer = setTimeout(() => {
-      addSystem("20分間操作がなかったため、自動的に退室しました。");
+      addSystem("10時間操作がなかったため、自動的に退室しました。");
       ws.close();
       
       setTimeout(() => {
@@ -152,10 +152,29 @@ function connectWebSocket(roomName) {
 // ==========================================
 function addMessage(text, who = "me") {
   const row = document.createElement("div");
-  row.className = "message-row " + (who === "me" ? "me" : "");
+  row.className = "message-row " + (who === "me" ? "me" : "other");
+
   const bubble = document.createElement("div");
   bubble.className = "bubble " + (who === "me" ? "me" : "other");
-  bubble.textContent = text;
+  
+  // 🔗【URLリンク化処理】
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  
+  // 特殊文字をエスケープして安全性を確保
+  const escapedText = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+    
+  // URLをリンク用のaタグに変換（自分の青い吹き出しでは白、相手のグレーでは青リンクにする）
+  const linkedHtml = escapedText.replace(urlRegex, (url) => {
+    const linkColor = who === 'me' ? '#ffffff' : '#007aff';
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: ${linkColor}; text-decoration: underline;">${url}</a>`;
+  });
+
+  // HTMLとして吹き出しに流し込む
+  bubble.innerHTML = linkedHtml;
+  
   row.appendChild(bubble);
   messagesEl.appendChild(row);
   messagesEl.scrollTop = messagesEl.scrollHeight;
