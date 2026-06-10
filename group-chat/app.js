@@ -11,18 +11,18 @@ let ws;
 let myName = "";
 
 // ==========================================
-// 🕒 20分無操作タイマー ＆ 切断防止（ピンポン）の設定
+// 🕒 無操作タイマー ＆ 切断防止（ピンポン）の設定
 // ==========================================
 let disconnectTimer = null;
 let pingInterval = null; 
-const INACTIVE_LIMIT = 20 * 60 * 1000; // 20分
+const INACTIVE_LIMIT = 10 * 60 * 60 * 1000; // 10時間
 
 function resetDisconnectTimer() {
   if (disconnectTimer) clearTimeout(disconnectTimer);
 
   if (ws && ws.readyState === WebSocket.OPEN) {
     disconnectTimer = setTimeout(() => {
-      addSystem("20分間操作がなかったため、自動的に退室しました。");
+      addSystem("10時間操作がなかったため、自動的に退室しました。");
       ws.close();
       
       setTimeout(() => {

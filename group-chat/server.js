@@ -125,20 +125,40 @@ wss.on("connection", (ws) => {
     }
   });
 
-  // 【切断処理】
+// 【切断処理】
   ws.on("close", () => {
     if (currentName) {
       // 離脱したユーザーを配列から除外
       participants = participants.filter((client) => client.ws !== ws);
 
-      // ✨【防犯・安全対策】全員が完全に退室（0人）したら、過去ログの箱も綺麗に全消去する
+      // ✨【修正＆強化】人数に応じたシステムメッセージの出し分け
       if (participants.length === 0) {
+        // 誰もいなくなったら、予定通り過去ログの箱を綺麗に全消去
         msgHistory = [];
+      } else if (participants.length === 1) {
+        // 👇 ★【新規】残った人が「ちょうど1人」になった場合
+        // 最後に残った1人の画面にだけ、特別な警告メッセージを送る
+        const lastClient = participants[0];
+        if (lastClient.ws.readyState === lastClient.ws.OPEN) {
+          // 退室した人のアナウンスも一応送りつつ…
+          lastClient.ws.send(JSON.stringify({ 
+            type: "system", 
+            text: `${currentName} さんが退室しました。` 
+          }));
+          // ⚠️ 最後の1人になった警告を表示！
+          lastClient.ws.send(JSON.stringify({ 
+            type: "system", 
+            text: "🚨 あなたが最後の1人になりました。ブラウザを閉じるか10時間放置すると、この部屋のログは完全に消去されます。" 
+          }));
+        }
       } else {
-        // 残っている全員に、誰かが退室したことをお知らせ
+        // まだ2人以上残っている場合は、通常通り退室アナウンスを全員に送る
         participants.forEach((client) => {
           if (client.ws.readyState === client.ws.OPEN) {
-            client.ws.send(JSON.stringify({ type: "system", text: `${currentName} さんが退室しました。` }));
+            client.ws.send(JSON.stringify({ 
+              type: "system", 
+              text: `${currentName} さんが退室しました。` 
+            }));
           }
         });
       }
