@@ -4,13 +4,16 @@
 body {
     display: flex;
     flex-direction: column;
-    align-items: center;      /* すべてのブロックを画面の横中央に配置 */
-    text-align: center;       /* テキストの基本を中央揃え */
+    align-items: center;      
+    text-align: center;       
     font-family: sans-serif;
     margin: 0;
-    padding: 0 12px;          /* 左右に 12px のちょうどいい余白を作ります */
-    background-color: #fcfbfa !important; /* 👈 【確定】最高級のノートのようなアイボリーホワイト */
-    box-sizing: border-box;   /* 余白のせいで画面が横にはみ出るのを防ぐお守り */
+    padding: 0 12px;          
+    
+    /* 💜 【変更】薄ーーい上品な紫（ラベンダーミスト） */
+    background-color: #f5f2fa !important; 
+    
+    box-sizing: border-box;   
 }
 
 h2, h3 {
@@ -71,21 +74,18 @@ h2, h3 {
     background-color: white;
 }
 
-/* 🔄 リセットボタン：パステル水色（ホバー復活版） */
 #reset-btn {
     padding: 6px 14px;
     font-size: 14px;
-    background-color: #7ad3f7; /* ベースは綺麗なパステル水色 */
-    color: white;              /* 白文字 */
+    background-color: #4caf50;
+    color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-weight: bold;
-    transition: background-color 0.15s ease; /* ふわっと変わる演出 */
+    transition: background-color 0.2s;
 }
-#reset-btn:hover { 
-    background-color: #94e1ff; /* 👈 マウスを乗せるとほんの少し明るくなる */
-}
+#reset-btn:hover { background-color: #45a049; }
 
 
 /* ==========================================
