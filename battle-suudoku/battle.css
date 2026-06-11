@@ -10,8 +10,7 @@ body {
     margin: 0;
     padding: 0 12px;          
     
-    /* 💜 【変更】薄ーーい上品な紫（ラベンダーミスト） */
-    background-color: #f5f2fa !important; 
+    background-color: #fdfbf0 !important; 
     
     box-sizing: border-box;   
 }
