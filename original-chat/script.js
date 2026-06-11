@@ -10,8 +10,8 @@ const sendBtn = document.getElementById("sendBtn");
 
 let ws;
 let myName = "";
-// 💡 送信中（承認待ち）のメッセージを一時保管するリスト
-let pendingMessages = new Map();
+// 💡 送信中（未確定）の吹き出し要素を一時的に覚える配列
+let unconfirmedBubbles = [];
 
 // ==========================================
 // 🕒 10時間無操作タイマー ＆ 切断防止（ピンポン）の設定
@@ -91,9 +91,9 @@ function connectWebSocket(roomName) {
     if (data.type === "history") {
       data.messages.forEach((msg) => {
         if (myName && msg.username && msg.username.trim() === myName.trim()) {
-          addMessage(msg.text, "me"); 
+          addMessage(msg.text, "me", false); 
         } else {
-          addMessage(msg.text, "other"); 
+          addMessage(msg.text, "other", false); 
         }
       });
       return;
@@ -111,25 +111,16 @@ function connectWebSocket(roomName) {
     
     // 💬 リアルタイムのチャット受信
     if (data.type === "chat") {
-      // 💡 もし自分が送信したメッセージ（IDが一致するもの）が返ってきたら
-      if (data.msgId && pendingMessages.has(data.msgId)) {
-        const bubbleEl = pendingMessages.get(data.msgId);
-        bubbleEl.style.opacity = "1"; // 💡 薄暗さを解除して「送信完了」を証明！
-        const statusEl = bubbleEl.parentNode.querySelector(".msg-status");
-        if (statusEl) statusEl.remove(); // 「送信中...」の文字を消す
-        pendingMessages.delete(data.msgId); // 保管庫から削除
-        return;
-      }
+      // 💡 サーバーからメッセージ（＝通信が生きている証拠）が届いたら、
+      // 自分が今送ったばかりの「送信中...」のメッセージをすべて一気に「送信完了」にする！
+      confirmAllPendingMessages();
 
-      // 💡 サーバーから「名前付き」で跳ね返ってきた場合、名前が自分以外なら相手の発言
+      // 💡 サーバー側が発言者を判定する名前（username）を返してくれて、かつそれが自分以外なら左側に出す
       if (data.username && myName && data.username.trim() !== myName.trim()) {
-        addMessage(data.text, "other");
-        return;
-      }
-      
-      // 💡 万が一サーバーが名前を返さず、かつ自分のIDでもないものは純粋に相手からのメッセージ
-      if (!data.msgId) {
-        addMessage(data.text, "other");
+        addMessage(data.text, "other", false);
+      } else if (!data.username) {
+        // 万が一サーバーが名前を返さない古い仕様の場合、届いたものは相手からのメッセージとして扱う
+        addMessage(data.text, "other", false);
       }
       return;
     }
@@ -162,13 +153,16 @@ function connectWebSocket(roomName) {
   ws.addEventListener("close", () => {
     stopHeartbeat(); 
 
-    // 🚨 切断されたら、まだ送信完了していないメッセージを「送信失敗」にする
-    pendingMessages.forEach((bubbleEl) => {
-      bubbleEl.style.background = "#ff3b30"; // 赤色にする
-      const statusEl = bubbleEl.parentNode.querySelector(".msg-status");
-      if (statusEl) statusEl.textContent = "❌ 送信失敗（未到達）";
+    // 🚨 【幽霊メッセージの完全排除】
+    // サーバーが瞬停して届かなかったメッセージがあれば、即座に「送信失敗」と画面に赤字で明示する！
+    unconfirmedBubbles.forEach((item) => {
+      item.bubble.style.background = "#ff3b30"; // 吹き出しを赤くする
+      if (item.statusEl) {
+        item.statusEl.textContent = "❌ 送信失敗（届いていません）";
+        item.statusEl.style.color = "#ff3b30";
+      }
     });
-    pendingMessages.clear();
+    unconfirmedBubbles = []; // クリア
 
     if (myName) {
       addSystem("🔄 通信が一時的に途切れました。自動再接続しています...");
@@ -180,20 +174,28 @@ function connectWebSocket(roomName) {
   });
 }
 
+// 💡 送信中メッセージを確定させる関数
+function confirmAllPendingMessages() {
+  unconfirmedBubbles.forEach((item) => {
+    item.bubble.style.opacity = "1"; // 明るくする
+    if (item.statusEl) item.statusEl.remove(); // 「送信中...」を消す
+  });
+  unconfirmedBubbles = [];
+}
+
 // ==========================================
 // 💬 メッセージ表示・送信ロジック
 // ==========================================
-function addMessage(text, who = "me", msgId = null) {
+function addMessage(text, who = "me", isPending = false) {
   const row = document.createElement("div");
   row.className = "message-row " + (who === "me" ? "me" : "other");
 
   const bubble = document.createElement("div");
   bubble.className = "bubble " + (who === "me" ? "me" : "other");
   
-  // 💡 自分が送信中のものは、確認が取れるまで一時的に薄暗く（opacity 0.5）しておく
-  if (who === "me" && msgId) {
-    bubble.style.opacity = "0.5";
-    bubble.style.transition = "opacity 0.2s ease";
+  // 💡 送信中の場合は一時的に薄暗くする
+  if (who === "me" && isPending) {
+    bubble.style.opacity = "0.6";
   }
   
   const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -207,22 +209,24 @@ function addMessage(text, who = "me", msgId = null) {
   bubble.innerHTML = linkedHtml;
   row.appendChild(bubble);
 
+  let statusEl = null;
   // 💡 送信中テキストの追加
-  if (who === "me" && msgId) {
-    const status = document.createElement("div");
-    status.className = "msg-status";
-    status.style.fontSize = "10px";
-    status.style.color = "#8e8e93";
-    status.style.marginTop = "2px";
-    status.style.textAlign = "right";
-    status.textContent = "送信中...";
-    row.appendChild(status);
+  if (who === "me" && isPending) {
+    statusEl = document.createElement("div");
+    statusEl.className = "msg-status";
+    statusEl.style.fontSize = "10px";
+    statusEl.style.color = "#8e8e93";
+    statusEl.style.marginTop = "2px";
+    statusEl.style.textAlign = "right";
+    statusEl.textContent = "送信中...";
+    row.appendChild(statusEl);
   }
   
   messagesEl.appendChild(row);
   messagesEl.scrollTop = messagesEl.scrollHeight;
 
-  return bubble; // 💡 後から状態を変えられるように要素を返す
+  // 💡 未確定リストに突っ込むためのオブジェクトを返す
+  return { bubble, statusEl };
 }
 
 function addSystem(text) {
@@ -242,15 +246,32 @@ sendBtn.addEventListener("click", () => {
     return;
   }
 
-  // 💡 クライアント側で一意のメッセージIDを生成（時間＋乱数）
-  const msgId = "msg-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+  // ① まず画面に「送信中...」の状態で自分の吹き出しを出す
+  const msgItem = addMessage(text, "me", true);
+  unconfirmedBubbles.push(msgItem);
 
-  // 💡 画面に「送信中状態」で表示し、要素を保管庫（Map）に記憶させる
-  const bubbleElement = addMessage(text, "me", msgId);
-  pendingMessages.set(msgId, bubbleElement);
+  try {
+    // ② サーバーへパケットを送信
+    ws.send(JSON.stringify({ type: "chat", text }));
 
-  // 💡 メッセージIDを乗せてサーバーへ送信
-  ws.send(JSON.stringify({ type: "chat", text, msgId }));
+    // ③ 💡【物理チェック】
+    // ブラウザの送信バッファ（待ちデータ）が0＝「今100%完全に端末からパケットが飛び立った」ら、
+    // サーバーが正常な時は一瞬（数ミリ秒）で0になるので、その場合はすぐに「送信中...」を消して確定させる！
+    setTimeout(() => {
+      if (ws && ws.bufferedAmount === 0 && ws.readyState === WebSocket.OPEN) {
+        // 瞬停中でなければ、ここで即座にパッと明るくなって送信完了になります！
+        msgItem.bubble.style.opacity = "1";
+        if (msgItem.statusEl) msgItem.statusEl.remove();
+        // リストから除外
+        unconfirmedBubbles = unconfirmedBubbles.filter(item => item !== msgItem);
+      }
+    }, 50);
+
+  } catch (err) {
+    // 万が一送信エラーが出たら即座に失敗にする
+    msgItem.bubble.style.background = "#ff3b30";
+    if (msgItem.statusEl) msgItem.statusEl.textContent = "❌ 送信失敗";
+  }
   
   inputEl.value = "";
   resetDisconnectTimer(); 
