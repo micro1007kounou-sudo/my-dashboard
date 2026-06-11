@@ -10,8 +10,6 @@ const sendBtn = document.getElementById("sendBtn");
 
 let ws;
 let myName = "";
-// 💡 送信中（未確定）の吹き出し要素を一時的に覚える配列
-let unconfirmedBubbles = [];
 
 // ==========================================
 // 🕒 10時間無操作タイマー ＆ 切断防止（ピンポン）の設定
@@ -91,9 +89,9 @@ function connectWebSocket(roomName) {
     if (data.type === "history") {
       data.messages.forEach((msg) => {
         if (myName && msg.username && msg.username.trim() === myName.trim()) {
-          addMessage(msg.text, "me", false); 
+          addMessage(msg.text, "me"); 
         } else {
-          addMessage(msg.text, "other", false); 
+          addMessage(msg.text, "other"); 
         }
       });
       return;
@@ -109,18 +107,13 @@ function connectWebSocket(roomName) {
       return;
     }
     
-    // 💬 リアルタイムのチャット受信
+    // 💬 リアルタイムのチャット受信（完全受領方式）
     if (data.type === "chat") {
-      // 💡 サーバーからメッセージ（＝通信が生きている証拠）が届いたら、
-      // 自分が今送ったばかりの「送信中...」のメッセージをすべて一気に「送信完了」にする！
-      confirmAllPendingMessages();
-
-      // 💡 サーバー側が発言者を判定する名前（username）を返してくれて、かつそれが自分以外なら左側に出す
-      if (data.username && myName && data.username.trim() !== myName.trim()) {
-        addMessage(data.text, "other", false);
-      } else if (!data.username) {
-        // 万が一サーバーが名前を返さない古い仕様の場合、届いたものは相手からのメッセージとして扱う
-        addMessage(data.text, "other", false);
+      // 💡 サーバーから跳ね返ってきた名前が「自分」なら右側、それ以外なら左側に出す！
+      if (data.username && myName && data.username.trim() === myName.trim()) {
+        addMessage(data.text, "me");
+      } else {
+        addMessage(data.text, "other");
       }
       return;
     }
@@ -153,17 +146,6 @@ function connectWebSocket(roomName) {
   ws.addEventListener("close", () => {
     stopHeartbeat(); 
 
-    // 🚨 【幽霊メッセージの完全排除】
-    // サーバーが瞬停して届かなかったメッセージがあれば、即座に「送信失敗」と画面に赤字で明示する！
-    unconfirmedBubbles.forEach((item) => {
-      item.bubble.style.background = "#ff3b30"; // 吹き出しを赤くする
-      if (item.statusEl) {
-        item.statusEl.textContent = "❌ 送信失敗（届いていません）";
-        item.statusEl.style.color = "#ff3b30";
-      }
-    });
-    unconfirmedBubbles = []; // クリア
-
     if (myName) {
       addSystem("🔄 通信が一時的に途切れました。自動再接続しています...");
       setTimeout(() => { connectWebSocket(roomName); }, 1000); 
@@ -174,29 +156,15 @@ function connectWebSocket(roomName) {
   });
 }
 
-// 💡 送信中メッセージを確定させる関数
-function confirmAllPendingMessages() {
-  unconfirmedBubbles.forEach((item) => {
-    item.bubble.style.opacity = "1"; // 明るくする
-    if (item.statusEl) item.statusEl.remove(); // 「送信中...」を消す
-  });
-  unconfirmedBubbles = [];
-}
-
 // ==========================================
 // 💬 メッセージ表示・送信ロジック
 // ==========================================
-function addMessage(text, who = "me", isPending = false) {
+function addMessage(text, who = "me") {
   const row = document.createElement("div");
   row.className = "message-row " + (who === "me" ? "me" : "other");
 
   const bubble = document.createElement("div");
   bubble.className = "bubble " + (who === "me" ? "me" : "other");
-  
-  // 💡 送信中の場合は一時的に薄暗くする
-  if (who === "me" && isPending) {
-    bubble.style.opacity = "0.6";
-  }
   
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const escapedText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -207,26 +175,10 @@ function addMessage(text, who = "me", isPending = false) {
   });
 
   bubble.innerHTML = linkedHtml;
-  row.appendChild(bubble);
-
-  let statusEl = null;
-  // 💡 送信中テキストの追加
-  if (who === "me" && isPending) {
-    statusEl = document.createElement("div");
-    statusEl.className = "msg-status";
-    statusEl.style.fontSize = "10px";
-    statusEl.style.color = "#8e8e93";
-    statusEl.style.marginTop = "2px";
-    statusEl.style.textAlign = "right";
-    statusEl.textContent = "送信中...";
-    row.appendChild(statusEl);
-  }
   
+  row.appendChild(bubble);
   messagesEl.appendChild(row);
   messagesEl.scrollTop = messagesEl.scrollHeight;
-
-  // 💡 未確定リストに突っ込むためのオブジェクトを返す
-  return { bubble, statusEl };
 }
 
 function addSystem(text) {
@@ -246,34 +198,11 @@ sendBtn.addEventListener("click", () => {
     return;
   }
 
-  // ① まず画面に「送信中...」の状態で自分の吹き出しを出す
-  const msgItem = addMessage(text, "me", true);
-  unconfirmedBubbles.push(msgItem);
-
-  try {
-    // ② サーバーへパケットを送信
-    ws.send(JSON.stringify({ type: "chat", text }));
-
-    // ③ 💡【物理チェック】
-    // ブラウザの送信バッファ（待ちデータ）が0＝「今100%完全に端末からパケットが飛び立った」ら、
-    // サーバーが正常な時は一瞬（数ミリ秒）で0になるので、その場合はすぐに「送信中...」を消して確定させる！
-    setTimeout(() => {
-      if (ws && ws.bufferedAmount === 0 && ws.readyState === WebSocket.OPEN) {
-        // 瞬停中でなければ、ここで即座にパッと明るくなって送信完了になります！
-        msgItem.bubble.style.opacity = "1";
-        if (msgItem.statusEl) msgItem.statusEl.remove();
-        // リストから除外
-        unconfirmedBubbles = unconfirmedBubbles.filter(item => item !== msgItem);
-      }
-    }, 50);
-
-  } catch (err) {
-    // 万が一送信エラーが出たら即座に失敗にする
-    msgItem.bubble.style.background = "#ff3b30";
-    if (msgItem.statusEl) msgItem.statusEl.textContent = "❌ 送信失敗";
-  }
-  
+  // 💡 【超重要】ここではまだ画面にメッセージを出さない！
+  // サーバーに無事到達して、オウム返しが戻ってきたときだけ画面に表示される。
+  ws.send(JSON.stringify({ type: "chat", text }));
   inputEl.value = "";
+  
   resetDisconnectTimer(); 
 });
 

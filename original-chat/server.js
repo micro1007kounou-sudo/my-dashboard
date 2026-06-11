@@ -31,7 +31,6 @@ const server = http.createServer((req, res) => {
 const wss = new WebSocketServer({ server });
 
 // 部屋ごとの接続と過去ログを管理するオブジェクト
-// 構造イメージ: rooms[部屋名] = { members: [ {ws, name} ], history: [ {name, text} ] }
 const rooms = {};
 
 wss.on("connection", (ws) => {
@@ -53,7 +52,6 @@ wss.on("connection", (ws) => {
         currentRoom = data.room;
         currentName = data.username;
 
-        // 部屋がまだ存在しない場合は、新しく「メンバー用配列」と「過去ログ用配列」のセットを作る
         if (!rooms[currentRoom]) {
           rooms[currentRoom] = {
             members: [],
@@ -74,7 +72,7 @@ wss.on("connection", (ws) => {
         // 自分に歓迎メッセージ
         ws.send(JSON.stringify({ type: "system", text: `${currentRoom} の部屋に入室しました。` }));
 
-        // ✨【新規】入室してきた本人に、この部屋に溜まっている過去ログ（最新50件）を一括送信！
+        // ✨入室してきた本人に、この部屋に溜まっている過去ログ（最新50件）を一括送信！
         const roomData = rooms[currentRoom];
         if (roomData.history.length > 0) {
           ws.send(JSON.stringify({
@@ -104,7 +102,7 @@ wss.on("connection", (ws) => {
       if (data.type === "chat" && currentRoom) {
         const roomData = rooms[currentRoom];
         if (roomData) {
-          // ✨【新規】誰が何を発言したかを、部屋の過去ログ配列に記録する
+          // ✨誰が何を発言したかを、部屋の過去ログ配列に記録する
           roomData.history.push({ username: currentName, text: data.text });
 
           // 過去ログが溜まりすぎないよう、最新50件を超えたら古いものを自動削除
@@ -112,11 +110,15 @@ wss.on("connection", (ws) => {
             roomData.history.shift();
           }
 
-          // 相手にのみ転送（自分以外）
+          // 💡【修正：オウム返し仕様】
+          // 自分も含めた「全員」にメッセージを転送します。
+          // 誰の発言か区別できるように、usernameに発言者の名前を載せて送ります。
           roomData.members.forEach((client) => {
-            if (client.ws !== ws) {
-              client.ws.send(JSON.stringify({ type: "chat", text: data.text }));
-            }
+            client.ws.send(JSON.stringify({ 
+              type: "chat", 
+              username: currentName, 
+              text: data.text 
+            }));
           });
         }
       }
@@ -129,14 +131,11 @@ wss.on("connection", (ws) => {
   // 【切断処理】
   ws.on("close", () => {
     if (currentRoom && rooms[currentRoom]) {
-      // 離脱したユーザーを配列から除外
       rooms[currentRoom].members = rooms[currentRoom].members.filter((client) => client.ws !== ws);
 
-      // ✨【安全対策】部屋に誰もいなくなったら（0人）、メモリ節約と防犯のため、過去ログごと部屋を完全消去
       if (rooms[currentRoom].members.length === 0) {
         delete rooms[currentRoom];
       } else {
-        // まだ1人残っている場合は、通常通り「未接続」にステータスを戻してアナウンスを送る
         const remainingClient = rooms[currentRoom].members[0];
         remainingClient.ws.send(JSON.stringify({ type: "roominfo", otherName: "未接続" }));
         remainingClient.ws.send(JSON.stringify({ type: "system", text: `${currentName} さんが退室しました。` }));
