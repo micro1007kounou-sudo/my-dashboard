@@ -75,7 +75,7 @@ joinBtn.addEventListener("click", () => {
 });
 
 // ==========================================
-// 🔌 WebSocketの接続・通信処理（受領メッセージ方式版）
+// 🔌 WebSocketの接続・通信処理
 // ==========================================
 function connectWebSocket() {
   const WS_URL = "wss://group-chat-w9fd.onrender.com"; 
@@ -107,7 +107,7 @@ function connectWebSocket() {
       return;
     }
 
-    // 💬 リアルタイムのチャット受信
+    // 💬 リアルタイムのチャット受信（オウム返しを仕分け）
     if (data.type === "chat") {
       // 💡 サーバーから跳ね返ってきた名前が「自分」なら右側（me）、他人なら左側（other）に出す！
       if (myName && data.username && data.username.trim() === myName.trim()) {
@@ -119,7 +119,6 @@ function connectWebSocket() {
     }
   });
 
-  // 🔌 接続完了時
   ws.addEventListener("open", () => {
     addSystem("🟢 サーバーに接続しました。");
     
@@ -143,16 +142,12 @@ function connectWebSocket() {
     stopHeartbeat(); 
   });
   
-  // 🚨 切断時
   ws.addEventListener("close", () => {
     stopHeartbeat(); 
 
     if (myName) {
       addSystem("🔄 通信が一時的に途切れました。自動再接続しています...");
-      
-      setTimeout(() => {
-        connectWebSocket(); 
-      }, 1000); 
+      setTimeout(() => { connectWebSocket(); }, 1000); 
     } else {
       const overlay = document.getElementById("loading-overlay");
       if (overlay) overlay.style.display = "none";
@@ -213,8 +208,7 @@ sendBtn.addEventListener("click", () => {
     return;
   }
 
-  // 💡 【幽霊防止】ここでは画面に出さずサーバーに送るだけ！
-  // 無事に届いて跳ね返ってきたら、上のメッセージ受信（chat）処理経由で青い泡が出ます。
+  // 💡 ここでは画面に出さずサーバーに送るだけ！
   ws.send(JSON.stringify({ type: "chat", text }));
   inputEl.value = "";
   

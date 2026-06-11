@@ -30,9 +30,9 @@ const server = http.createServer((req, res) => {
 // 2. WebSocketサーバーの設定（グループチャット用に拡張）
 const wss = new WebSocketServer({ server });
 
-// 🛠️ 部屋分けを無くし、全員が入る1つの「広場（配列）」にします
+// 部屋分けを無くし、全員が入る1つの「広場（配列）」にします
 let participants = [];
-let msgHistory = []; // ✨【新規】直近の過去ログを一時保存する箱（最大50件）
+let msgHistory = []; // ✨直近の過去ログを一時保存する箱（最大50件）
 
 // 全員に現在の「オンライン人数」と「参加者名リスト」を伝える共通関数
 function broadcastRoomInfo() {
@@ -77,7 +77,7 @@ wss.on("connection", (ws) => {
           text: `グループチャットに入室しました。現在の参加者はあなたを含めて ${participants.length} 人です。` 
         }));
 
-        // ✨【新規】入室してきた本人に、溜まっている過去ログ（最新50件）を一括送信！
+        // ✨入室してきた本人に、溜まっている過去ログ（最新50件）を一括送信！
         if (msgHistory.length > 0) {
           ws.send(JSON.stringify({
             type: "history",
@@ -99,7 +99,7 @@ wss.on("connection", (ws) => {
 
       // 【チャットメッセージ転送処理】
       if (data.type === "chat") {
-        // ✨【新規】送られてきたメッセージを過去ログ配列に追加する
+        // ✨送られてきたメッセージを過去ログ配列に追加する
         const newMsg = { username: currentName, text: data.text };
         msgHistory.push(newMsg);
 
@@ -108,9 +108,11 @@ wss.on("connection", (ws) => {
           msgHistory.shift(); 
         }
 
-        // 発言者の「name」を添えて全員（自分以外）に転送
+        // 💡【修正：オウム返し仕様】
+        // 自分も含めた「参加者全員」にメッセージを転送します。
+        // client.ws !== ws のガードを取り外しました。
         participants.forEach((client) => {
-          if (client.ws !== ws && client.ws.readyState === client.ws.OPEN) {
+          if (client.ws.readyState === client.ws.OPEN) {
             client.ws.send(JSON.stringify({ 
               type: "chat", 
               username: currentName, 
@@ -125,22 +127,20 @@ wss.on("connection", (ws) => {
     }
   });
 
-// 【切断処理】
+  // 【切断処理】
   ws.on("close", () => {
     if (currentName) {
       // 離脱したユーザーを配列から除外
       participants = participants.filter((client) => client.ws !== ws);
 
-      // ✨【修正＆強化】人数に応じたシステムメッセージの出し分け
+      // ✨人数に応じたシステムメッセージの出し分け
       if (participants.length === 0) {
         // 誰もいなくなったら、予定通り過去ログの箱を綺麗に全消去
         msgHistory = [];
       } else if (participants.length === 1) {
-        // 👇 ★【新規】残った人が「ちょうど1人」になった場合
-        // 最後に残った1人の画面にだけ、特別な警告メッセージを送る
+        // 残った人が「ちょうど1人」になった場合
         const lastClient = participants[0];
         if (lastClient.ws.readyState === lastClient.ws.OPEN) {
-          // 退室した人のアナウンスも一応送りつつ…
           lastClient.ws.send(JSON.stringify({ 
             type: "system", 
             text: `${currentName} さんが退室しました。` 
