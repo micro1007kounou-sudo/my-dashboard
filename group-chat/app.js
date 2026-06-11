@@ -228,3 +228,15 @@ document.addEventListener("visibilitychange", () => {
     }
   }
 });
+
+// ==========================================
+// ⌨️ グループチャット用：Enterキーで送信する修正
+// ==========================================
+// 💡 HTMLのID「message-input」に直接イベントを覚えさせます！
+document.getElementById("message-input").addEventListener("keydown", (e) => {
+  // 💡 スマホの「確定（Enter）」での誤送信を防ぎ、純粋な「改行・送信」のリターンキーだけをキャッチ
+  if (e.key === "Enter" && !e.isComposing) {
+    e.preventDefault(); // 本来の改行をキャンセルして
+    sendBtn.click();    // 送信ボタンを代わりにクリック！
+  }
+});
