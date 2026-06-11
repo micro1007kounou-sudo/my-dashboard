@@ -10,6 +10,8 @@ const sendBtn = document.getElementById("sendBtn");
 
 let ws;
 let myName = "";
+// 💡 送信中（承認待ち）のメッセージを一時保管するリスト
+let pendingMessages = new Map();
 
 // ==========================================
 // 🕒 10時間無操作タイマー ＆ 切断防止（ピンポン）の設定
@@ -43,7 +45,7 @@ function startHeartbeat() {
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: "ping" })); 
     }
-  }, 30000); // 30秒ごと
+  }, 30000); 
 }
 
 function stopHeartbeat() {
@@ -77,7 +79,7 @@ joinBtn.addEventListener("click", () => {
 });
 
 // ==========================================
-// 🔌 WebSocketの接続・通信処理（受領メッセージ方式版）
+// 🔌 WebSocketの接続・通信処理
 // ==========================================
 function connectWebSocket(roomName) {
   const WS_URL = "wss://orijinal-chat.onrender.com"; 
@@ -109,17 +111,30 @@ function connectWebSocket(roomName) {
     
     // 💬 リアルタイムのチャット受信
     if (data.type === "chat") {
-      // 💡 サーバーから跳ね返ってきた発言が「自分の名前」なら右側、違えば左側に出す！
-      if (myName && data.username && data.username.trim() === myName.trim()) {
-        addMessage(data.text, "me");
-      } else {
+      // 💡 もし自分が送信したメッセージ（IDが一致するもの）が返ってきたら
+      if (data.msgId && pendingMessages.has(data.msgId)) {
+        const bubbleEl = pendingMessages.get(data.msgId);
+        bubbleEl.style.opacity = "1"; // 💡 薄暗さを解除して「送信完了」を証明！
+        const statusEl = bubbleEl.parentNode.querySelector(".msg-status");
+        if (statusEl) statusEl.remove(); // 「送信中...」の文字を消す
+        pendingMessages.delete(data.msgId); // 保管庫から削除
+        return;
+      }
+
+      // 💡 サーバーから「名前付き」で跳ね返ってきた場合、名前が自分以外なら相手の発言
+      if (data.username && myName && data.username.trim() !== myName.trim()) {
+        addMessage(data.text, "other");
+        return;
+      }
+      
+      // 💡 万が一サーバーが名前を返さず、かつ自分のIDでもないものは純粋に相手からのメッセージ
+      if (!data.msgId) {
         addMessage(data.text, "other");
       }
       return;
     }
   });
 
-  // 🔌 接続完了時
   ws.addEventListener("open", () => {
     addSystem("🟢 サーバーに接続しました。");
     
@@ -144,16 +159,20 @@ function connectWebSocket(roomName) {
     stopHeartbeat(); 
   });
   
-  // 🚨 切断時
   ws.addEventListener("close", () => {
     stopHeartbeat(); 
 
+    // 🚨 切断されたら、まだ送信完了していないメッセージを「送信失敗」にする
+    pendingMessages.forEach((bubbleEl) => {
+      bubbleEl.style.background = "#ff3b30"; // 赤色にする
+      const statusEl = bubbleEl.parentNode.querySelector(".msg-status");
+      if (statusEl) statusEl.textContent = "❌ 送信失敗（未到達）";
+    });
+    pendingMessages.clear();
+
     if (myName) {
       addSystem("🔄 通信が一時的に途切れました。自動再接続しています...");
-      
-      setTimeout(() => {
-        connectWebSocket(roomName); 
-      }, 1000); 
+      setTimeout(() => { connectWebSocket(roomName); }, 1000); 
     } else {
       const overlay = document.getElementById("loading-overlay");
       if (overlay) overlay.style.display = "none";
@@ -164,19 +183,21 @@ function connectWebSocket(roomName) {
 // ==========================================
 // 💬 メッセージ表示・送信ロジック
 // ==========================================
-function addMessage(text, who = "me") {
+function addMessage(text, who = "me", msgId = null) {
   const row = document.createElement("div");
   row.className = "message-row " + (who === "me" ? "me" : "other");
 
   const bubble = document.createElement("div");
   bubble.className = "bubble " + (who === "me" ? "me" : "other");
   
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  // 💡 自分が送信中のものは、確認が取れるまで一時的に薄暗く（opacity 0.5）しておく
+  if (who === "me" && msgId) {
+    bubble.style.opacity = "0.5";
+    bubble.style.transition = "opacity 0.2s ease";
+  }
   
-  const escapedText = text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const escapedText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     
   const linkedHtml = escapedText.replace(urlRegex, (url) => {
     const linkColor = who === 'me' ? '#ffffff' : '#007aff';
@@ -184,10 +205,24 @@ function addMessage(text, who = "me") {
   });
 
   bubble.innerHTML = linkedHtml;
-  
   row.appendChild(bubble);
+
+  // 💡 送信中テキストの追加
+  if (who === "me" && msgId) {
+    const status = document.createElement("div");
+    status.className = "msg-status";
+    status.style.fontSize = "10px";
+    status.style.color = "#8e8e93";
+    status.style.marginTop = "2px";
+    status.style.textAlign = "right";
+    status.textContent = "送信中...";
+    row.appendChild(status);
+  }
+  
   messagesEl.appendChild(row);
   messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  return bubble; // 💡 後から状態を変えられるように要素を返す
 }
 
 function addSystem(text) {
@@ -200,18 +235,24 @@ function addSystem(text) {
 
 sendBtn.addEventListener("click", () => {
   const text = inputEl.value.trim();
-  if (!text || !ws) return;
+  if (!text) return;
 
   if (!ws || ws.readyState !== WebSocket.OPEN) {
     alert("通信が切断されているため、メッセージを送れません。再接続をお待ちください。");
     return;
   }
 
-  // 💡 【幽霊防止】ここでは addMessage せず、サーバーに送るだけ！
-  // サーバーに無事届いて「オウム返し」が来たら画面に青い泡が出ます。
-  ws.send(JSON.stringify({ type: "chat", text }));
-  inputEl.value = "";
+  // 💡 クライアント側で一意のメッセージIDを生成（時間＋乱数）
+  const msgId = "msg-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+
+  // 💡 画面に「送信中状態」で表示し、要素を保管庫（Map）に記憶させる
+  const bubbleElement = addMessage(text, "me", msgId);
+  pendingMessages.set(msgId, bubbleElement);
+
+  // 💡 メッセージIDを乗せてサーバーへ送信
+  ws.send(JSON.stringify({ type: "chat", text, msgId }));
   
+  inputEl.value = "";
   resetDisconnectTimer(); 
 });
 
