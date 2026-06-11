@@ -202,17 +202,20 @@ function addSystem(text) {
 
 sendBtn.addEventListener("click", () => {
   const text = inputEl.value.trim();
-  if (!text || !ws) return;
+  if (!text) return;
 
+  // 🚨 【超重要ガード】WebSocketが「完全に繋がっている状態（OPEN）」のときだけ送信を許可する！
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    alert("通信が切断されているため、メッセージを送れません。再接続をお待ちください。");
+    return;
+  }
+
+  // 💡 繋がっていることが確定してから、自分の画面に出してサーバーに送る
   addMessage(text, "me");
   ws.send(JSON.stringify({ type: "chat", text }));
   inputEl.value = "";
   
   resetDisconnectTimer(); 
-});
-
-inputEl.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") sendBtn.click();
 });
 
 // ==========================================
