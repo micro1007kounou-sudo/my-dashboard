@@ -9,6 +9,7 @@ const sendBtn = document.getElementById("send-btn");
 
 let ws;
 let myName = "";
+let isReconnectMode = false; // 💡 初回入室か自動再接続かをスマートに判別するフラグ
 
 // ==========================================
 // 🕒 無操作タイマー ＆ 切断防止（ピンポン）の設定
@@ -72,11 +73,12 @@ joinBtn.addEventListener("click", () => {
   
   document.getElementById("header-user-info").textContent = "あなた: " + myName;
 
+  isReconnectMode = false; // 💡 手動での初回入室なのでフラグをリセット
   connectWebSocket();
 });
 
 // ==========================================
-// 🔌 WebSocketの接続・通信処理（最強・自動再接続＆タイポ修正版）
+// 🔌 WebSocketの接続・通信処理（完璧2行メッセージ版）
 // ==========================================
 function connectWebSocket() {
   const WS_URL = "wss://group-chat-w9fd.onrender.com"; 
@@ -108,7 +110,7 @@ function connectWebSocket() {
 
     // ⚙️ システムメッセージ
     if (data.type === "system") {
-      addSystem(data.text);
+      addSystem(data.text); // 💡 他の人が入ってきた時の「〇〇さんが参加しました」はここから出ます
       return;
     }
 
@@ -119,9 +121,14 @@ function connectWebSocket() {
     }
   });
 
-  // 2. 🔌 接続完了時の処理（網を張り終えた後に、満を持して入室届を送信）
+  // 2. 🔌 接続完了時の処理（2行目のメッセージ）
   ws.addEventListener("open", () => {
-    addSystem("サーバーに接続しました。入室中...");
+    addSystem("🟢 サーバーに接続しました。");
+    
+    // 💡 初めてロビーに入ったときだけ表示して、自動再接続のときは非表示にする
+    if (!isReconnectMode) {
+      addSystem("🚪「ロビー」の部屋に入室しました。");
+    }
     
     const overlay = document.getElementById("loading-overlay");
     if (overlay) {
@@ -146,13 +153,14 @@ function connectWebSocket() {
     stopHeartbeat(); 
   });
   
-  // 4. 🚨 切断時（★グループチャットも裏で自動繋ぎ直し！）
+  // 4. 🚨 切断時（1行目のメッセージ）
   ws.addEventListener("close", () => {
     stopHeartbeat(); 
 
     // 💡 すでに入室済み（名前がある）なら、ログイン画面に戻さず裏で繋ぎ直す！
     if (myName) {
-      addSystem("通信が一時的に途切れました。自動再接続しています...");
+      addSystem("🔄 通信が一時的に途切れました。自動再接続しています...");
+      isReconnectMode = true; // 💡 次のopenイベントは「再接続モード」として動かす
       
       setTimeout(() => {
         // 🚀 保管してある myName をそのまま使って自動で再接続！
@@ -184,7 +192,7 @@ function addMessage(text, who = "me", senderName = "") {
   
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   
-  // 💡 特殊文字のエスケープ（「&gt bridge;」になっていたタイポを修正！）
+  // 💡 特殊文字のエスケープ
   const escapedText = text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -231,7 +239,7 @@ inputEl.addEventListener("keydown", (e) => {
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
     if (myName && (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
-      addSystem("スリープからの復帰を検出しました。再接続しています...");
+      isReconnectMode = true; // 💡 スリープ復帰も再接続モードとして動かす
       connectWebSocket(); 
     }
   }

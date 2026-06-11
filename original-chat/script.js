@@ -10,6 +10,7 @@ const sendBtn = document.getElementById("sendBtn");
 
 let ws;
 let myName = "";
+let isReconnectMode = false; // 💡 初回入室か自動再接続かをスマートに判別するフラグ
 
 // ==========================================
 // 🕒 10時間無操作タイマー ＆ 切断防止（ピンポン）の設定
@@ -80,12 +81,13 @@ joinBtn.addEventListener("click", () => {
   document.getElementById("selfName").textContent = myName;
   document.getElementById("roomName").textContent = roomName;
 
+  isReconnectMode = false; // 💡 手動での初回入室なのでフラグをリセット
   // 🔌 WebSocketの接続を開始
   connectWebSocket(roomName);
 });
 
 // ==========================================
-// 🔌 WebSocketの接続・通信処理（最強・自動再接続版）
+// 🔌 WebSocketの接続・通信処理（完璧2行メッセージ版）
 // ==========================================
 function connectWebSocket(roomName) {
   const WS_URL = "wss://orijinal-chat.onrender.com"; 
@@ -113,7 +115,7 @@ function connectWebSocket(roomName) {
     }
     
     if (data.type === "system") {
-      addSystem(data.text);
+      addSystem(data.text); // 💡 相手が入ってきた時の「〇〇さんが参加しました」はここから出ます
       return;
     }
     
@@ -123,9 +125,14 @@ function connectWebSocket(roomName) {
     }
   });
 
-  // 2. 🔌 接続完了時の処理（網を張り終えた後に、入室届を出す！）
+  // 2. 🔌 接続完了時の処理（2行目のメッセージ）
   ws.addEventListener("open", () => {
-    addSystem("サーバーに接続しました。認証中...");
+    addSystem("🟢 サーバーに接続しました。");
+    
+    // 💡 初めて部屋に入ったときだけ表示して、自動再接続のときは非表示にする
+    if (!isReconnectMode) {
+      addSystem(`🚪「${roomName}」の部屋に入室しました。`);
+    }
     
     // サーバーが目覚めたのでグレーアウトを消し去る
     const overlay = document.getElementById("loading-overlay");
@@ -152,13 +159,14 @@ function connectWebSocket(roomName) {
     stopHeartbeat(); 
   });
   
-  // 4. 🚨 切断時（★ここを自動再接続にアップデート！）
+  // 4. 🚨 切断時（1行目のメッセージ）
   ws.addEventListener("close", () => {
     stopHeartbeat(); 
 
     // 💡 すでに入室済み（名前がある）なら、ログイン画面に戻さず裏で繋ぎ直す！
     if (myName) {
-      addSystem("通信が一時的に途切れました。自動再接続しています...");
+      addSystem("🔄 通信が一時的に途切れました。自動再接続しています...");
+      isReconnectMode = true; // 💡 次のopenイベントは「再接続モード」として動かす
       
       setTimeout(() => {
         // 🚀 保管してある roomName を使って、自動で再接続を実行！
@@ -234,7 +242,7 @@ inputEl.addEventListener("keydown", (e) => {
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
     if (myName && (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
-      addSystem("スリープからの復帰を検出しました。再接続しています...");
+      isReconnectMode = true; // 💡 スリープ復帰も再接続モードとして動かす
       const roomName = roomInput.value.trim();
       connectWebSocket(roomName); // 再接続を実行
     }
