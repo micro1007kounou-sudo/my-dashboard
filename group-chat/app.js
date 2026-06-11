@@ -75,7 +75,7 @@ joinBtn.addEventListener("click", () => {
 });
 
 // ==========================================
-// 🔌 WebSocketの接続・通信処理
+// 🔌 WebSocketの接続・通信処理（受領メッセージ方式版）
 // ==========================================
 function connectWebSocket() {
   const WS_URL = "wss://group-chat-w9fd.onrender.com"; 
@@ -103,12 +103,18 @@ function connectWebSocket() {
     }
 
     if (data.type === "system") {
-      addSystem(data.text); // 💡 サーバーからのメッセージ（参加・退室通知など）がそのまま出ます
+      addSystem(data.text); 
       return;
     }
 
+    // 💬 リアルタイムのチャット受信
     if (data.type === "chat") {
-      addMessage(data.text, "other", data.username);
+      // 💡 サーバーから跳ね返ってきた名前が「自分」なら右側（me）、他人なら左側（other）に出す！
+      if (myName && data.username && data.username.trim() === myName.trim()) {
+        addMessage(data.text, "me");
+      } else {
+        addMessage(data.text, "other", data.username);
+      }
       return;
     }
   });
@@ -116,8 +122,6 @@ function connectWebSocket() {
   // 🔌 接続完了時
   ws.addEventListener("open", () => {
     addSystem("🟢 サーバーに接続しました。");
-    
-    // 💡 クライアント独自の「ロビーに入室しました」メッセージは完全に削除しました
     
     const overlay = document.getElementById("loading-overlay");
     if (overlay) {
@@ -204,14 +208,13 @@ sendBtn.addEventListener("click", () => {
   const text = inputEl.value.trim();
   if (!text) return;
 
-  // 🚨 【超重要ガード】WebSocketが「完全に繋がっている状態（OPEN）」のときだけ送信を許可する！
   if (!ws || ws.readyState !== WebSocket.OPEN) {
     alert("通信が切断されているため、メッセージを送れません。再接続をお待ちください。");
     return;
   }
 
-  // 💡 繋がっていることが確定してから、自分の画面に出してサーバーに送る
-  addMessage(text, "me");
+  // 💡 【幽霊防止】ここでは画面に出さずサーバーに送るだけ！
+  // 無事に届いて跳ね返ってきたら、上のメッセージ受信（chat）処理経由で青い泡が出ます。
   ws.send(JSON.stringify({ type: "chat", text }));
   inputEl.value = "";
   
@@ -232,11 +235,9 @@ document.addEventListener("visibilitychange", () => {
 // ==========================================
 // ⌨️ グループチャット用：Enterキーで送信する修正
 // ==========================================
-// 💡 HTMLのID「message-input」に直接イベントを覚えさせます！
 document.getElementById("message-input").addEventListener("keydown", (e) => {
-  // 💡 スマホの「確定（Enter）」での誤送信を防ぎ、純粋な「改行・送信」のリターンキーだけをキャッチ
   if (e.key === "Enter" && !e.isComposing) {
-    e.preventDefault(); // 本来の改行をキャンセルして
-    sendBtn.click();    // 送信ボタンを代わりにクリック！
+    e.preventDefault(); 
+    sendBtn.click();    
   }
 });

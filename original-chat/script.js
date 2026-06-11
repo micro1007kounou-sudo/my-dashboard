@@ -77,7 +77,7 @@ joinBtn.addEventListener("click", () => {
 });
 
 // ==========================================
-// 🔌 WebSocketの接続・通信処理
+// 🔌 WebSocketの接続・通信処理（受領メッセージ方式版）
 // ==========================================
 function connectWebSocket(roomName) {
   const WS_URL = "wss://orijinal-chat.onrender.com"; 
@@ -103,12 +103,18 @@ function connectWebSocket(roomName) {
     }
     
     if (data.type === "system") {
-      addSystem(data.text); // 💡 サーバーからの入室メッセージ等はここからそのまま流れます
+      addSystem(data.text); 
       return;
     }
     
+    // 💬 リアルタイムのチャット受信
     if (data.type === "chat") {
-      addMessage(data.text, "other");
+      // 💡 サーバーから跳ね返ってきた発言が「自分の名前」なら右側、違えば左側に出す！
+      if (myName && data.username && data.username.trim() === myName.trim()) {
+        addMessage(data.text, "me");
+      } else {
+        addMessage(data.text, "other");
+      }
       return;
     }
   });
@@ -116,8 +122,6 @@ function connectWebSocket(roomName) {
   // 🔌 接続完了時
   ws.addEventListener("open", () => {
     addSystem("🟢 サーバーに接続しました。");
-    
-    // 💡 クライアント独自の「部屋に入室しました」メッセージは完全に削除しました
     
     const overlay = document.getElementById("loading-overlay");
     if (overlay) {
@@ -196,16 +200,15 @@ function addSystem(text) {
 
 sendBtn.addEventListener("click", () => {
   const text = inputEl.value.trim();
-  if (!text) return;
+  if (!text || !ws) return;
 
-  // 🚨 【超重要ガード】WebSocketが「完全に繋がっている状態（OPEN）」のときだけ送信を許可する！
   if (!ws || ws.readyState !== WebSocket.OPEN) {
     alert("通信が切断されているため、メッセージを送れません。再接続をお待ちください。");
     return;
   }
 
-  // 💡 繋がっていることが確定してから、自分の画面に出してサーバーに送る
-  addMessage(text, "me");
+  // 💡 【幽霊防止】ここでは addMessage せず、サーバーに送るだけ！
+  // サーバーに無事届いて「オウム返し」が来たら画面に青い泡が出ます。
   ws.send(JSON.stringify({ type: "chat", text }));
   inputEl.value = "";
   
