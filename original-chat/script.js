@@ -1,17 +1,18 @@
 const loginScreen = document.getElementById("login-screen");
-const chatScreen = document.getElementById("chat-container");
-const usernameInput = document.getElementById("username-input");
-const joinBtn = document.getElementById("join-btn");
+const chatScreen = document.getElementById("chat-screen");
+const usernameInput = document.getElementById("usernameInput");
+const roomInput = document.getElementById("roomInput");
+const joinBtn = document.getElementById("joinBtn");
 
 const messagesEl = document.getElementById("messages");
-const inputEl = document.getElementById("message-input");
-const sendBtn = document.getElementById("send-btn");
+const inputEl = document.getElementById("msgInput");
+const sendBtn = document.getElementById("sendBtn");
 
 let ws;
 let myName = "";
 
 // ==========================================
-// 🕒 無操作タイマー ＆ 切断防止（ピンポン）の設定
+// 🕒 10時間無操作タイマー ＆ 切断防止（ピンポン）の設定
 // ==========================================
 let disconnectTimer = null;
 let pingInterval = null; 
@@ -42,7 +43,7 @@ function startHeartbeat() {
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: "ping" })); 
     }
-  }, 30000); 
+  }, 30000); // 30秒ごと
 }
 
 function stopHeartbeat() {
@@ -54,9 +55,10 @@ function stopHeartbeat() {
 // ==========================================
 joinBtn.addEventListener("click", () => {
   myName = usernameInput.value.trim();
+  const roomName = roomInput.value.trim();
 
-  if (!myName) {
-    alert("名前を入力してください。");
+  if (!myName || !roomName) {
+    alert("名前と合言葉を入力してください。");
     return;
   }
 
@@ -68,17 +70,17 @@ joinBtn.addEventListener("click", () => {
 
   loginScreen.style.display = "none";
   chatScreen.style.display = "block";
-  
-  document.getElementById("header-user-info").textContent = "あなた: " + myName;
+  document.getElementById("selfName").textContent = myName;
+  document.getElementById("roomName").textContent = roomName;
 
-  connectWebSocket();
+  connectWebSocket(roomName);
 });
 
 // ==========================================
 // 🔌 WebSocketの接続・通信処理
 // ==========================================
-function connectWebSocket() {
-  const WS_URL = "wss://group-chat-w9fd.onrender.com"; 
+function connectWebSocket(roomName) {
+  const WS_URL = "wss://orijinal-chat.onrender.com"; 
   ws = new WebSocket(WS_URL);
 
   ws.addEventListener("message", (event) => {
@@ -87,28 +89,26 @@ function connectWebSocket() {
     if (data.type === "history") {
       data.messages.forEach((msg) => {
         if (myName && msg.username && msg.username.trim() === myName.trim()) {
-          addMessage(msg.text, "me");
+          addMessage(msg.text, "me"); 
         } else {
-          addMessage(msg.text, "other", msg.username);
+          addMessage(msg.text, "other"); 
         }
       });
       return;
     }
 
     if (data.type === "roominfo") {
-      const nameListText = data.names.join("、");
-      document.getElementById("header-online-count").innerHTML = 
-        `<span style="color: #4caf50; font-weight: bold; margin-right: 2px;">●</span>オンライン: ${data.count}人 ( ${nameListText} )`;
+      document.getElementById("otherName").textContent = data.otherName || "未接続";
       return;
     }
-
+    
     if (data.type === "system") {
-      addSystem(data.text); // 💡 サーバーからのメッセージ（参加・退室通知など）がそのまま出ます
+      addSystem(data.text); // 💡 サーバーからの入室メッセージ等はここからそのまま流れます
       return;
     }
-
+    
     if (data.type === "chat") {
-      addMessage(data.text, "other", data.username);
+      addMessage(data.text, "other");
       return;
     }
   });
@@ -117,7 +117,7 @@ function connectWebSocket() {
   ws.addEventListener("open", () => {
     addSystem("🟢 サーバーに接続しました。");
     
-    // 💡 クライアント独自の「ロビーに入室しました」メッセージは完全に削除しました
+    // 💡 クライアント独自の「部屋に入室しました」メッセージは完全に削除しました
     
     const overlay = document.getElementById("loading-overlay");
     if (overlay) {
@@ -130,7 +130,8 @@ function connectWebSocket() {
 
     ws.send(JSON.stringify({
       type: "join",
-      username: myName
+      username: myName,
+      room: roomName
     }));
   });
 
@@ -147,7 +148,7 @@ function connectWebSocket() {
       addSystem("🔄 通信が一時的に途切れました。自動再接続しています...");
       
       setTimeout(() => {
-        connectWebSocket(); 
+        connectWebSocket(roomName); 
       }, 1000); 
     } else {
       const overlay = document.getElementById("loading-overlay");
@@ -159,16 +160,9 @@ function connectWebSocket() {
 // ==========================================
 // 💬 メッセージ表示・送信ロジック
 // ==========================================
-function addMessage(text, who = "me", senderName = "") {
+function addMessage(text, who = "me") {
   const row = document.createElement("div");
   row.className = "message-row " + (who === "me" ? "me" : "other");
-
-  if (who === "other") {
-    const nameEl = document.createElement("div");
-    nameEl.className = "message-user-name";
-    nameEl.textContent = senderName;
-    row.appendChild(nameEl);
-  }
 
   const bubble = document.createElement("div");
   bubble.className = "bubble " + (who === "me" ? "me" : "other");
@@ -221,7 +215,8 @@ inputEl.addEventListener("keydown", (e) => {
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
     if (myName && (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
-      connectWebSocket(); 
+      const roomName = roomInput.value.trim();
+      connectWebSocket(roomName); 
     }
   }
 });

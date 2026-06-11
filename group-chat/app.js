@@ -9,7 +9,6 @@ const sendBtn = document.getElementById("send-btn");
 
 let ws;
 let myName = "";
-let isReconnectMode = false; // 💡 初回入室か自動再接続かをスマートに判別するフラグ
 
 // ==========================================
 // 🕒 無操作タイマー ＆ 切断防止（ピンポン）の設定
@@ -19,7 +18,6 @@ let pingInterval = null;
 const INACTIVE_LIMIT = 10 * 60 * 60 * 1000; // 10時間
 
 function resetDisconnectTimer() {
-  // 💡 安全ロック：まだ入室していない（wsが無い）場合はタイマーを動かさない
   if (!ws || ws.readyState !== WebSocket.OPEN) return;
 
   if (disconnectTimer) clearTimeout(disconnectTimer);
@@ -73,22 +71,19 @@ joinBtn.addEventListener("click", () => {
   
   document.getElementById("header-user-info").textContent = "あなた: " + myName;
 
-  isReconnectMode = false; // 💡 手動での初回入室なのでフラグをリセット
   connectWebSocket();
 });
 
 // ==========================================
-// 🔌 WebSocketの接続・通信処理（完璧2行メッセージ版）
+// 🔌 WebSocketの接続・通信処理
 // ==========================================
 function connectWebSocket() {
   const WS_URL = "wss://group-chat-w9fd.onrender.com"; 
   ws = new WebSocket(WS_URL);
 
-  // 1. 📥 【最優先】まず最初にメッセージ受信の網（準備）を100%完成させる！
   ws.addEventListener("message", (event) => {
     const data = JSON.parse(event.data);
 
-    // 🕒 過去ログが一気に届いたときの処理
     if (data.type === "history") {
       data.messages.forEach((msg) => {
         if (myName && msg.username && msg.username.trim() === myName.trim()) {
@@ -100,7 +95,6 @@ function connectWebSocket() {
       return;
     }
 
-    // 👥 現在のオンライン人数と名前リストの更新
     if (data.type === "roominfo") {
       const nameListText = data.names.join("、");
       document.getElementById("header-online-count").innerHTML = 
@@ -108,27 +102,22 @@ function connectWebSocket() {
       return;
     }
 
-    // ⚙️ システムメッセージ
     if (data.type === "system") {
-      addSystem(data.text); // 💡 他の人が入ってきた時の「〇〇さんが参加しました」はここから出ます
+      addSystem(data.text); // 💡 サーバーからのメッセージ（参加・退室通知など）がそのまま出ます
       return;
     }
 
-    // 💬 通常のチャット受信
     if (data.type === "chat") {
       addMessage(data.text, "other", data.username);
       return;
     }
   });
 
-  // 2. 🔌 接続完了時の処理（2行目のメッセージ）
+  // 🔌 接続完了時
   ws.addEventListener("open", () => {
     addSystem("🟢 サーバーに接続しました。");
     
-    // 💡 初めてロビーに入ったときだけ表示して、自動再接続のときは非表示にする
-    if (!isReconnectMode) {
-      addSystem("🚪「ロビー」の部屋に入室しました。");
-    }
+    // 💡 クライアント独自の「ロビーに入室しました」メッセージは完全に削除しました
     
     const overlay = document.getElementById("loading-overlay");
     if (overlay) {
@@ -136,36 +125,30 @@ function connectWebSocket() {
       setTimeout(() => { overlay.style.display = "none"; }, 500);
     }
 
-    // ここで初めてタイマーとハートビートを安全に始動
     resetDisconnectTimer();
     startHeartbeat();
 
-    // 🚀 サーバーに入室を知らせる
     ws.send(JSON.stringify({
       type: "join",
       username: myName
     }));
   });
 
-  // 3. エラー発生時
   ws.addEventListener("error", () => {
     console.error("WebSocketエラーが発生しました。");
     stopHeartbeat(); 
   });
   
-  // 4. 🚨 切断時（1行目のメッセージ）
+  // 🚨 切断時
   ws.addEventListener("close", () => {
     stopHeartbeat(); 
 
-    // 💡 すでに入室済み（名前がある）なら、ログイン画面に戻さず裏で繋ぎ直す！
     if (myName) {
       addSystem("🔄 通信が一時的に途切れました。自動再接続しています...");
-      isReconnectMode = true; // 💡 次のopenイベントは「再接続モード」として動かす
       
       setTimeout(() => {
-        // 🚀 保管してある myName をそのまま使って自動で再接続！
         connectWebSocket(); 
-      }, 1000); // 1秒後にリトライ
+      }, 1000); 
     } else {
       const overlay = document.getElementById("loading-overlay");
       if (overlay) overlay.style.display = "none";
@@ -192,7 +175,6 @@ function addMessage(text, who = "me", senderName = "") {
   
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   
-  // 💡 特殊文字のエスケープ
   const escapedText = text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -239,7 +221,6 @@ inputEl.addEventListener("keydown", (e) => {
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
     if (myName && (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
-      isReconnectMode = true; // 💡 スリープ復帰も再接続モードとして動かす
       connectWebSocket(); 
     }
   }
