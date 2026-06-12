@@ -50,6 +50,59 @@ h2 {
     margin-bottom: 15px;
 }
 
+/* 単位換算用スタイル */
+.convert-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.convert-row .main-input {
+    flex: 2;
+}
+
+.convert-row .unit-select {
+    flex: 1;
+}
+
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: white;
+    font-size: 1rem;
+    box-sizing: border-box;
+    height: 41px;
+}
+
+.convert-result-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    background: #f1f5f9;
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.result-box, .result-box-highlight {
+    background: white;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    border: 1px solid #e2e8f0;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.result-box-highlight {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: var(--primary-color);
+}
+
 /* オームの法則：3列横並び用 */
 .input-row-three {
     display: flex;
@@ -62,7 +115,7 @@ h2 {
     margin-bottom: 0;
 }
 
-/* 合成抵抗：5列グリッド（はみ出したら折り返し） */
+/* 合成抵抗：5列グリッド */
 .resistor-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -123,7 +176,6 @@ button:hover {
     background-color: #334155;
 }
 
-/* 追加・削除ボタン用 */
 .btn-control-row {
     display: flex;
     gap: 10px;
@@ -167,69 +219,12 @@ button:hover {
     color: #b91c1c;
 }
 
-/* スマホ等、画面幅が狭いときのレスポンス対応 */
-@media (max-width: 480px) {
-    .resistor-grid {
-        grid-template-columns: repeat(3, 1fr); /* スマホでは3列にするなど */
-    }
-}
-
-/* 単位換算用のスタイル */
-.convert-row {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 15px;
-}
-
-.convert-row .main-input {
-    flex: 2;
-}
-
-.convert-row .unit-select {
-    flex: 1;
-}
-
-select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    background-color: white;
-    font-size: 1rem;
-    box-sizing: border-box;
-    height: 41px; /* inputの高さと合わせる */
-}
-
-/* 換算結果の4列グリッド表示 */
-.convert-result-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    background: #f1f5f9;
-    padding: 12px;
-    border-radius: 8px;
-}
-
-.result-box, .result-box-highlight {
-    background: white;
-    padding: 8px;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    border: 1px solid #e2e8f0;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.result-box-highlight {
-    background: #eff6ff;
-    border-color: #bfdbfe;
-    color: var(--primary-color);
-}
-
+/* レスポンシブ対応 */
 @media (max-width: 480px) {
     .convert-result-grid {
-        grid-template-columns: repeat(2, 1fr); /* スマホでは2列 */
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .resistor-grid {
+        grid-template-columns: repeat(3, 1fr);
     }
 }
