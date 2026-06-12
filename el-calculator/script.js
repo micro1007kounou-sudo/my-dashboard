@@ -26,15 +26,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let resistorCount = 0;
     const MAX_RESISTORS = 10;
 
-    // --- 全て共通（1000倍）の接頭辞データ構造 ---
+    // --- 【ギガ・ナノ削除】実用的な5項目に選別 ---
     const prefixes = [
-        { name: 'G', display: 'G (ギガ)', power: 3 },
         { name: 'M', display: 'M (メガ)', power: 2 },
         { name: 'k', display: 'k (キロ)', power: 1 },
         { name: '',  display: 'なし (基本)', power: 0 },
         { name: 'm', display: 'm (ミリ)', power: -1 },
-        { name: 'μ', display: 'μ (マイクロ)', power: -2 },
-        { name: 'n', display: 'n (ナノ)', power: -3 }
+        { name: 'μ', display: 'μ (マイクロ)', power: -2 }
     ];
     const BASE_STEP = 1000;
 
@@ -103,9 +101,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 省略（指数表記）を使わず、生の小数をそのまま見せるフォーマット
     function formatExponentResult(num) {
         if (num === 0) return '0';
-        const fixedNum = parseFloat(num.toPrecision(12));
+        // JavaScript特有の細かな丸め誤差だけを14桁で綺麗にして文字列に戻す
+        const fixedNum = parseFloat(num.toPrecision(14));
         return fixedNum.toString();
     }
 
