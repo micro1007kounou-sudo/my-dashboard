@@ -12,20 +12,56 @@
     <h1>⚡ 電気用計算ツール</h1>
 
     <div class="card">
+        <h2>0. 電気単位換算（SI接頭辞）</h2>
+        <p class="sub-text">※数値を入力し、その数値の単位を選択すると、すべての単位に自動換算します。</p>
+        
+        <div class="convert-row">
+            <div class="input-group main-input">
+                <label for="convert-value">数値入力</label>
+                <input type="number" id="convert-value" step="any" placeholder="例: 1500">
+            </div>
+            <div class="input-group unit-select">
+                <label for="convert-unit">元の単位</label>
+                <select id="convert-unit">
+                    <option value="12">T (テラ) [10¹²]</option>
+                    <option value="9">G (ギガ) [10⁹]</option>
+                    <option value="6">M (メガ) [10⁶]</option>
+                    <option value="3">k (キロ) [10³]</option>
+                    <option value="0" selected>なし (基本単位) [10⁰]</option>
+                    <option value="-3">m (ミリ) [10⁻³]</option>
+                    <option value="-6">μ (マイクロ) [10⁻⁶]</option>
+                    <option value="-9">n (ナノ) [10⁻⁹]</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="convert-result-grid">
+            <div class="result-box"><strong>T:</strong> <span id="res-t">0</span></div>
+            <div class="result-box"><strong>G:</strong> <span id="res-g">0</span></div>
+            <div class="result-box"><strong>M:</strong> <span id="res-m">0</span></div>
+            <div class="result-box"><strong>k:</strong> <span id="res-k">0</span></div>
+            <div class="result-box-highlight"><strong>基本:</strong> <span id="res-base">0</span></div>
+            <div class="result-box"><strong>m:</strong> <span id="res-mm">0</span></div>
+            <div class="result-box"><strong>μ:</strong> <span id="res-u">0</span></div>
+            <div class="result-box"><strong>n:</strong> <span id="res-n">0</span></div>
+        </div>
+    </div>
         <h2>1. オームの法則計算</h2>
         <p class="sub-text">※求めたい項目を空欄にして、残りの2つを入力してください。</p>
         
-        <div class="input-group">
-            <label for="voltage">電圧 V (V)</label>
-            <input type="number" id="voltage" step="any" placeholder="例: 12">
-        </div>
-        <div class="input-group">
-            <label for="current">電流 I (A)</label>
-            <input type="number" id="current" step="any" placeholder="例: 2">
-        </div>
-        <div class="input-group">
-            <label for="resistance">抵抗 R (Ω)</label>
-            <input type="number" id="resistance" step="any" placeholder="例: 6">
+        <div class="input-row-three">
+            <div class="input-group">
+                <label for="voltage">電圧 V (V)</label>
+                <input type="number" id="voltage" step="any" placeholder="例: 12">
+            </div>
+            <div class="input-group">
+                <label for="current">電流 I (A)</label>
+                <input type="number" id="current" step="any" placeholder="例: 2">
+            </div>
+            <div class="input-group">
+                <label for="resistance">抵抗 R (Ω)</label>
+                <input type="number" id="resistance" step="any" placeholder="例: 6">
+            </div>
         </div>
         
         <button id="btn-ohm">オームの法則を計算</button>
@@ -33,19 +69,20 @@
     </div>
 
     <div class="card">
-        <h2>2. 2つの抵抗の合成抵抗</h2>
-        <div class="input-group">
-            <label for="r1">抵抗 R1 (Ω)</label>
-            <input type="number" id="r1" step="any" placeholder="例: 10">
-        </div>
-        <div class="input-group">
-            <label for="r2">抵抗 R2 (Ω)</label>
-            <input type="number" id="r2" step="any" placeholder="例: 10">
+        <h2>2. 合成抵抗計算（最大10個）</h2>
+        <p class="sub-text">※入力された欄の数値のみで計算します。空欄は無視されます。</p>
+        
+        <div id="resistor-grid" class="resistor-grid">
+            </div>
+        
+        <div class="btn-control-row">
+            <button id="btn-add-resistor" class="btn-outline">＋ 抵抗を追加</button>
+            <button id="btn-remove-resistor" class="btn-outline btn-danger-outline">ー 削除</button>
         </div>
         
         <div class="btn-row">
-            <button id="btn-series">直列接続 (R1 + R2)</button>
-            <button id="btn-parallel" class="btn-secondary">並列接続 (和分の積)</button>
+            <button id="btn-series">直列接続 (R1 + R2 + ...)</button>
+            <button id="btn-parallel" class="btn-secondary">並列接続 (1/Rの合成)</button>
         </div>
         <div id="resistor-result" class="result" style="display: none;"></div>
     </div>
