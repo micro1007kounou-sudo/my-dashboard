@@ -3,9 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>二人チャット</title>
-    </head>
   <title>二人チャット</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -18,11 +15,8 @@
   </div>
 </div>
 <div class="chat-notice">
-
     <strong>参加者が全員いなくなった時点で、チャット内容は完全に消去</strong>されます。<br>
-
     名前、合言葉、メッセージはサーバーに保存されません。3人目は入室できません。合言葉を間違えると新しい部屋が作成されることになります。入室している人以外からは見られない仕組みになっています。再読み込み等で退出になりますが相手が残っていれば同じ合言葉で再度入室できます。
-
   </div>
 
 <div id="login-screen" class="chat-container" style="max-width: 400px; margin: 50px auto; padding: 20px; text-align: center;">
@@ -51,7 +45,7 @@
   <div class="messages" id="messages"></div>
 
   <div class="input-area">
-    <input id="msgInput" type="text" placeholder="メッセージを入力…">
+    <input id="msgInput" type="text" placeholder="メッセージを入力…" maxlength="500">
     <button id="sendBtn">送信</button>
   </div>
 </div>
