@@ -15,7 +15,7 @@ let myName = "";
 // ==========================================
 let disconnectTimer = null;
 let pingInterval = null; 
-const INACTIVE_LIMIT = 10 * 60 * 60 * 1000; // 10時間
+const INACTIVE_LIMIT = 6 * 60 * 60 * 1000; // 6時間
 
 function resetDisconnectTimer() {
   if (!ws || ws.readyState !== WebSocket.OPEN) return;
@@ -23,7 +23,7 @@ function resetDisconnectTimer() {
   if (disconnectTimer) clearTimeout(disconnectTimer);
 
   disconnectTimer = setTimeout(() => {
-    addSystem("10時間操作がなかったため、自動的に退室しました。");
+    addSystem("6 時間操作がなかったため、自動的に退室しました。");
     ws.close();
     
     setTimeout(() => {
