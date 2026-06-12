@@ -18,7 +18,7 @@ body {
 
 .container {
     width: 100%;
-    max-width: 600px;
+    max-width: 650px; /* 横並びをより安定させるため、全体の最大幅を少しだけ広げました */
 }
 
 h1 {
@@ -50,7 +50,7 @@ h2 {
     margin-bottom: 15px;
 }
 
-/* 単位換算用 */
+/* 単位換算用：上部入力エリア */
 .convert-main-row {
     display: flex;
     gap: 10px;
@@ -72,25 +72,27 @@ select {
     height: 41px;
 }
 
+/* ★5項目すべてを綺麗に横一列に並べるグリッド設定 */
 .convert-result-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(5, 1fr); /* 5列に固定 */
+    gap: 5px; /* マス目の隙間を少し狭く */
     background: #f1f5f9;
-    padding: 12px;
+    padding: 10px;
     border-radius: 8px;
 }
 
+/* ★文字サイズと内側の余白を詰め、長めの数値も入りやすく調整 */
 .result-box, .result-box-highlight {
     background: white;
-    padding: 8px;
+    padding: 8px 4px; /* 左右の余白をタイトに */
     border-radius: 4px;
-    font-size: 0.85rem;
+    font-size: 0.75rem; /* 文字を少し小さくして視認性を確保 */
     border: 1px solid #e2e8f0;
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
+    text-overflow: ellipsis; /* 万が一入り切らない場合も綺麗にフェードアウト */
 }
 
 .result-box-highlight {
@@ -216,7 +218,8 @@ button:hover {
 }
 
 /* レスポンシブ対応 */
-@media (max-width: 480px) {
+@media (max-width: 520px) {
+    /* ★スマホなどの画面幅が狭いときは、見やすさ重視で2列や1列に折り返します */
     .convert-result-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -226,5 +229,10 @@ button:hover {
     .convert-main-row {
         flex-direction: column;
         gap: 5px;
+    }
+}
+@media (max-width: 380px) {
+    .convert-result-grid {
+        grid-template-columns: 1fr;
     }
 }

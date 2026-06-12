@@ -36,8 +36,11 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
     const BASE_STEP = 1000;
 
-    // 初期化実行
+    // 初期化実行（最初から5個の抵抗入力欄を表示）
     initUnitSelectOptions(); 
+    createResistorInput();
+    createResistorInput();
+    createResistorInput();
     createResistorInput();
     createResistorInput();
 
@@ -101,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 省略（指数表記）を使わず、生の小数をそのまま見せるフォーマット
+    // 省略（指数表記）を使わず、生の小数をそのまま見せるフォーマット（共通利用）
     function formatExponentResult(num) {
         if (num === 0) return '0';
         // JavaScript特有の細かな丸め誤差だけを14桁で綺麗にして文字列に戻す
@@ -174,24 +177,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (v === null && i !== null && r !== null) {
             let resV = i * r;
-            ohmResult.innerHTML = `電圧 V = ${resV.toFixed(2)} V`;
-            vInput.value = resV.toFixed(2);
+            let formattedV = formatExponentResult(resV);
+            ohmResult.innerHTML = `電圧 V = ${formattedV} V`;
+            vInput.value = formattedV;
         } else if (i === null && v !== null && r !== null) {
             if (r === 0) {
                 showOhmError("抵抗に0は入力できません（ゼロ除算）");
                 return;
             }
             let resI = v / r;
-            ohmResult.innerHTML = `電流 I = ${resI.toFixed(3)} A`;
-            iInput.value = resI.toFixed(3);
+            let formattedI = formatExponentResult(resI);
+            ohmResult.innerHTML = `電流 I = ${formattedI} A`;
+            iInput.value = formattedI;
         } else if (r === null && v !== null && i !== null) {
             if (i === 0) {
                 showOhmError("電流に0は入力できません（ゼロ除算）");
                 return;
             }
             let resR = v / i;
-            ohmResult.innerHTML = `抵抗 R = ${resR.toFixed(2)} Ω`;
-            rInput.value = resR.toFixed(2);
+            let formattedR = formatExponentResult(resR);
+            ohmResult.innerHTML = `抵抗 R = ${formattedR} Ω`;
+            rInput.value = formattedR;
         } else {
             showOhmError("3つのうち「2つだけ」を入力してください。");
         }
@@ -220,7 +226,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         const total = resistors.reduce((sum, val) => sum + val, 0);
-        showResistorResult(`直列合成抵抗 R = ${total.toFixed(2)} Ω`);
+        let formattedTotal = formatExponentResult(total);
+        showResistorResult(`直列合成抵抗 R = ${formattedTotal} Ω`);
     }
 
     function calculateParallel() {
@@ -241,7 +248,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             const total = 1 / reciprocalSum;
-            showResistorResult(`並列合成抵抗 R = ${total.toFixed(2)} Ω`);
+            let formattedTotal = formatExponentResult(total);
+            showResistorResult(`並列合成抵抗 R = ${formattedTotal} Ω`);
         } catch (e) {
             showResistorResult("計算中にエラーが発生しました。", true);
         }
