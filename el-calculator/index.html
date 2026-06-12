@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>電気用計算ツール</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>⚡ 電気用計算ツール</h1>
+
+    <div class="card">
+        <h2>1. オームの法則計算</h2>
+        <p class="sub-text">※求めたい項目を空欄にして、残りの2つを入力してください。</p>
+        
+        <div class="input-group">
+            <label for="voltage">電圧 V (V)</label>
+            <input type="number" id="voltage" step="any" placeholder="例: 12">
+        </div>
+        <div class="input-group">
+            <label for="current">電流 I (A)</label>
+            <input type="number" id="current" step="any" placeholder="例: 2">
+        </div>
+        <div class="input-group">
+            <label for="resistance">抵抗 R (Ω)</label>
+            <input type="number" id="resistance" step="any" placeholder="例: 6">
+        </div>
+        
+        <button id="btn-ohm">オームの法則を計算</button>
+        <div id="ohm-result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="card">
+        <h2>2. 2つの抵抗の合成抵抗</h2>
+        <div class="input-group">
+            <label for="r1">抵抗 R1 (Ω)</label>
+            <input type="number" id="r1" step="any" placeholder="例: 10">
+        </div>
+        <div class="input-group">
+            <label for="r2">抵抗 R2 (Ω)</label>
+            <input type="number" id="r2" step="any" placeholder="例: 10">
+        </div>
+        
+        <div class="btn-row">
+            <button id="btn-series">直列接続 (R1 + R2)</button>
+            <button id="btn-parallel" class="btn-secondary">並列接続 (和分の積)</button>
+        </div>
+        <div id="resistor-result" class="result" style="display: none;"></div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
