@@ -99,6 +99,10 @@ wss.on("connection", (ws) => {
 
       // 【チャットメッセージ転送処理】
       if (data.type === "chat") {
+        // 👇 ★ここから追加（500文字超えはサーバーで完全に無視する）
+        if (!data.text || data.text.length > 500) {
+          return;
+        }
         // ✨送られてきたメッセージを過去ログ配列に追加する
         const newMsg = { username: currentName, text: data.text };
         msgHistory.push(newMsg);

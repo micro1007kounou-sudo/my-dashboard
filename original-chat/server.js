@@ -100,6 +100,10 @@ wss.on("connection", (ws) => {
 
       // 【チャットメッセージ転送処理】
       if (data.type === "chat" && currentRoom) {
+        // 👇 🛡️【追加】500文字を超える不正な長文は、ここで完全にシャットアウト
+        if (!data.text || data.text.length > 500) {
+          return; 
+        }
         const roomData = rooms[currentRoom];
         if (roomData) {
           // ✨誰が何を発言したかを、部屋の過去ログ配列に記録する

@@ -202,7 +202,12 @@ function addSystem(text) {
 sendBtn.addEventListener("click", () => {
   const text = inputEl.value.trim();
   if (!text) return;
-
+// 👇 ★ここから追加（長文のときは送信ストップして警告）
+  if (text.length > 500) {
+    alert("メッセージが長すぎます（500文字以内）");
+    return; 
+  }
+  // 👆 ★ここまで追加
   if (!ws || ws.readyState !== WebSocket.OPEN) {
     alert("通信が切断されているため、メッセージを送れません。再接続をお待ちください。");
     return;
