@@ -3,18 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>電気用計算ツール</title>
+    <title>電気＆IT用計算ツール</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="container">
-    <h1>⚡ 電気用計算ツール</h1>
+    <h1>⚡ 電気＆IT用計算ツール</h1>
 
     <div class="card">
-        <h2>0. 電気単位換算（SI接頭辞）</h2>
-        <p class="sub-text">※数値を入力し、その数値の単位を選択すると、すべての単位に自動換算します。</p>
+        <h2>0. 単位相互換算（電気 ＆ IT）</h2>
+        <p class="sub-text">※種類と元の単位を選び、数値を入力すると、適切な単位記号付きで一斉換算します。</p>
         
+        <div class="convert-row-top">
+            <div class="input-group">
+                <label for="unit-type">変換する種類</label>
+                <select id="unit-type">
+                    <option value="V" data-mode="si">電圧 (V: ボルト)</option>
+                    <option value="A" data-mode="si">電流 (A: アンペア)</option>
+                    <option value="W" data-mode="si">電力 (W: ワット)</option>
+                    <option value="Ω" data-mode="si">抵抗 (Ω: オーム)</option>
+                    <option value="B" data-mode="it">データ量 (B: バイト)</option>
+                </select>
+            </div>
+        </div>
+
         <div class="convert-row">
             <div class="input-group main-input">
                 <label for="convert-value">数値入力</label>
@@ -23,26 +36,12 @@
             <div class="input-group unit-select">
                 <label for="convert-unit">元の単位</label>
                 <select id="convert-unit">
-                    <option value="9">G (ギガ) [10⁹]</option>
-                    <option value="6">M (メガ) [10⁶]</option>
-                    <option value="3">k (キロ) [10³]</option>
-                    <option value="0" selected>なし (基本単位) [10⁰]</option>
-                    <option value="-3">m (ミリ) [10⁻³]</option>
-                    <option value="-6">μ (マイクロ) [10⁻⁶]</option>
-                    <option value="-9">n (ナノ) [10⁻⁹]</option>
-                </select>
+                    </select>
             </div>
         </div>
 
-        <div class="convert-result-grid">
-            <div class="result-box"><strong>G:</strong> <span id="res-g">0</span></div>
-            <div class="result-box"><strong>M:</strong> <span id="res-m">0</span></div>
-            <div class="result-box"><strong>k:</strong> <span id="res-k">0</span></div>
-            <div class="result-box-highlight"><strong>基本:</strong> <span id="res-base">0</span></div>
-            <div class="result-box"><strong>m:</strong> <span id="res-mm">0</span></div>
-            <div class="result-box"><strong>μ:</strong> <span id="res-u">0</span></div>
-            <div class="result-box"><strong>n:</strong> <span id="res-n">0</span></div>
-        </div>
+        <div id="convert-result-grid" class="convert-result-grid">
+            </div>
     </div>
 
     <div class="card">

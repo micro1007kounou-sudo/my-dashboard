@@ -1,15 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- 単位換算の要素取得 ---
-    const convertValue = document.getElementById('convert-value');
-    const convertUnit = document.getElementById('convert-unit');
-    
-    const resG = document.getElementById('res-g');
-    const resM = document.getElementById('res-m');
-    const resK = document.getElementById('res-k');
-    const resBase = document.getElementById('res-base');
-    const resMm = document.getElementById('res-mm');
-    const resU = document.getElementById('res-u');
-    const resN = document.getElementById('res-n');
+    const unitTypeSelect = document.getElementById('unit-type');
+    const convertValueInput = document.getElementById('convert-value');
+    const convertUnitSelect = document.getElementById('convert-unit');
+    const convertResultGrid = document.getElementById('convert-result-grid');
 
     // --- オームの法則の要素取得 ---
     const vInput = document.getElementById('voltage');
@@ -32,46 +26,132 @@ document.addEventListener('DOMContentLoaded', () => {
     let resistorCount = 0;
     const MAX_RESISTORS = 10;
 
-    // 初期状態で抵抗枠を2つ作成
+    // --- 単位換算用のマスターデータ定義 ---
+    const unitData = {
+        si: {
+            baseStep: 1000,
+            prefixes: [
+                { name: 'G', power: 3 },
+                { name: 'M', power: 2 },
+                { name: 'k', power: 1 },
+                { name: '',  power: 0 }, // 基本単位
+                { name: 'm', power: -1 },
+                { name: 'μ', power: -2 },
+                { name: 'n', power: -3 }
+            ]
+        },
+        it: {
+            baseStep: 1024,
+            prefixes: [
+                { name: 'TB', power: 4 },
+                { name: 'GB', power: 3 },
+                { name: 'MB', power: 2 },
+                { name: 'KB', power: 1 },
+                { name: 'B',  power: 0 }
+            ]
+        }
+    };
+
+    // 初期化実行
+    updateUnitSelectOptions(); 
     createResistorInput();
     createResistorInput();
 
     // --- イベントリスナー登録 ---
-    convertValue.addEventListener('input', updateConversion);
-    convertUnit.addEventListener('change', updateConversion);
+    unitTypeSelect.addEventListener('change', () => {
+        updateUnitSelectOptions();
+        updateConversion();
+    });
+    convertValueInput.addEventListener('input', updateConversion);
+    convertUnitSelect.addEventListener('change', updateConversion);
+
     btnOhm.addEventListener('click', calculateOhm);
     btnSeries.addEventListener('click', calculateSeries);
     btnParallel.addEventListener('click', calculateParallel);
     btnAddResistor.addEventListener('click', () => createResistorInput());
     btnRemoveResistor.addEventListener('click', removeResistorInput);
 
+
     // --- 単位換算のロジック ---
-    function updateConversion() {
-        const val = parseFloat(convertValue.value);
+    
+    // 選択された種類(VやBなど)に応じて、「元の単位」ドロップダウンを再構築する
+    function updateUnitSelectOptions() {
+        const selectedType = unitTypeSelect.value; // V, A, W, Ω, B
+        const selectedOption = unitTypeSelect.options[unitTypeSelect.selectedIndex];
+        const mode = selectedOption.getAttribute('data-mode'); // si または it
         
+        convertUnitSelect.innerHTML = ''; // 一旦クリア
+
+        const data = unitData[mode];
+        data.prefixes.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.power;
+            
+            if (mode === 'si') {
+                // 電気系: 例「k (kV)」
+                const labelName = p.name ? `${p.name} (${p.name}${selectedType})` : `なし (${selectedType})`;
+                opt.innerText = labelName;
+                if(p.power === 0) opt.selected = true; // 基本単位をデフォルトに
+            } else {
+                // IT系: 例「MB」
+                opt.innerText = p.name;
+                if(p.power === 0) opt.selected = true; // Bをデフォルトに
+            }
+            convertUnitSelect.appendChild(opt);
+        });
+    }
+
+    function updateConversion() {
+        const val = parseFloat(convertValueInput.value);
+        const selectedType = unitTypeSelect.value;
+        const selectedOption = unitTypeSelect.options[unitTypeSelect.selectedIndex];
+        const mode = selectedOption.getAttribute('data-mode');
+        const currentPower = parseInt(convertUnitSelect.value);
+
+        // 入力が無ければ結果表示をクリア
         if (isNaN(val)) {
-            const targets = [resG, resM, resK, resBase, resMm, resU, resN];
-            targets.forEach(el => el.innerText = '0');
+            convertResultGrid.innerHTML = '<div style="color:#64748b; grid-column: 1/-1; text-align:center;">数値を入力してください</div>';
             return;
         }
 
-        const currentExponent = parseInt(convertUnit.value);
-        const baseValue = val * Math.pow(10, currentExponent);
+        const data = unitData[mode];
+        const step = data.baseStep;
 
-        resG.innerText = formatExponentResult(baseValue / Math.pow(10, 9));
-        resM.innerText = formatExponentResult(baseValue / Math.pow(10, 6));
-        resK.innerText = formatExponentResult(baseValue / Math.pow(10, 3));
-        resBase.innerText = formatExponentResult(baseValue);
-        resMm.innerText = formatExponentResult(baseValue / Math.pow(10, -3));
-        resU.innerText = formatExponentResult(baseValue / Math.pow(10, -6));
-        resN.innerText = formatExponentResult(baseValue / Math.pow(10, -9));
+        // 一旦すべての基準となる「基本値(power=0、つまりVやA、Bそのもの)」を計算する
+        // 例: 1.5 kV = 1.5 * (1000^1) = 1500 V
+        const baseValue = val * Math.pow(step, currentPower);
+
+        convertResultGrid.innerHTML = ''; // グリッド内をクリアして再構築
+
+        // 各単位の枠をループして結果を生成
+        data.prefixes.forEach(p => {
+            // 基本値から各単位へ換算
+            // 例: 1500 V から M(power=2) へ換算 -> 1500 / (1000^2) = 0.0015 MV
+            const convertedVal = baseValue / Math.pow(step, p.power);
+            const formattedVal = formatExponentResult(convertedVal);
+
+            // 単位記号の組み立て (電気系なら kV、IT系ならそのまま MB)
+            const unitSymbol = mode === 'si' ? `${p.name}${selectedType}` : p.name;
+
+            // 元々の入力単位と同じならハイライト用のクラスを付与
+            const isHighlight = p.power === currentPower;
+            const boxClass = isHighlight ? 'result-box-highlight' : 'result-box';
+
+            const resultBox = document.createElement('div');
+            resultBox.className = boxClass;
+            resultBox.innerHTML = `<strong>${unitSymbol}:</strong><span>${formattedVal}</span>`;
+            
+            convertResultGrid.appendChild(resultBox);
+        });
     }
 
     function formatExponentResult(num) {
         if (num === 0) return '0';
+        // 浮動小数点誤差を丸める（有効桁数12桁）
         const fixedNum = parseFloat(num.toPrecision(12));
         return fixedNum.toString();
     }
+
 
     // --- 抵抗入力欄の動的生成関数 ---
     function createResistorInput() {

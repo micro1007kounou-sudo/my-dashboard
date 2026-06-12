@@ -51,6 +51,10 @@ h2 {
 }
 
 /* 単位換算用スタイル */
+.convert-row-top {
+    margin-bottom: 10px;
+}
+
 .convert-row {
     display: flex;
     gap: 15px;
@@ -78,7 +82,7 @@ select {
 
 .convert-result-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr); /* 単位記号をしっかり見せるため2列に変更 */
     gap: 8px;
     background: #f1f5f9;
     padding: 12px;
@@ -87,20 +91,25 @@ select {
 
 .result-box, .result-box-highlight {
     background: white;
-    padding: 8px;
+    padding: 8px 12px;
     border-radius: 4px;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     border: 1px solid #e2e8f0;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: flex;
+    justify-content: space-between; /* 単位と数値を両端に綺麗に分ける */
+    align-items: center;
 }
 
 .result-box-highlight {
     background: #eff6ff;
     border-color: #bfdbfe;
-    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.result-box span, .result-box-highlight span {
+    font-family: monospace; /* 数値を見やすく */
+    word-break: break-all;
+    margin-left: 10px;
 }
 
 /* オームの法則：3列横並び用 */
@@ -222,7 +231,7 @@ button:hover {
 /* レスポンシブ対応 */
 @media (max-width: 480px) {
     .convert-result-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr; /* スマホなら1列縦長にして数値をしっかり見せる */
     }
     .resistor-grid {
         grid-template-columns: repeat(3, 1fr);
