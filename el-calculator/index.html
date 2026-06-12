@@ -12,31 +12,29 @@
     <h1>⚡ 電気＆IT用計算ツール</h1>
 
     <div class="card">
-        <h2>0. 単位相互換算（電気 ＆ IT）</h2>
-        <p class="sub-text">※種類と元の単位を選び、数値を入力すると、適切な単位記号付きで一斉換算します。</p>
+        <h2>0. 単位相互換算</h2>
+        <p class="sub-text">※数値を入力し、接頭辞と種類（単位記号）を選ぶと、すべて一斉換算します。</p>
         
-        <div class="convert-row-top">
-            <div class="input-group">
-                <label for="unit-type">変換する種類</label>
-                <select id="unit-type">
-                    <option value="V" data-mode="si">電圧 (V: ボルト)</option>
-                    <option value="A" data-mode="si">電流 (A: アンペア)</option>
-                    <option value="W" data-mode="si">電力 (W: ワット)</option>
-                    <option value="Ω" data-mode="si">抵抗 (Ω: オーム)</option>
-                    <option value="B" data-mode="it">データ量 (B: バイト)</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="convert-row">
-            <div class="input-group main-input">
+        <div class="convert-main-row">
+            <div class="input-group val-input">
                 <label for="convert-value">数値入力</label>
                 <input type="number" id="convert-value" step="any" placeholder="例: 1500">
             </div>
-            <div class="input-group unit-select">
-                <label for="convert-unit">元の単位</label>
+            <div class="input-group prefix-select">
+                <label for="convert-unit">接頭辞</label>
                 <select id="convert-unit">
                     </select>
+            </div>
+            <div class="input-group type-select">
+                <label for="unit-type">種類（単位）</label>
+                <select id="unit-type">
+                    <option value="" data-mode="si" selected>なし (倍率のみ)</option>
+                    <option value="V" data-mode="si">V (電圧)</option>
+                    <option value="A" data-mode="si">A (電流)</option>
+                    <option value="W" data-mode="si">W (電力)</option>
+                    <option value="Ω" data-mode="si">Ω (抵抗)</option>
+                    <option value="B" data-mode="it">B (データ量)</option>
+                </select>
             </div>
         </div>
 
