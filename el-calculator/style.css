@@ -50,7 +50,7 @@ h2 {
     margin-bottom: 15px;
 }
 
-/* 単位換算用：3つの入力を1行に並べる */
+/* 単位換算用 */
 .convert-main-row {
     display: flex;
     gap: 10px;
@@ -72,7 +72,6 @@ select {
     height: 41px;
 }
 
-/* 以前の良かった4列グリッドを復活 */
 .convert-result-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);

@@ -26,42 +26,25 @@ document.addEventListener('DOMContentLoaded', () => {
     let resistorCount = 0;
     const MAX_RESISTORS = 10;
 
-    // --- 単位換算用のマスターデータ定義 ---
-    const unitData = {
-        si: {
-            baseStep: 1000,
-            prefixes: [
-                { name: 'G', display: 'G (ギガ)', power: 3 },
-                { name: 'M', display: 'M (メガ)', power: 2 },
-                { name: 'k', display: 'k (キロ)', power: 1 },
-                { name: '',  display: 'なし (基本)', power: 0 },
-                { name: 'm', display: 'm (ミリ)', power: -1 },
-                { name: 'μ', display: 'μ (マイクロ)', power: -2 },
-                { name: 'n', display: 'n (ナノ)', power: -3 }
-            ]
-        },
-        it: {
-            baseStep: 1024,
-            prefixes: [
-                { name: 'T', display: 'T (テラ)', power: 4 },
-                { name: 'G', display: 'G (ギガ)', power: 3 },
-                { name: 'M', display: 'M (メガ)', power: 2 },
-                { name: 'K', display: 'K (キロ)', power: 1 },
-                { name: '',  display: 'なし (Byte)', power: 0 }
-            ]
-        }
-    };
+    // --- 全て共通（1000倍）の接頭辞データ構造 ---
+    const prefixes = [
+        { name: 'G', display: 'G (ギガ)', power: 3 },
+        { name: 'M', display: 'M (メガ)', power: 2 },
+        { name: 'k', display: 'k (キロ)', power: 1 },
+        { name: '',  display: 'なし (基本)', power: 0 },
+        { name: 'm', display: 'm (ミリ)', power: -1 },
+        { name: 'μ', display: 'μ (マイクロ)', power: -2 },
+        { name: 'n', display: 'n (ナノ)', power: -3 }
+    ];
+    const BASE_STEP = 1000;
 
     // 初期化実行
-    updateUnitSelectOptions(); 
+    initUnitSelectOptions(); 
     createResistorInput();
     createResistorInput();
 
     // --- イベントリスナー登録 ---
-    unitTypeSelect.addEventListener('change', () => {
-        updateUnitSelectOptions();
-        updateConversion();
-    });
+    unitTypeSelect.addEventListener('change', updateConversion);
     convertValueInput.addEventListener('input', updateConversion);
     convertUnitSelect.addEventListener('change', updateConversion);
 
@@ -74,38 +57,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 単位換算のロジック ---
     
-    // 種類が変わったら、それに応じた「接頭辞リスト」をドロップダウンに生成する
-    function updateUnitSelectOptions() {
-        const selectedOption = unitTypeSelect.options[unitTypeSelect.selectedIndex];
-        const mode = selectedOption.getAttribute('data-mode'); // si または it
-        
-        // 選択状態を保持するための退避
-        const prevPower = convertUnitSelect.value;
-
-        convertUnitSelect.innerHTML = ''; // 一旦クリア
-
-        const data = unitData[mode];
-        data.prefixes.forEach(p => {
+    // 接頭辞ドロップダウンの初期生成
+    function initUnitSelectOptions() {
+        convertUnitSelect.innerHTML = '';
+        prefixes.forEach(p => {
             const opt = document.createElement('option');
             opt.value = p.power;
             opt.innerText = p.display;
-            
-            // デフォルトは基本単位(0)を選択状態にする
             if(p.power === 0) opt.selected = true;
             convertUnitSelect.appendChild(opt);
         });
-
-        // もし切り替え後も同じpowerが存在すれば、選択状態を引き継ぐ
-        if (Array.from(convertUnitSelect.options).some(o => o.value === prevPower)) {
-            convertUnitSelect.value = prevPower;
-        }
     }
 
     function updateConversion() {
         const val = parseFloat(convertValueInput.value);
-        const selectedType = unitTypeSelect.value; // V, A, W, Ω, B, または ""
-        const selectedOption = unitTypeSelect.options[unitTypeSelect.selectedIndex];
-        const mode = selectedOption.getAttribute('data-mode');
+        const selectedType = unitTypeSelect.value; // V, A, W, Ω, J, Hz, または ""
         const currentPower = parseInt(convertUnitSelect.value);
 
         if (isNaN(val)) {
@@ -113,29 +79,24 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const data = unitData[mode];
-        const step = data.baseStep;
-
-        // 基準値 (power=0) を計算
-        const baseValue = val * Math.pow(step, currentPower);
+        // 基準値 (power=0) を一括計算
+        const baseValue = val * Math.pow(BASE_STEP, currentPower);
 
         convertResultGrid.innerHTML = ''; // クリア
 
-        // 元々のグリッド表示形式で再構築
-        data.prefixes.forEach(p => {
-            const convertedVal = baseValue / Math.pow(step, p.power);
+        prefixes.forEach(p => {
+            const convertedVal = baseValue / Math.pow(BASE_STEP, p.power);
             const formattedVal = formatExponentResult(convertedVal);
 
-            // 単位記号の組み立て
+            // 単位記号の結合
             let unitSymbol = p.name + selectedType;
-            if (unitSymbol === "") unitSymbol = "基本"; // 種類も接頭辞も無しの時
+            if (unitSymbol === "") unitSymbol = "基本";
 
             const isHighlight = p.power === currentPower;
             const boxClass = isHighlight ? 'result-box-highlight' : 'result-box';
 
             const resultBox = document.createElement('div');
             resultBox.className = boxClass;
-            // 「100 A」や「1 kV」のように綺麗に1行で収まる表示
             resultBox.innerHTML = `<strong>${formattedVal}</strong> ${unitSymbol}`;
             
             convertResultGrid.appendChild(resultBox);
