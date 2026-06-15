@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>直感！進数・データ量マスターツール</title>
+    <title>直感！進数・データ＆カラーマスターツール</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f4f8; margin: 0; padding: 15px; color: #333; }
@@ -14,52 +14,129 @@
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 15px; border: 1px solid #e2e8f0; }
         .card-title { font-size: 0.95rem; font-weight: bold; color: #4a5568; margin-bottom: 15px; border-left: 4px solid #3182ce; padding-left: 8px; display: flex; justify-content: space-between; align-items: center; }
         
-        /* 最上部：10進数メインエリア */
-        .main-display { background: #ebf8ff; border: 2px solid #3182ce; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(49, 130, 206, 0.1); }
-        .main-display-title { font-size: 0.9rem; font-weight: bold; color: #2b6cb0; margin-bottom: 10px; }
+        /* 最上部パネル：背景色はカラーコードでリアルタイム変化 */
+        .main-display { background: #000000; border: 2px solid #cbd5e0; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: background-color 0.3s ease; position: relative; }
         
+        /* タイトル行 */
+        .title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; }
+        
+        /* 「10進数を入力」の独立した白背景バッジ囲み */
+        .main-display-title { 
+            font-size: 0.85rem; 
+            font-weight: bold; 
+            color: #2b6cb0; 
+            background: #ffffff; 
+            padding: 4px 10px; 
+            border-radius: 6px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.2);
+            letter-spacing: 0.5px;
+        }
+        
+        /* 右上のカラーコード表示バッジ */
+        .color-inline-label { 
+            font-size: 0.85rem; 
+            font-weight: bold; 
+            color: #4a5568; 
+            font-family: monospace; 
+            background: #ffffff; 
+            padding: 4px 10px; 
+            border-radius: 6px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2); 
+            border: 1px solid rgba(255,255,255,0.2); 
+        }
+        
+        /* ボタン用の行 */
+        .buttons-row { display: flex; gap: 10px; margin-bottom: 12px; width: 100%; }
+        .btn-action { flex: 1; color: white; border: none; height: 45px; font-size: 0.95rem; font-weight: bold; border-radius: 10px; cursor: pointer; transition: all 0.1s; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        
+        /* 🎲 乱数取得ボタン */
+        .btn-random { background: #dd6b20; box-shadow: 0 4px #9c4221; }
+        .btn-random:hover { background: #c05621; }
+        .btn-random:active { transform: translateY(3px); box-shadow: 0 1px #9c4221; }
+        
+        /* 🔝 MAXボタン */
+        .btn-max { background: #3182ce; box-shadow: 0 4px #2b6cb0; }
+        .btn-max:hover { background: #2b6cb0; }
+        .btn-max:active { transform: translateY(3px); box-shadow: 0 1px #2b6cb0; }
+
         /* 10進数入力欄 */
-        .input-container { width: 100%; margin-bottom: 15px; }
-        .dec-input { width: 100%; padding: 12px; font-size: 2.2rem; text-align: center; border: 2px solid #cbd5e0; border-radius: 10px; font-weight: bold; color: #2b6cb0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+        .input-row-full { margin-bottom: 15px; width: 100%; }
+        .dec-input { width: 100%; padding: 10px 15px; font-size: 2.4rem; text-align: center; border: 2px solid #cbd5e0; border-radius: 10px; font-weight: bold; color: #2b6cb0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); background: rgba(255,255,255,0.95); }
         .dec-input:focus { border-color: #3182ce; outline: none; background: #fff; }
+
+        /* ビット選択オプション ＆ クリアボタンのコンテナ */
+        .options-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; background: rgba(255, 255, 255, 0.85); padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e0; }
         
-        /* 全体結果ダッシュボード */
-        .summary-grid { display: flex; flex-direction: column; gap: 10px; background: white; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
-        .summary-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; gap: 10px; }
-        .summary-label { font-size: 0.85rem; color: #718096; font-weight: bold; min-width: 80px; text-align: left; }
+        .bit-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 8px; width: 100%; }
+        @media(min-width: 480px) {
+            .options-row { flex-direction: row; justify-content: space-between; align-items: center; }
+            .bit-options { display: flex; flex-wrap: wrap; gap: 12px; width: auto; }
+        }
         
-        /* 【修正】一行二進数表示：変な改行を防ぎ、4つずつの塊を維持 */
-        .binary-line-container { flex: 1; text-align: right; overflow-x: auto; white-space: nowrap; padding-bottom: 2px; }
-        .binary-line { font-size: 1.4rem; font-weight: bold; color: #48bb78; font-family: 'Courier New', Courier, monospace; letter-spacing: 1px; }
+        .bit-option-label { font-size: 0.85rem; font-weight: bold; color: #4a5568; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap; }
+        .bit-option-label input { cursor: pointer; width: 15px; height: 15px; accent-color: #3182ce; margin: 0; }
         
-        .hex-summary { font-size: 1.4rem; font-weight: bold; color: #dd6b20; font-family: monospace; text-align: right; }
+        .btn-clear { background: #718096; color: white; border: none; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; border-radius: 6px; cursor: pointer; box-shadow: 0 2px #4a5568; transition: all 0.1s; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 2px; align-self: flex-end; }
+        @media(min-width: 480px) { .btn-clear { align-self: center; } }
+        .btn-clear:hover { background: #4a5568; }
+        .btn-clear:active { transform: translateY(1px); box-shadow: 0 1px #4a5568; }
+        
+        /* 進数表示グリッド */
+        .summary-grid { display: flex; flex-direction: column; gap: 12px; background: rgba(255, 255, 255, 0.85); padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        
+        .summary-block { display: flex; flex-direction: column; width: 100%; text-align: left; gap: 4px; }
+        
+        /* 1段目: ラベルと接頭辞（0bや0x） */
+        .summary-label-row { font-size: 0.85rem; color: #4a5568; font-weight: bold; display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .prefix-highlight { font-family: monospace; font-size: 1.1rem; color: #718096; background: #edf2f7; padding: 1px 5px; border-radius: 4px; line-height: 1; }
+        
+        /* 2段目: 横幅いっぱいに使う入力フィールドのコンテナ */
+        .full-line-container { width: 100%; padding-bottom: 2px; }
+        
+        /* 【改良】2進数・16進数の入力フィールド。大きめのサイズを維持し、スペース位置で綺麗に折り返す */
+        .bin-input-field, .hex-input-field { 
+            width: 100%; 
+            border: 1px solid #cbd5e0; 
+            background: #ffffff; 
+            padding: 8px; 
+            border-radius: 6px; 
+            transition: all 0.2s; 
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+            text-align: right;
+            resize: none; 
+            overflow-y: hidden; 
+            white-space: pre-wrap; 
+            /* 4桁ずつのスペース（きりの良いところ）で確実に改行させる設定 */
+            word-wrap: break-word; 
+            word-break: keep-all; 
+        }
+        
+        .bin-input-field { color: #16a34a; font-family: 'Courier New', Courier, monospace; font-weight: bold; }
+        .bin-input-field:focus { border-color: #16a34a; outline: none; box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2); }
+        
+        .hex-input-field { color: #ea580c; font-family: monospace; font-weight: bold; }
+        .hex-input-field:focus { border-color: #ea580c; outline: none; box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.2); }
+        
         .formula { color: #4a5568; font-size: 0.85rem; word-break: break-all; max-height: 60px; overflow-y: auto; text-align: left; padding-top: 8px; border-top: 1px solid #edf2f7; }
         
-        /* 下部：二進数スイッチエリア */
-        .btn-add { background: #3182ce; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: background 0.2s; }
-        .btn-add:hover { background: #2b6cb0; }
-        .btn-add:disabled { background: #cbd5e0; cursor: not-allowed; }
-
-        /* 段全体のレイアウト */
         .row-wrapper { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* スイッチエリア */
         .bit-row { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; padding: 6px; background: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
         .bit-column { display: flex; flex-direction: column; align-items: center; }
         .weight { font-weight: bold; color: #4a5568; margin-bottom: 4px; font-size: 0.7rem; background: #edf2f7; width: 100%; text-align: center; padding: 2px 0; border-radius: 4px; }
         
-        /* スイッチ */
         .switch { width: 100%; height: 45px; font-size: 18px; font-weight: bold; cursor: pointer; border: 2px solid #cbd5e0; border-radius: 8px; background: #e2e8f0; transition: all 0.1s; -webkit-tap-highlight-color: transparent; }
         .switch.on { background: #48bb78; color: white; border-color: #38a169; box-shadow: 0 3px #2f855a; transform: translateY(-2px); }
         .switch.off { box-shadow: 0 3px #cbd5e0; }
         .switch:active { transform: translateY(1px); box-shadow: 0 0px #333; }
         
-        /* 16進数ミニモニター */
         .hex-monitor { width: 55px; height: 55px; background: #2d3748; color: #63b3ed; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); }
         .hex-monitor-label { font-size: 0.55rem; color: #a0aec0; text-transform: uppercase; }
         .hex-monitor-value { font-size: 1.3rem; font-weight: bold; font-family: monospace; }
 
-        /* ビット・バイトデータ量情報ラベル */
         .size-monitor { width: 85px; display: flex; flex-direction: column; gap: 3px; background: #f7fafc; padding: 6px; border-radius: 6px; border: 1px dashed #cbd5e0; font-family: monospace; }
         .size-badge { font-size: 0.65rem; padding: 2px 4px; border-radius: 4px; text-align: center; font-weight: bold; }
         .size-bit { background: #e2e8f0; color: #4a5568; }
@@ -69,33 +146,63 @@
 <body>
 
 <div class="container">
-    <h1>直感！進数・データ量マスターツール</h1>
+    <h1>直感！進数・データ＆カラーマスターツール</h1>
     
-    <div class="main-display">
-        <div class="main-display-title">10進数を入力</div>
-        <div class="input-container">
-            <input type="text" id="dec-input" class="dec-input" value="0" inputmode="numeric" pattern="[0-9]*" oninput="reverseLookup(this.value)">
+    <div class="main-display" id="color-preview-zone">
+        <div class="title-row">
+            <span class="main-display-title">10進数を入力</span>
+            <span class="color-inline-label" id="color-code-label">#000000</span>
+        </div>
+        
+        <div class="buttons-row">
+            <button class="btn-action btn-random" onclick="generateRandomNumber()">🎲 乱数</button>
+            <button class="btn-action btn-max" onclick="setToMaxValues()">🔝 MAX</button>
+        </div>
+
+        <div class="input-row-full">
+            <input type="text" id="dec-input" class="dec-input" value="0" inputmode="numeric" pattern="[0-9]*" oninput="reverseLookupDec(this.value)">
+        </div>
+
+        <div class="options-row">
+            <div class="bit-options" id="bit-radio-group">
+                <label class="bit-option-label"><input type="radio" name="target-bit" value="4" checked> 4 bit</label>
+                <label class="bit-option-label"><input type="radio" name="target-bit" value="8"> 8 bit</label>
+                <label class="bit-option-label"><input type="radio" name="target-bit" value="16"> 16 bit</label>
+                <label class="bit-option-label"><input type="radio" name="target-bit" value="24"> 24 bit</label>
+                <label class="bit-option-label"><input type="radio" name="target-bit" value="32"> 32 bit</label>
+                <label class="bit-option-label"><input type="radio" name="target-bit" value="64"> 64 bit</label>
+            </div>
+            <button class="btn-clear" onclick="clearAllData()">🗑️ クリア</button>
         </div>
         
         <div class="summary-grid">
-            <div class="summary-row">
-                <span class="summary-label">二進数 (BIN):</span>
-                <div class="binary-line-container">
-                    <span class="binary-line" id="bin-line-result">0000</span>
+            <div class="summary-block">
+                <div class="summary-label-row">
+                    <span>2進数 (BIN):</span>
+                    <span class="prefix-highlight">0b</span>
+                </div>
+                <div class="full-line-container">
+                    <textarea id="bin-input" class="bin-input-field" rows="1" spellcheck="false" inputmode="numeric" oninput="reverseLookupBin(this)"></textarea>
                 </div>
             </div>
-            <div class="summary-row">
-                <span class="summary-label">16進数 (HEX):</span>
-                <div class="hex-summary" id="hex-result">0x00</div>
+
+            <div class="summary-block">
+                <div class="summary-label-row">
+                    <span>16進数 (HEX):</span>
+                    <span class="prefix-highlight">0x</span>
+                </div>
+                <div class="full-line-container">
+                    <textarea id="hex-input" class="hex-input-field" rows="1" spellcheck="false" oninput="reverseLookupHex(this.value)"></textarea>
+                </div>
             </div>
+
             <div class="formula" id="formula-result">計算式: 0</div>
         </div>
     </div>
 
     <div class="card">
         <div class="card-title">
-            <span>二進数スイッチ (4ビット単位で下に拡張)</span>
-            <button class="btn-add" id="add-btn" onclick="addNewRow()">＋ 4ビット追加</button>
+            <span>2進数スイッチ (必要なビット幅に自動調整)</span>
         </div>
         
         <div id="bit-rows-container"></div>
@@ -110,12 +217,29 @@
 
     const container = document.getElementById("bit-rows-container");
 
-    // 初期化：最初の1段目
-    addNewRow();
+    syncRowsToBitWidth(4);
 
-    function addNewRow() {
-        if (currentRows >= maxRows) return;
-        
+    function syncRowsToBitWidth(targetBit) {
+        const requiredRows = Math.max(1, Math.ceil(targetBit / 4));
+        while (currentRows < requiredRows && currentRows < maxRows) {
+            buildNextRow();
+        }
+        while (currentRows > requiredRows) {
+            const lastRowId = rowIds.pop();
+            const lastRowEl = document.getElementById(`row-wrapper-${lastRowId}`);
+            if (lastRowEl) lastRowEl.remove();
+            currentRows--;
+        }
+        updateUI();
+    }
+
+    document.getElementById("bit-radio-group").addEventListener("change", (e) => {
+        if (e.target.name === "target-bit") {
+            syncRowsToBitWidth(parseInt(e.target.value));
+        }
+    });
+
+    function buildNextRow() {
         const rowId = currentRows;
         rowIds.push(rowId); 
         
@@ -131,10 +255,11 @@
         for (let i = 3; i >= 0; i--) {
             const w = 2n ** BigInt(startPower + i);
             rowWeights.push(w);
-            bitStates[w.toString()] = 0;
+            if (bitStates[w.toString()] === undefined) {
+                bitStates[w.toString()] = 0;
+            }
         }
 
-        // スイッチ生成
         rowWeights.forEach(w => {
             const wStr = w.toString();
             const col = document.createElement("div");
@@ -146,7 +271,6 @@
             bitRowDiv.appendChild(col);
         });
 
-        // 16進数ミニモニター生成
         const hexMonitorDiv = document.createElement("div");
         hexMonitorDiv.className = "hex-monitor";
         hexMonitorDiv.innerHTML = `
@@ -170,12 +294,50 @@
 
         container.appendChild(wrapperDiv);
         currentRows++;
+    }
 
-        if (currentRows >= maxRows) {
-            document.getElementById("add-btn").disabled = true;
-        }
+    function generateRandomNumber() {
+        const selectedBit = parseInt(document.querySelector('input[name="target-bit"]:checked').value);
+        let randomNum = 0n;
         
-        updateUI();
+        if (selectedBit === 64) {
+            const high = BigInt(Math.floor(Math.random() * 0x100000000));
+            const low = BigInt(Math.floor(Math.random() * 0x100000000));
+            randomNum = (high << 32n) | low;
+        } else {
+            const maxRange = 2 ** selectedBit;
+            randomNum = BigInt(Math.floor(Math.random() * maxRange));
+        }
+
+        document.getElementById("dec-input").value = randomNum.toString();
+        document.getElementById("hex-input").value = formatHexValue(randomNum.toString(16).toUpperCase());
+
+        applyNumberToBits(randomNum);
+    }
+
+    function setToMaxValues() {
+        const selectedBit = parseInt(document.querySelector('input[name="target-bit"]:checked').value);
+        let maxNum = (2n ** BigInt(selectedBit)) - 1n;
+
+        document.getElementById("dec-input").value = maxNum.toString();
+        document.getElementById("hex-input").value = formatHexValue(maxNum.toString(16).toUpperCase());
+
+        applyNumberToBits(maxNum);
+    }
+
+    function clearAllData() {
+        document.getElementById("dec-input").value = "0";
+        document.getElementById("hex-input").value = "0";
+        document.getElementById("bin-input").value = "0000";
+        bitStates = {};
+        rowIds = [];
+        currentRows = 0;
+        container.innerHTML = "";
+        
+        updatePreviewColor("0");
+        
+        document.querySelector('input[name="target-bit"][value="4"]').checked = true;
+        syncRowsToBitWidth(4);
     }
 
     function formatWeight(str) {
@@ -187,21 +349,34 @@
     function toggleBit(wStr) {
         bitStates[wStr] = bitStates[wStr] === 0 ? 1 : 0;
         updateUI();
-        document.getElementById("dec-input").value = calculateTotal().toString();
+        const total = calculateTotal();
+        document.getElementById("dec-input").value = total.toString();
+        const hexStr = total.toString(16).toUpperCase();
+        document.getElementById("hex-input").value = formatHexValue(hexStr);
+        
+        checkAndExpandRadioByValue(total);
+        updatePreviewColor(hexStr);
     }
 
     function calculateTotal() {
         let total = 0n;
+        const visibleWeights = [];
+        rowIds.forEach(rowId => {
+            const startPower = rowId * 4;
+            for(let i=0; i<4; i++) {
+                visibleWeights.push((2n ** BigInt(startPower + i)).toString());
+            }
+        });
+
         for (let wStr in bitStates) {
-            if (bitStates[wStr] === 1) total += BigInt(wStr);
+            if (bitStates[wStr] === 1 && visibleWeights.includes(wStr)) {
+                total += BigInt(wStr);
+            }
         }
         return total;
     }
 
     function updateUI() {
-        let total = 0n;
-        let activeFormulas = [];
-
         for (let wStr in bitStates) {
             const btn = document.getElementById(`btn-${wStr}`);
             if (!btn) continue;
@@ -210,8 +385,6 @@
                 btn.textContent = "1";
                 btn.classList.remove("off");
                 btn.classList.add("on");
-                total += BigInt(wStr);
-                activeFormulas.push(wStr);
             } else {
                 btn.textContent = "0";
                 btn.classList.remove("on");
@@ -227,60 +400,164 @@
             if (bitStates[(2n ** BigInt(startPower + 1)).toString()] === 1) rowValue += 2;
             if (bitStates[(2n ** BigInt(startPower + 0)).toString()] === 1) rowValue += 1;
 
-            document.getElementById(`hex-mon-${rowId}`).textContent = rowValue.toString(16).toUpperCase();
+            const mon = document.getElementById(`hex-mon-${rowId}`);
+            if(mon) mon.textContent = rowValue.toString(16).toUpperCase();
         });
 
-        let overallBinGroups = [];
-        let overallHex = "";
-        
-        [...rowIds].reverse().forEach(rowId => {
-            const startPower = rowId * 4;
-            const b3 = bitStates[(2n ** BigInt(startPower + 3)).toString()];
-            const b2 = bitStates[(2n ** BigInt(startPower + 2)).toString()];
-            const b1 = bitStates[(2n ** BigInt(startPower + 1)).toString()];
-            const b0 = bitStates[(2n ** BigInt(startPower + 0)).toString()];
-            
-            overallBinGroups.push(`${b3}${b2}${b1}${b0}`);
-            overallHex += document.getElementById(`hex-mon-${rowId}`).textContent;
-        });
-
-        // 【調整】二進数テキストの文字サイズを桁数（段数）に合わせてスマホで見やすく自動縮小
-        const binLineElement = document.getElementById("bin-line-result");
-        if (currentRows > 8) {
-            binLineElement.style.fontSize = "1.0rem";
-        } else if (currentRows > 4) {
-            binLineElement.style.fontSize = "1.2rem";
-        } else {
-            binLineElement.style.fontSize = "1.4rem";
+        if (document.activeElement !== document.getElementById("bin-input")) {
+            let overallBinGroups = [];
+            [...rowIds].reverse().forEach(rowId => {
+                const startPower = rowId * 4;
+                const b3 = bitStates[(2n ** BigInt(startPower + 3)).toString()] || 0;
+                const b2 = bitStates[(2n ** BigInt(startPower + 2)).toString()] || 0;
+                const b1 = bitStates[(2n ** BigInt(startPower + 1)).toString()] || 0;
+                const b0 = bitStates[(2n ** BigInt(startPower + 0)).toString()] || 0;
+                overallBinGroups.push(`${b3}${b2}${b1}${b0}`);
+            });
+            document.getElementById("bin-input").value = overallBinGroups.join(" ");
         }
-        binLineElement.textContent = overallBinGroups.join(" ");
 
-        overallHex = overallHex.replace(/^0+/, '');
-        if (overallHex === "") overallHex = "0";
-        document.getElementById("hex-result").textContent = "0x" + overallHex;
-        
+        const binInputElement = document.getElementById("bin-input");
+        const hexInputElement = document.getElementById("hex-input");
+
+        // 【改良】24・32・64ビットでも文字を小さくせず、読みやすい大きさをキープ（1.15rem 〜 1.4rem）
+        if (currentRows > 4) { 
+            binInputElement.style.fontSize = "1.15rem";
+            binInputElement.style.letterSpacing = "0.5px";
+            hexInputElement.style.fontSize = "1.25rem";
+        } else { 
+            binInputElement.style.fontSize = "1.4rem";
+            binInputElement.style.letterSpacing = "1px";
+            hexInputElement.style.fontSize = "1.4rem";
+        }
+
+        autoResizeTextArea(binInputElement);
+        autoResizeTextArea(hexInputElement);
+
+        let activeFormulas = [];
+        rowIds.forEach(rowId => {
+            const startPower = rowId * 4;
+            for(let i=0; i<4; i++) {
+                const wStr = (2n ** BigInt(startPower + i)).toString();
+                if (bitStates[wStr] === 1) activeFormulas.push(wStr);
+            }
+        });
         activeFormulas.sort((a,b) => (BigInt(b) > BigInt(a) ? 1 : -1));
         const formulaText = activeFormulas.length > 0 ? activeFormulas.join(" + ") : "0";
         document.getElementById("formula-result").textContent = "計算式: " + formulaText;
     }
 
-    function reverseLookup(value) {
+    function autoResizeTextArea(el) {
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+    }
+
+    function reverseLookupDec(value) {
         let cleanValue = value.replace(/[^0-9]/g, '');
         if (!cleanValue) cleanValue = "0";
         
         let num = BigInt(cleanValue);
         const max64 = (2n ** 64n) - 1n;
         if (num > max64) num = max64;
+        
         document.getElementById("dec-input").value = num.toString();
+        const hexStr = num.toString(16).toUpperCase();
+        document.getElementById("hex-input").value = formatHexValue(hexStr);
 
-        while (num >= (2n ** BigInt(currentRows * 4)) && currentRows < maxRows) {
-            addNewRow();
+        applyNumberToBits(num);
+        updatePreviewColor(hexStr);
+    }
+
+    // HEX表示を4桁区切り（きりの良いところ）でスペースを入れる補助関数
+    function formatHexValue(hexStr) {
+        let clean = hexStr.replace(/[^0-9a-fA-F]/g, '');
+        if (!clean) return "0";
+        let formatted = "";
+        for (let i = 0; i < clean.length; i++) {
+            let revIdx = clean.length - i;
+            formatted += clean[i];
+            if (revIdx % 4 === 1 && revIdx > 1) {
+                formatted += " ";
+            }
+        }
+        return formatted;
+    }
+
+    function reverseLookupHex(value) {
+        let cleanValue = value.replace(/^0[xX]/g, '').replace(/[^0-9a-fA-F]/g, '');
+        if (!cleanValue) cleanValue = "0";
+
+        let num = 0n;
+        try { num = BigInt("0x" + cleanValue); } catch(e) { num = 0n; }
+
+        const max64 = (2n ** 64n) - 1n;
+        if (num > max64) {
+            num = max64;
+            cleanValue = num.toString(16).toUpperCase();
+        }
+
+        document.getElementById("hex-input").value = formatHexValue(cleanValue.toUpperCase());
+        document.getElementById("dec-input").value = num.toString();
+        applyNumberToBits(num);
+        updatePreviewColor(num.toString(16).toUpperCase());
+    }
+
+    function reverseLookupBin(inputEl) {
+        let value = inputEl.value;
+        let origCursor = inputEl.selectionStart;
+        
+        let clean = value.replace(/[^01]/g, '');
+        if (!clean) clean = "0";
+
+        if (clean.length > 64) {
+            clean = clean.substring(clean.length - 64);
+        }
+
+        let num = 0n;
+        for (let i = 0; i < clean.length; i++) {
+            num = (num << 1n) | BigInt(clean[i]);
+        }
+
+        document.getElementById("dec-input").value = num.toString();
+        const hexStr = num.toString(16).toUpperCase();
+        document.getElementById("hex-input").value = formatHexValue(hexStr);
+        applyNumberToBits(num);
+        updatePreviewColor(hexStr);
+
+        let formatted = "";
+        for (let i = 0; i < clean.length; i++) {
+            let revIdx = clean.length - i;
+            formatted += clean[i];
+            if (revIdx % 4 === 1 && revIdx > 1) {
+                formatted += " ";
+            }
+        }
+
+        inputEl.value = formatted;
+        autoResizeTextArea(inputEl);
+
+        let diff = formatted.length - value.length;
+        let newCursor = origCursor + diff;
+        newCursor = Math.max(0, Math.min(newCursor, formatted.length));
+        inputEl.setSelectionRange(newCursor, newCursor);
+    }
+
+    function applyNumberToBits(num) {
+        checkAndExpandRadioByValue(num);
+
+        let targetRows = currentRows;
+        while (num >= (2n ** BigInt(targetRows * 4)) && targetRows < maxRows) {
+            targetRows++;
+        }
+        
+        while (currentRows < targetRows) {
+            buildNextRow();
         }
 
         let temp = num;
-        const sortedWeights = Object.keys(bitStates).map(BigInt).sort((a,b) => (b > a ? 1 : -1));
+        const activeWeights = Object.keys(bitStates).map(BigInt).sort((a,b) => (b > a ? 1 : -1));
         
-        sortedWeights.forEach(w => {
+        activeWeights.forEach(w => {
             const wStr = w.toString();
             if (temp >= w) {
                 bitStates[wStr] = 1;
@@ -291,6 +568,48 @@
         });
 
         updateUI();
+        updatePreviewColor(num.toString(16).toUpperCase());
+    }
+
+    function checkAndExpandRadioByValue(num) {
+        let recommendedBit = 4;
+        if (num >= 2n**32n) recommendedBit = 64;
+        else if (num >= 2n**24n) recommendedBit = 32;
+        else if (num >= 2n**16n) recommendedBit = 24;
+        else if (num >= 2n**8n) recommendedBit = 16;
+        else if (num >= 2n**4n) recommendedBit = 8;
+        
+        const activeRadio = document.querySelector('input[name="target-bit"]:checked');
+        if (!activeRadio || parseInt(activeRadio.value) < recommendedBit) {
+            const targetRadio = document.querySelector(`input[name="target-bit"][value="${recommendedBit}"]`);
+            if (targetRadio) {
+                targetRadio.checked = true;
+                syncRowsToBitWidth(recommendedBit);
+            }
+        }
+    }
+
+    function updatePreviewColor(hexStr) {
+        const zone = document.getElementById("color-preview-zone");
+        const label = document.getElementById("color-code-label");
+        
+        if (!zone || !label) return;
+
+        if (!hexStr || hexStr === "0") {
+            zone.style.backgroundColor = ""; 
+            label.textContent = "#000000";
+            return;
+        }
+
+        let finalHex = hexStr;
+        if (finalHex.length < 6) {
+            finalHex = finalHex.padStart(6, '0');
+        } else if (finalHex.length > 6) {
+            finalHex = finalHex.substring(finalHex.length - 6);
+        }
+
+        zone.style.backgroundColor = "#" + finalHex;
+        label.textContent = "#" + finalHex;
     }
 </script>
 
