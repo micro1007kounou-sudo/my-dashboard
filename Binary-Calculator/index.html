@@ -38,7 +38,9 @@
         /* 🎲 乱数取得ボタン */
         .btn-random { background: #dd6b20; box-shadow: 0 4px #9c4221; }
         .btn-random:active { transform: translateY(3px); box-shadow: 0 1px #9c4221; }
-        
+        /* ボタンの幅調整 */
+        .btn-random { flex: 2; } /* 乱数ボタンを大きく */
+        .btn-max, .btn-half { flex: 1; } /* MAXとハーフは小さく */
         /* 🔝 MAXボタン */
         .btn-max { background: #3182ce; box-shadow: 0 4px #2b6cb0; }
         .btn-max:active { transform: translateY(3px); box-shadow: 0 1px #2b6cb0; }
@@ -92,12 +94,13 @@
     <div class="main-layout">
         <div class="main-display" id="color-preview-zone">
             <div class="title-row">
-                <span class="main-display-title">10進数（2進数、16進数）を入力</span>
+                <span class="main-display-title">10進数を入力</span>
                 <span class="color-inline-label" id="color-code-label">RGBｶﾗｰｺｰﾄﾞ#000000</span>
             </div>
             <div class="buttons-row">
-                <button class="btn-action btn-random" onclick="generateRandomNumber()">🎲 乱数</button>
-                <button class="btn-action btn-max" onclick="setToMaxValues()">🔝 MAX</button>
+                <button class="btn-action btn-random" onclick="generateRandomNumber()">🎲 乱数取得</button>
+                <button class="btn-action btn-max" onclick="setToMaxValues()">MAX</button>
+                <button class="btn-action" onclick="setToHalfMax()" style="background: #805ad5; box-shadow: 0 4px #553c9a;">ハーフ</button>
             </div>
             <div class="input-row-full">
                 <input type="text" id="dec-input" class="dec-input" value="0" oninput="reverseLookupDec(this.value)">
@@ -113,24 +116,42 @@
                 </div>
                 <button class="btn-clear" onclick="clearAllData()">🗑️ クリア</button>
             </div>
+            
             <div class="summary-grid">
                 <div class="summary-block">
-                    <div class="summary-label-row"><span>2進数 (BIN):</span><span class="prefix-highlight">0b</span></div>
-                    <div class="full-line-container"><textarea id="bin-input" class="bin-input-field" rows="1" oninput="reverseLookupBin(this)"></textarea></div>
+                    <div class="summary-label-row"><span>2進数を入力 (BIN):</span><span class="prefix-highlight">0b</span></div>
+                    <div class="full-line-container">
+                        <textarea id="bin-input" class="bin-input-field" rows="1" oninput="reverseLookupBin(this)"></textarea>
+                    </div>
                 </div>
                 <div class="summary-block">
-                    <div class="summary-label-row"><span>16進数 (HEX):</span><span class="prefix-highlight">0x</span></div>
-                    <div class="full-line-container"><textarea id="hex-input" class="hex-input-field" rows="1" oninput="reverseLookupHex(this.value)"></textarea></div>
+                    <div class="summary-label-row"><span>16進数を入力 (HEX):</span><span class="prefix-highlight">0x</span></div>
+                    <div class="full-line-container">
+                        <textarea id="hex-input" class="hex-input-field" rows="1" oninput="reverseLookupHex(this.value)"></textarea>
+                    </div>
                 </div>
                 <div class="formula" id="formula-result">計算式: 0</div>
             </div>
         </div>
+
         <div class="card">
             <div class="card-title"><span>2進数スイッチ (必要なビット幅に自動調整)</span></div>
             <div class="bit-rows-scroll-area" id="bit-rows-container"></div>
         </div>
     </div>
-</div>
+
+<div class="card" style="margin-top: 20px;">
+        <div class="card-title">仕様と使い方</div>
+        <ul style="padding-left: 20px; line-height: 1.6; margin: 0; font-size: 0.9rem; color: #4a5568;">
+            <li><strong>相互同期:</strong> 10進数、2進数、16進数はそれぞれ同期しており、2進数スイッチでの操作もリアルタイムに反映されます。</li>
+            <li><strong>ビット数の自動調整:</strong> 予めビット数を選択できますが、入力内容に応じて自動的に最適なビット幅へ調整されます。</li>
+            <li><strong>乱数取得ボタン:</strong> 選択されたビット数内でランダムな数値を取得します。</li>
+            <li><strong>MAXボタン:</strong> 選択されたビット数の最大値を表示します。</li>
+            <li><strong>ハーフボタン:</strong> 選択されたビット数の符号付き整数の正の最大値（2^(n-1)-1）を表示します。</li>
+            <li><strong>クリアボタン:</strong> 全ての数値を初期状態（0）に戻します。</li>
+            <li><strong>RGBカラー連携:</strong> 16進数の下6桁でRGBカラーコードに対応しており、背景色が自動で変わります。</li>
+        </ul>
+    </div>
 
 <script>
     // ==========================================
@@ -551,7 +572,21 @@
         }
         return total;
     }
-</script>
+    function setToHalfMax() {
+    const selectedBit = parseInt(document.querySelector('input[name="target-bit"]:checked').value);
+    // 符号付き整数の正の最大値: 2^(n-1) - 1
+    let halfMax = (2n ** BigInt(selectedBit - 1)) - 1n;
 
+    document.getElementById("dec-input").value = halfMax.toString();
+    document.getElementById("hex-input").value = formatHexValue(halfMax.toString(16).toUpperCase());
+    applyNumberToBits(halfMax);
+}
+</script>
+<div id="footer"></div>
+<script>
+  fetch("../footer.html")
+    .then(res => res.text())
+    .then(html => document.getElementById("footer").innerHTML = html);
+</script>
 </body>
 </html>
