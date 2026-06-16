@@ -1,9 +1,22 @@
 let currentTarget = "Y1";
 let logicStore = {};
+let mStore = new Array(16).fill(false); // M1-M16の状態
 
 function init() {
+    // 1. セレクトボックスの動的生成
+    const selector = document.getElementById("target-selector");
+    selector.innerHTML = '<optgroup label="M リレー">' + 
+        Array.from({length:16}, (_,i)=>`<option value="M${i+1}">M${i+1}</option>`).join('') +
+        '</optgroup><optgroup label="Y 出力">' + 
+        Array.from({length:16}, (_,i)=>`<option value="Y${i+1}">Y${i+1}</option>`).join('') +
+        '</optgroup>';
+
+    // 2. 入力/M/Yの表示生成
     const inputs = document.getElementById("inputs-x");
     for (let i = 1; i <= 16; i++) inputs.innerHTML += `<div style="text-align:center;"><input type="checkbox" id="X${i}" onchange="updateStatus()"><div>X${i}</div></div>`;
+    
+    const inputsM = document.getElementById("inputs-m");
+    for (let i = 1; i <= 16; i++) inputsM.innerHTML += `<div style="text-align:center;"><div class="led-m" id="M${i}-led"></div><div>M${i}</div></div>`;
     
     const outputs = document.getElementById("outputs-y");
     for (let i = 1; i <= 16; i++) {
@@ -11,11 +24,14 @@ function init() {
         const hidden = document.createElement("input");
         hidden.type = "checkbox"; hidden.id = `Y${i}`; hidden.style.display = "none";
         document.body.appendChild(hidden);
+        logicStore[`M${i}`] = [];
         logicStore[`Y${i}`] = [];
     }
     
+    // 3. ロジックリストの生成
     const list = document.getElementById("logic-list");
-    for (let i = 1; i <= 16; i++) list.innerHTML += `<div style="padding:4px;">Y${i} = <span id="formula-Y${i}">-</span></div>`;
+    for (let i = 1; i <= 16; i++) list.innerHTML += `<div style="padding:2px; font-size:0.9em;">M${i} = <span id="formula-M${i}">-</span></div>`;
+    for (let i = 1; i <= 16; i++) list.innerHTML += `<div style="padding:2px; font-size:0.9em;">Y${i} = <span id="formula-Y${i}">-</span></div>`;
     
     updateStatus();
 }
@@ -25,15 +41,20 @@ function loadLogic(target) {
     document.getElementById("target-label").innerHTML = `<b>${target} = </b>`;
     const container = document.getElementById("logic-container");
     container.innerHTML = "";
-    logicStore[target].forEach(data => addBlock(data));
+    if (logicStore[target]) logicStore[target].forEach(data => addBlock(data));
 }
 
 function addBlock(data = null) {
     const div = document.createElement("div");
     div.className = "block";
+    // X, M, Yすべてを選択可能に
+    const options = Array.from({length:16}, (_,i)=>`<option>X${i+1}</option>`).join('') +
+                    Array.from({length:16}, (_,i)=>`<option>M${i+1}</option>`).join('') +
+                    Array.from({length:16}, (_,i)=>`<option>Y${i+1}</option>`).join('');
+    
     div.innerHTML = `
         <select class="not-select"><option value="">-</option><option value="NOT">NOT</option></select>
-        <select class="operand">${Array.from({length:16}, (_,i)=>`<option>X${i+1}</option>`).join('')}</select>
+        <select class="operand">${options}</select>
         <select class="operator"><option value="AND">AND</option><option value="OR">OR</option><option value="END">END</option></select>
     `;
     if (data) {
@@ -50,43 +71,52 @@ function removeBlock() {
 }
 
 function writeToStore() {
-    // 画面上のブロックを全取得
     const blockElements = document.querySelectorAll("#logic-container .block");
-    
-    // データ保存用に抽出
     logicStore[currentTarget] = Array.from(blockElements).map(b => ({
         not: b.querySelector(".not-select").value,
         operand: b.querySelector(".operand").value,
         operator: b.querySelector(".operator").value
     }));
     
-    // 表示用：ブロックを左から順に文字列結合
-    // NOT/AND/OR を小文字に変換
-    let formula = Array.from(blockElements).map(b => {
+    const formula = Array.from(blockElements).map(b => {
         const not = b.querySelector(".not-select").value.toLowerCase();
         const op = b.querySelector(".operand").value;
         const logic = b.querySelector(".operator").value.toLowerCase();
-        
-        // END は表示しないため、除外または変換
-        if (logic === "end") return (not ? not + " " : "") + op;
-        return (not ? not + " " : "") + op + " " + logic;
+        return (logic === "end") ? (not ? not + " " : "") + op : (not ? not + " " : "") + op + " " + logic;
     }).join(" ");
-    
-    
     document.getElementById(`formula-${currentTarget}`).textContent = formula || "-";
 }
+
+function computeLogic(target) {
+    const blocks = logicStore[target];
+    if (!blocks || blocks.length === 0) return false;
+    let result = false; let isEnd = false;
+    
+    blocks.forEach((b, idx) => {
+        if (isEnd) return;
+        const prefix = b.operand.charAt(0);
+        const index = parseInt(b.operand.substring(1)) - 1;
+        
+        let val = false;
+        if (prefix === 'X') val = document.getElementById(b.operand).checked;
+        if (prefix === 'M') val = mStore[index];
+        if (prefix === 'Y') val = document.getElementById(b.operand).checked;
+        
+        val = val ^ (b.not === "NOT");
+        if (idx === 0) result = !!val;
+        else result = (blocks[idx-1].operator === "AND") ? (result && !!val) : (result || !!val);
+        if (b.operator === "END") isEnd = true;
+    });
+    return result;
+}
+
 function calculateAll() {
     for (let i = 1; i <= 16; i++) {
-        const blocks = logicStore[`Y${i}`];
-        if (blocks.length === 0) continue;
-        let result = false; let isEnd = false;
-        blocks.forEach((b, idx) => {
-            if (isEnd) return;
-            const val = document.getElementById(b.operand).checked ^ (b.not === "NOT");
-            if (idx === 0) result = !!val;
-            else result = (blocks[idx-1].operator === "AND") ? (result && !!val) : (result || !!val);
-            if (b.operator === "END") isEnd = true;
-        });
+        mStore[i-1] = computeLogic(`M${i}`);
+        document.getElementById(`M${i}-led`).className = "led-m " + (mStore[i-1] ? "on" : "");
+    }
+    for (let i = 1; i <= 16; i++) {
+        const result = computeLogic(`Y${i}`);
         document.getElementById(`Y${i}-led`).className = "led " + (result ? "on" : "");
         document.getElementById(`Y${i}`).checked = result;
     }
@@ -94,87 +124,47 @@ function calculateAll() {
 }
 
 function updateStatus() {
-    const calcStats = (prefix) => {
+    const calcStats = (prefix, dataArray = null) => {
         let bin = "", val = 0;
         for (let i = 16; i >= 1; i--) {
-            const el = document.getElementById(prefix + i);
-            const bit = (el && el.checked ? 1 : 0);
+            const bit = dataArray ? (dataArray[i-1] ? 1 : 0) : (document.getElementById(prefix + i)?.checked ? 1 : 0);
             bin += bit; val = (val << 1) | bit;
         }
         return `${prefix}: ${bin.match(/.{1,4}/g).join(" ")} (Hex: 0x${val.toString(16).toUpperCase().padStart(4, '0')} | Dec: ${val})`;
     };
     document.getElementById("status-x").textContent = calcStats("X");
+    document.getElementById("status-m").textContent = calcStats("M", mStore);
     document.getElementById("status-y").textContent = calcStats("Y");
 }
 
-function clearAll() { location.reload(); }
-init();
-
-// 現在の編集対象（Y1等）のロジックをクリアする
 function clearCurrentLogic() {
     if (!confirm(`${currentTarget} のロジックをすべて削除しますか？`)) return;
-
-    // logicStoreのデータを空にする
     logicStore[currentTarget] = [];
-    
-    // コンテナをクリア
     document.getElementById("logic-container").innerHTML = "";
-    
-    // リストの表示をクリア
     document.getElementById(`formula-${currentTarget}`).textContent = "-";
-    
-    // LEDもOFFにする
-    document.getElementById(`${currentTarget}-led`).className = "led";
-    document.getElementById(currentTarget).checked = false;
-    
-    updateStatus();
+    calculateAll();
 }
 
-// --- データ管理機能 (JSON) ---
+function confirmClearAll() { if (confirm("全てリセットしますか？")) location.reload(); }
 
-// 全リセット（確認付き）
-function confirmClearAll() {
-    if (confirm("全てのロジックと入力をリセットしますか？\n保存していないデータは失われます。")) {
-        location.reload();
-    }
-}
-
-// ロジックをエクスポート
 function exportLogic() {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(logicStore));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "io_simulator_data.json");
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
+    const a = document.createElement('a'); a.href = dataStr; a.download = "io_simulator_data.json"; a.click();
 }
 
-// ロジックをインポート
-function importLogic(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            logicStore = JSON.parse(e.target.result);
-            // 読み込んだらY1の画面を初期表示し、式も再描画する
-            loadLogic("Y1");
-            // 全ての式の表示を更新するために再描画
-            Object.keys(logicStore).forEach(target => {
-                const blocks = logicStore[target];
-                let formula = blocks.map(b => {
-                    const not = b.not.toLowerCase();
-                    const op = b.operand;
-                    const logic = b.operator.toLowerCase();
-                    return (logic === "end") ? (not ? not + " " : "") + op : (not ? not + " " : "") + op + " " + logic;
-                }).join(" ");
-                document.getElementById(`formula-${target}`).textContent = formula || "-";
-            });
-            alert("ロジックをインポートしました。");
-        } catch (err) {
-            alert("ファイルの読み込みに失敗しました。正しいJSON形式か確認してください。");
-        }
+function importLogic(e) {
+    const r = new FileReader();
+    r.onload = (e) => {
+        logicStore = JSON.parse(e.target.result);
+        loadLogic("M1");
+        Object.keys(logicStore).forEach(t => {
+            const b = logicStore[t];
+            const f = b.map(x => (x.operator.toLowerCase() === "end") ? (x.not ? x.not + " " : "") + x.operand : (x.not ? x.not + " " : "") + x.operand + " " + x.operator.toLowerCase()).join(" ");
+            document.getElementById(`formula-${t}`).textContent = f || "-";
+        });
+        alert("インポート完了");
     };
-    reader.readAsText(file);
+    r.readAsText(e.target.files[0]);
 }
+
+init();

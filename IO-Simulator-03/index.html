@@ -6,10 +6,11 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="status-bar" id="status-bar">
-        <div id="status-x">X: 0000 0000 0000 0000 (Hex: 0x0000 | Dec: 0)</div>
-        <div id="status-y">Y: 0000 0000 0000 0000 (Hex: 0x0000 | Dec: 0)</div>
-    </div>
+<div class="status-bar" id="status-bar">
+    <div id="status-x">X: 0000 0000 0000 0000 (Hex: 0x0000 | Dec: 0)</div>
+    <div id="status-m">M: 0000 0000 0000 0000 (Hex: 0x0000 | Dec: 0)</div>
+    <div id="status-y">Y: 0000 0000 0000 0000 (Hex: 0x0000 | Dec: 0)</div>
+</div>
 
     <div class="main-content">
     <h2>I/O シミュレータ_02</h2>
@@ -23,17 +24,17 @@
 
         <h3>入力 X1-X16</h3>
         <div id="inputs-x" class="one-line-group"></div>
-
+        <h3>内部リレー M1-M16</h3>
+        <div id="inputs-m" class="one-line-group"></div>
         <h3>出力 Y1-Y16</h3>
         <div id="outputs-y" class="one-line-group"></div>
 
         <hr>
 
-        <h3>編集対象: 
-            <select id="target-selector" onchange="loadLogic(this.value)">
-                <script>for(let i=1; i<=16; i++) document.write(`<option value="Y${i}">Y${i}</option>`);</script>
-            </select>
-        </h3>
+<h3>編集対象: 
+    <select id="target-selector" onchange="loadLogic(this.value)">
+        </select>
+</h3>
         <div class="logic-bar">
             <label id="target-label"><b>Y1 = </b></label>
             <div id="logic-container" class="logic-container"></div>

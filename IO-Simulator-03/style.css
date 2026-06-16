@@ -7,3 +7,14 @@ body { font-family: sans-serif; padding: 20px; background: #f4f4f4; padding-top:
 .logic-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 5px; }
 .logic-container { display: flex; gap: 5px; flex-wrap: wrap; }
 .block { border: 1px solid #999; padding: 5px; background: #eee; display: flex; gap: 3px; }
+.led-m {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #ddd;
+    display: inline-block;
+}
+.led-m.on {
+    background-color: #00FF00; /* 緑 */
+    box-shadow: 0 0 5px #00FF00;
+}
