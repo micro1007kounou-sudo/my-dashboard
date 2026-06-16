@@ -26,25 +26,40 @@
                 <script>for(let i=1; i<=16; i++) document.write(`<option value="Y${i}">Y${i}</option>`);</script>
             </select>
         </h3>
-<div class="logic-bar">
-    <label id="target-label"><b>Y1 = </b></label>
-    <div id="logic-container" class="logic-container"></div>
-    
-    <button onclick="addBlock()">＋</button>
-    <button onclick="removeBlock()">－</button>
-    
-    <span style="margin-left: 10px;">
-        <button onclick="writeToStore()" style="background:#2196F3; color:white;">書き込み</button>
-        <button onclick="clearCurrentLogic()" style="background:#f44336; color:white;">削除</button>
-    </span>
-    
-    <button onclick="calculateAll()" style="background:#4CAF50; color:white; margin-left:10px;">全実行</button>
-</div>
+        <div class="logic-bar">
+            <label id="target-label"><b>Y1 = </b></label>
+            <div id="logic-container" class="logic-container"></div>
+            
+            <button onclick="addBlock()">＋</button>
+            <button onclick="removeBlock()">－</button>
+            
+            <span style="margin-left: 10px;">
+                <button onclick="writeToStore()" style="background:#2196F3; color:white;">書き込み</button>
+                <button onclick="clearCurrentLogic()" style="background:#f44336; color:white;">削除</button>
+            </span>
+            
+            <button onclick="calculateAll()" style="background:#4CAF50; color:white; margin-left:10px;">全実行</button>
+        </div>
+
         <h3>ロジックリスト</h3>
         <div id="logic-list"></div>
         <br>
-        <button onclick="clearAll()" style="color:red;">全てリセット</button>
+
+<div class="footer-ops">
+            <button onclick="exportLogic()">ロジックをエクスポート</button>
+            <button onclick="document.getElementById('file-input').click()">ロジックをインポート</button>
+            <input type="file" id="file-input" style="display:none" onchange="importLogic(event)">
+            <button onclick="confirmClearAll()" style="color:red; margin-left: 20px;">全てリセット</button>
+        </div>
     </div>
+
     <script src="logic.js"></script>
+
+    <div id="footer"></div>
+    <script>
+      fetch("../footer.html")
+        .then(res => res.text())
+        .then(html => document.getElementById("footer").innerHTML = html);
+    </script>
 </body>
 </html>

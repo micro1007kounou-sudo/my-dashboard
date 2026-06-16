@@ -129,3 +129,52 @@ function clearCurrentLogic() {
     
     updateStatus();
 }
+
+// --- データ管理機能 (JSON) ---
+
+// 全リセット（確認付き）
+function confirmClearAll() {
+    if (confirm("全てのロジックと入力をリセットしますか？\n保存していないデータは失われます。")) {
+        location.reload();
+    }
+}
+
+// ロジックをエクスポート
+function exportLogic() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(logicStore));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "io_simulator_data.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+}
+
+// ロジックをインポート
+function importLogic(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            logicStore = JSON.parse(e.target.result);
+            // 読み込んだらY1の画面を初期表示し、式も再描画する
+            loadLogic("Y1");
+            // 全ての式の表示を更新するために再描画
+            Object.keys(logicStore).forEach(target => {
+                const blocks = logicStore[target];
+                let formula = blocks.map(b => {
+                    const not = b.not.toLowerCase();
+                    const op = b.operand;
+                    const logic = b.operator.toLowerCase();
+                    return (logic === "end") ? (not ? not + " " : "") + op : (not ? not + " " : "") + op + " " + logic;
+                }).join(" ");
+                document.getElementById(`formula-${target}`).textContent = formula || "-";
+            });
+            alert("ロジックをインポートしました。");
+        } catch (err) {
+            alert("ファイルの読み込みに失敗しました。正しいJSON形式か確認してください。");
+        }
+    };
+    reader.readAsText(file);
+}
