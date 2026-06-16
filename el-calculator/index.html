@@ -84,6 +84,59 @@
         </div>
         <div id="resistor-result" class="result" style="display: none;"></div>
     </div>
+
+    <div class="card">
+        <h2>3. 抵抗カラーコード計算</h2>
+        <p class="sub-text">※バンド数と色を選ぶと、イラストに反映され抵抗値を自動計算します。</p>
+        
+        <div class="resistor-visual-container">
+            <div class="resistor-body">
+                <div class="lead-left"></div>
+                <div id="visual-band1" class="v-band"></div>
+                <div id="visual-band2" class="v-band"></div>
+                <div id="visual-band3" class="v-band"></div>
+                <div id="visual-band4" class="v-band"></div>
+                <div id="visual-band5" class="v-band"></div>
+                <div class="lead-right"></div>
+            </div>
+        </div>
+
+        <div class="cc-control-grid">
+            <div class="input-group cc-full-width">
+                <label for="cc-band-count">バンド数（色帯の数）</label>
+                <select id="cc-band-count">
+                    <option value="4" selected>4本帯 (一般抵抗)</option>
+                    <option value="5">5本帯 (精密抵抗)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="cc-select-grid">
+            <div class="input-group" id="group-band1">
+                <label>第1バンド</label>
+                <select id="cc-band1"></select>
+            </div>
+            <div class="input-group" id="group-band2">
+                <label>第2バンド</label>
+                <select id="cc-band2"></select>
+            </div>
+            <div class="input-group" id="group-band3">
+                <label id="label-band3">第3バンド</label>
+                <select id="cc-band3"></select>
+            </div>
+            <div class="input-group" id="group-multiplier">
+                <label>乗算器</label>
+                <select id="cc-multiplier"></select>
+            </div>
+            <div class="input-group" id="group-tolerance">
+                <label>公差 (許容差)</label>
+                <select id="cc-tolerance"></select>
+            </div>
+        </div>
+
+        <div id="cc-result" class="result" style="text-align: center; font-size: 1.2rem; background-color: #eff6ff; border-left-color: #2563eb;">
+            </div>
+    </div>
 </div>
 
 <script src="script.js"></script>

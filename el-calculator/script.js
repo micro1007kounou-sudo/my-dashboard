@@ -15,6 +15,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const resistorGrid = document.getElementById('resistor-grid');
     const resistorResult = document.getElementById('resistor-result');
 
+    // --- カラーコードの要素取得 ---
+    const ccBandCount = document.getElementById('cc-band-count');
+    const ccBand1 = document.getElementById('cc-band1');
+    const ccBand2 = document.getElementById('cc-band2');
+    const ccBand3 = document.getElementById('cc-band3');
+    const ccMultiplier = document.getElementById('cc-multiplier');
+    const ccTolerance = document.getElementById('cc-tolerance');
+
+    const vBand1 = document.getElementById('visual-band1');
+    const vBand2 = document.getElementById('visual-band2');
+    const vBand3 = document.getElementById('visual-band3');
+    const vBand4 = document.getElementById('visual-band4');
+    const vBand5 = document.getElementById('visual-band5');
+    const ccResult = document.getElementById('cc-result');
+
+    const groupBand3 = document.getElementById('group-band3');
+    const labelBand3 = document.getElementById('label-band3');
+
     // ボタン各種
     const btnOhm = document.getElementById('btn-ohm');
     const btnSeries = document.getElementById('btn-series');
@@ -22,11 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnAddResistor = document.getElementById('btn-add-resistor');
     const btnRemoveResistor = document.getElementById('btn-remove-resistor');
 
-    // 抵抗の初期個数と最大値
     let resistorCount = 0;
     const MAX_RESISTORS = 10;
 
-    // --- 【ギガ・ナノ削除】実用的な5項目に選別 ---
     const prefixes = [
         { name: 'M', display: 'M (メガ)', power: 2 },
         { name: 'k', display: 'k (キロ)', power: 1 },
@@ -36,13 +52,49 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
     const BASE_STEP = 1000;
 
-    // 初期化実行（最初から5個の抵抗入力欄を表示）
+    // --- カラーコードマスタデータ定義 ---
+    const colorMaster = {
+        digits: [
+            { name: '黒 (0)', value: 0, color: '#000000', textLight: true },
+            { name: '茶 (1)', value: 1, color: '#9c4d1d', textLight: true },
+            { name: '赤 (2)', value: 2, color: '#ef4444', textLight: true },
+            { name: '橙 (3)', value: 3, color: '#f97316', textLight: true },
+            { name: '黄 (4)', value: 4, color: '#eab308', textLight: false },
+            { name: '緑 (5)', value: 5, color: '#22c55e', textLight: true },
+            { name: '青 (6)', value: 6, color: '#3b82f6', textLight: true },
+            { name: '紫 (7)', value: 7, color: '#a855f7', textLight: true },
+            { name: '灰 (8)', value: 8, color: '#64748b', textLight: true },
+            { name: '白 (9)', value: 9, color: '#ffffff', textLight: false }
+        ],
+        multipliers: [
+            { name: '黒 (×1)', value: 1, color: '#000000', textLight: true },
+            { name: '茶 (×10)', value: 10, color: '#9c4d1d', textLight: true },
+            { name: '赤 (×100)', value: 100, color: '#ef4444', textLight: true },
+            { name: '橙 (×1k)', value: 1000, color: '#f97316', textLight: true },
+            { name: '黄 (×10k)', value: 10000, color: '#eab308', textLight: false },
+            { name: '緑 (×100k)', value: 100000, color: '#22c55e', textLight: true },
+            { name: '青 (×1M)', value: 1000000, color: '#3b82f6', textLight: true },
+            { name: '金 (×0.1)', value: 0.1, color: '#d97706', textLight: true },
+            { name: '銀 (×0.01)', value: 0.01, color: '#cbd5e1', textLight: false }
+        ],
+        tolerances: [
+            { name: '茶 (±1%)', value: '±1%', color: '#9c4d1d', textLight: true },
+            { name: '赤 (±2%)', value: '±2%', color: '#ef4444', textLight: true },
+            { name: '金 (±5%)', value: '±5%', color: '#d97706', textLight: true },
+            { name: '銀 (±10%)', value: '±10%', color: '#cbd5e1', textLight: false },
+            { name: '無 (±20%)', value: '±20%', color: 'transparent', textLight: false }
+        ]
+    };
+
+    // 初期化実行
     initUnitSelectOptions(); 
+    initColorCodeOptions();
     createResistorInput();
     createResistorInput();
     createResistorInput();
     createResistorInput();
     createResistorInput();
+    updateColorCodeUI(); // カラーコード初期計算
 
     // --- イベントリスナー登録 ---
     unitTypeSelect.addEventListener('change', updateConversion);
@@ -55,10 +107,16 @@ document.addEventListener('DOMContentLoaded', () => {
     btnAddResistor.addEventListener('click', () => createResistorInput());
     btnRemoveResistor.addEventListener('click', removeResistorInput);
 
+    // カラーコード用イベント
+    ccBandCount.addEventListener('change', updateColorCodeUI);
+    ccBand1.addEventListener('change', updateColorCodeCalculation);
+    ccBand2.addEventListener('change', updateColorCodeCalculation);
+    ccBand3.addEventListener('change', updateColorCodeCalculation);
+    ccMultiplier.addEventListener('change', updateColorCodeCalculation);
+    ccTolerance.addEventListener('change', updateColorCodeCalculation);
+
 
     // --- 単位換算のロジック ---
-    
-    // 接頭辞ドロップダウンの初期生成
     function initUnitSelectOptions() {
         convertUnitSelect.innerHTML = '';
         prefixes.forEach(p => {
@@ -72,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateConversion() {
         const val = parseFloat(convertValueInput.value);
-        const selectedType = unitTypeSelect.value; // V, A, W, Ω, J, Hz, または ""
+        const selectedType = unitTypeSelect.value;
         const currentPower = parseInt(convertUnitSelect.value);
 
         if (isNaN(val)) {
@@ -80,16 +138,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 基準値 (power=0) を一括計算
         const baseValue = val * Math.pow(BASE_STEP, currentPower);
-
-        convertResultGrid.innerHTML = ''; // クリア
+        convertResultGrid.innerHTML = '';
 
         prefixes.forEach(p => {
             const convertedVal = baseValue / Math.pow(BASE_STEP, p.power);
             const formattedVal = formatExponentResult(convertedVal);
 
-            // 単位記号の結合
             let unitSymbol = p.name + selectedType;
             if (unitSymbol === "") unitSymbol = "基本";
 
@@ -99,17 +154,105 @@ document.addEventListener('DOMContentLoaded', () => {
             const resultBox = document.createElement('div');
             resultBox.className = boxClass;
             resultBox.innerHTML = `<strong>${formattedVal}</strong> ${unitSymbol}`;
-            
             convertResultGrid.appendChild(resultBox);
         });
     }
 
-    // 省略（指数表記）を使わず、生の小数をそのまま見せるフォーマット（共通利用）
     function formatExponentResult(num) {
         if (num === 0) return '0';
-        // JavaScript特有の細かな丸め誤差だけを14桁で綺麗にして文字列に戻す
         const fixedNum = parseFloat(num.toPrecision(14));
         return fixedNum.toString();
+    }
+
+
+    // --- カラーコード計算のロジック ---
+    function initColorCodeOptions() {
+        populateSelect(ccBand1, colorMaster.digits, 1); // 初期値: 茶(1)
+        populateSelect(ccBand2, colorMaster.digits, 0); // 初期値: 黒(0)
+        populateSelect(ccBand3, colorMaster.digits, 0); // 初期値: 黒(0)
+        populateSelect(ccMultiplier, colorMaster.multipliers, 2); // 初期値: 赤(x100)
+        populateSelect(ccTolerance, colorMaster.tolerances, 2); // 初期値: 金(±5%)
+    }
+
+    function populateSelect(selectEl, dataArray, defaultIndex) {
+        selectEl.innerHTML = '';
+        dataArray.forEach((item, idx) => {
+            const opt = document.createElement('option');
+            opt.value = item.value;
+            opt.innerText = item.name;
+            opt.style.backgroundColor = item.color;
+            opt.style.color = item.textLight ? '#fff' : '#000';
+            if (idx === defaultIndex) opt.selected = true;
+            selectEl.appendChild(opt);
+        });
+    }
+
+    function updateColorCodeUI() {
+        const is5Band = ccBandCount.value === "5";
+        
+        if (is5Band) {
+            groupBand3.style.display = 'block';
+            labelBand3.innerText = "第3バンド";
+            vBand3.style.opacity = "1";
+            // 5本目のグリッド幅を最適化
+            document.querySelector('.cc-select-grid').style.gridTemplateColumns = 'repeat(5, 1fr)';
+        } else {
+            groupBand3.style.display = 'none';
+            vBand3.style.opacity = "0"; // 4本帯のときは真ん中の帯を消す
+            document.querySelector('.cc-select-grid').style.gridTemplateColumns = 'repeat(4, 1fr)';
+        }
+        updateColorCodeCalculation();
+    }
+
+    function updateColorCodeCalculation() {
+        const is5Band = ccBandCount.value === "5";
+        
+        const b1Idx = ccBand1.selectedIndex;
+        const b2Idx = ccBand2.selectedIndex;
+        const b3Idx = ccBand3.selectedIndex;
+        const mIdx = ccMultiplier.selectedIndex;
+        const tIdx = ccTolerance.selectedIndex;
+
+        const b1 = colorMaster.digits[b1Idx];
+        const b2 = colorMaster.digits[b2Idx];
+        const b3 = colorMaster.digits[b3Idx];
+        const multiplier = colorMaster.multipliers[mIdx];
+        const tolerance = colorMaster.tolerances[tIdx];
+
+        // イラストの帯の色を更新
+        vBand1.style.backgroundColor = b1.color;
+        vBand2.style.backgroundColor = b2.color;
+        
+        if (is5Band) {
+            vBand3.style.backgroundColor = b3.color;
+            vBand4.style.backgroundColor = multiplier.color;
+            vBand5.style.backgroundColor = tolerance.color;
+        } else {
+            vBand4.style.backgroundColor = multiplier.color;
+            vBand5.style.backgroundColor = tolerance.color;
+        }
+
+        // 抵抗値の計算
+        let baseNum = 0;
+        if (is5Band) {
+            baseNum = (b1.value * 100) + (b2.value * 10) + b3.value;
+        } else {
+            baseNum = (b1.value * 10) + b2.value;
+        }
+        
+        const finalOmega = baseNum * multiplier.value;
+
+        // 単位の自動変換表記 (M, k, Ω)
+        let displayStr = "";
+        if (finalOmega >= 1000000) {
+            displayStr = formatExponentResult(finalOmega / 1000000) + " M";
+        } else if (finalOmega >= 1000) {
+            displayStr = formatExponentResult(finalOmega / 1000) + " k";
+        } else {
+            displayStr = formatExponentResult(finalOmega);
+        }
+
+        ccResult.innerHTML = `計算結果: <strong>${displayStr} Ω</strong> (許容差: ${tolerance.value})`;
     }
 
 
