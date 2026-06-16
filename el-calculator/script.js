@@ -33,6 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const groupBand3 = document.getElementById('group-band3');
     const labelBand3 = document.getElementById('label-band3');
 
+    // 逆引き用要素
+    const ccReverseValue = document.getElementById('cc-reverse-value');
+    const ccReverseUnit = document.getElementById('cc-reverse-unit');
+    const btnCcReverse = document.getElementById('btn-cc-reverse');
+
     // ボタン各種
     const btnOhm = document.getElementById('btn-ohm');
     const btnSeries = document.getElementById('btn-series');
@@ -94,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
     createResistorInput();
     createResistorInput();
     createResistorInput();
-    updateColorCodeUI(); // カラーコード初期計算
+    updateColorCodeUI();
 
     // --- イベントリスナー登録 ---
     unitTypeSelect.addEventListener('change', updateConversion);
@@ -114,6 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ccBand3.addEventListener('change', updateColorCodeCalculation);
     ccMultiplier.addEventListener('change', updateColorCodeCalculation);
     ccTolerance.addEventListener('change', updateColorCodeCalculation);
+    btnCcReverse.addEventListener('click', reverseColorCode);
 
 
     // --- 単位換算のロジック ---
@@ -167,11 +173,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- カラーコード計算のロジック ---
     function initColorCodeOptions() {
-        populateSelect(ccBand1, colorMaster.digits, 1); // 初期値: 茶(1)
-        populateSelect(ccBand2, colorMaster.digits, 0); // 初期値: 黒(0)
-        populateSelect(ccBand3, colorMaster.digits, 0); // 初期値: 黒(0)
-        populateSelect(ccMultiplier, colorMaster.multipliers, 2); // 初期値: 赤(x100)
-        populateSelect(ccTolerance, colorMaster.tolerances, 2); // 初期値: 金(±5%)
+        populateSelect(ccBand1, colorMaster.digits, 1); // 茶
+        populateSelect(ccBand2, colorMaster.digits, 0); // 黒
+        populateSelect(ccBand3, colorMaster.digits, 0); // 黒
+        populateSelect(ccMultiplier, colorMaster.multipliers, 2); // 赤
+        populateSelect(ccTolerance, colorMaster.tolerances, 2); // 金
     }
 
     function populateSelect(selectEl, dataArray, defaultIndex) {
@@ -189,16 +195,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateColorCodeUI() {
         const is5Band = ccBandCount.value === "5";
-        
         if (is5Band) {
             groupBand3.style.display = 'block';
             labelBand3.innerText = "第3バンド";
             vBand3.style.opacity = "1";
-            // 5本目のグリッド幅を最適化
             document.querySelector('.cc-select-grid').style.gridTemplateColumns = 'repeat(5, 1fr)';
         } else {
             groupBand3.style.display = 'none';
-            vBand3.style.opacity = "0"; // 4本帯のときは真ん中の帯を消す
+            vBand3.style.opacity = "0";
             document.querySelector('.cc-select-grid').style.gridTemplateColumns = 'repeat(4, 1fr)';
         }
         updateColorCodeCalculation();
@@ -207,42 +211,24 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateColorCodeCalculation() {
         const is5Band = ccBandCount.value === "5";
         
-        const b1Idx = ccBand1.selectedIndex;
-        const b2Idx = ccBand2.selectedIndex;
-        const b3Idx = ccBand3.selectedIndex;
-        const mIdx = ccMultiplier.selectedIndex;
-        const tIdx = ccTolerance.selectedIndex;
+        const b1 = colorMaster.digits[ccBand1.selectedIndex];
+        const b2 = colorMaster.digits[ccBand2.selectedIndex];
+        const b3 = colorMaster.digits[ccBand3.selectedIndex];
+        const multiplier = colorMaster.multipliers[ccMultiplier.selectedIndex];
+        const tolerance = colorMaster.tolerances[ccTolerance.selectedIndex];
 
-        const b1 = colorMaster.digits[b1Idx];
-        const b2 = colorMaster.digits[b2Idx];
-        const b3 = colorMaster.digits[b3Idx];
-        const multiplier = colorMaster.multipliers[mIdx];
-        const tolerance = colorMaster.tolerances[tIdx];
-
-        // イラストの帯の色を更新
         vBand1.style.backgroundColor = b1.color;
         vBand2.style.backgroundColor = b2.color;
         
         if (is5Band) {
             vBand3.style.backgroundColor = b3.color;
-            vBand4.style.backgroundColor = multiplier.color;
-            vBand5.style.backgroundColor = tolerance.color;
-        } else {
-            vBand4.style.backgroundColor = multiplier.color;
-            vBand5.style.backgroundColor = tolerance.color;
         }
+        vBand4.style.backgroundColor = multiplier.color;
+        vBand5.style.backgroundColor = tolerance.color;
 
-        // 抵抗値の計算
-        let baseNum = 0;
-        if (is5Band) {
-            baseNum = (b1.value * 100) + (b2.value * 10) + b3.value;
-        } else {
-            baseNum = (b1.value * 10) + b2.value;
-        }
-        
+        let baseNum = is5Band ? ((b1.value * 100) + (b2.value * 10) + b3.value) : ((b1.value * 10) + b2.value);
         const finalOmega = baseNum * multiplier.value;
 
-        // 単位の自動変換表記 (M, k, Ω)
         let displayStr = "";
         if (finalOmega >= 1000000) {
             displayStr = formatExponentResult(finalOmega / 1000000) + " M";
@@ -253,6 +239,68 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         ccResult.innerHTML = `計算結果: <strong>${displayStr} Ω</strong> (許容差: ${tolerance.value})`;
+    }
+
+    // ★新設：抵抗値からカラーコードへの逆引き処理
+    function reverseColorCode() {
+        const inputVal = parseFloat(ccReverseValue.value);
+        const unitMult = parseFloat(ccReverseUnit.value);
+
+        if (isNaN(inputVal) || inputVal <= 0) {
+            alert("正の数値を入力してください。");
+            return;
+        }
+
+        // オーム単位の絶対値に変換
+        let targetOmega = inputVal * unitMult;
+        const is5Band = ccBandCount.value === "5";
+
+        // 数学的に指数（何乗か）を算出
+        let log10 = Math.floor(Math.log10(targetOmega));
+        
+        // 4本帯か5本帯かで、抽出したい上位桁の基準を変える
+        let baseDigitsCount = is5Band ? 3 : 2;
+        let tempMultiplier = Math.pow(10, log10 - (baseDigitsCount - 1));
+        
+        // 丸め誤差を考慮してベースとなる数値（2桁または3桁の整数）を抽出
+        let baseNum = Math.round(targetOmega / tempMultiplier);
+
+        // 繰り上がり処理のバリデーション
+        if (baseNum >= Math.pow(10, baseDigitsCount)) {
+            tempMultiplier *= 10;
+            baseNum = Math.round(targetOmega / tempMultiplier);
+        }
+
+        // 抽出したベース数を配列に分解
+        let digitsArray = baseNum.toString().split('').map(Number);
+        while (digitsArray.length < baseDigitsCount) {
+            digitsArray.unshift(0); // 桁数が足りない場合は頭を0で埋める
+        }
+
+        // 対応する乗算器の値を決定
+        let finalMultiplierValue = tempMultiplier;
+
+        // ドロップダウンの自動セレクト処理
+        let foundB1 = colorMaster.digits.findIndex(d => d.value === digitsArray[0]);
+        let foundB2 = colorMaster.digits.findIndex(d => d.value === digitsArray[1]);
+        let foundB3 = is5Band ? colorMaster.digits.findIndex(d => d.value === digitsArray[2]) : 0;
+        
+        // 誤差を許容して最も近い乗算器を探す
+        let foundMult = colorMaster.multipliers.findIndex(m => Math.abs(m.value - finalMultiplierValue) < (m.value * 0.01));
+
+        if (foundB1 !== -1) ccBand1.selectedIndex = foundB1;
+        if (foundB2 !== -1) ccBand2.selectedIndex = foundB2;
+        if (is5Band && foundB3 !== -1) ccBand3.selectedIndex = foundB3;
+        
+        if (foundMult !== -1) {
+            ccMultiplier.selectedIndex = foundMult;
+        } else {
+            alert("対応する乗算器（倍率）の範囲外、またはカラーコードで表現できない数値です。");
+            return;
+        }
+
+        // 画面に即座に反映
+        updateColorCodeCalculation();
     }
 
 

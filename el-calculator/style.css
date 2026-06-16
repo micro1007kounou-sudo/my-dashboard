@@ -220,6 +220,20 @@ button:hover {
 }
 
 /* --- 3. カラーコード計算用ビジュアルスタイル --- */
+.cc-reverse-row {
+    display: flex;
+    gap: 10px;
+    background: #f1f5f9;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    align-items: flex-end;
+}
+.cc-rev-val { flex: 2; margin-bottom: 0; }
+.cc-rev-unit { flex: 1; margin-bottom: 0; }
+.cc-rev-btn-wrap { flex: 1.2; margin-bottom: 0; }
+.cc-reverse-row button { height: 41px; padding: 0; }
+
 .resistor-visual-container {
     display: flex;
     justify-content: center;
@@ -234,7 +248,7 @@ button:hover {
 .resistor-body {
     width: 220px;
     height: 46px;
-    background: #e2e8f0; /* カード群と調和するモダンなライトグレーのボディ */
+    background: #e2e8f0;
     border-radius: 8px;
     position: relative;
     box-shadow: inset 0 3px 5px rgba(255,255,255,0.6), inset 0 -3px 5px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.05);
@@ -244,7 +258,6 @@ button:hover {
     box-sizing: border-box;
 }
 
-/* 両端のリード線 */
 .lead-left, .lead-right {
     position: absolute;
     top: 22px;
@@ -256,7 +269,6 @@ button:hover {
 .lead-left { left: -50px; }
 .lead-right { right: -50px; }
 
-/* カラーバンドの共通ベース */
 .v-band {
     width: 10px;
     height: 46px;
@@ -265,7 +277,6 @@ button:hover {
     box-shadow: inset 1px 0 rgba(255,255,255,0.2), inset -1px 0 rgba(0,0,0,0.2);
 }
 
-/* セレクトボックスの配置グリッド */
 .cc-select-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -291,8 +302,13 @@ button:hover {
         flex-direction: column;
         gap: 5px;
     }
+    .cc-reverse-row {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
     .cc-select-grid {
-        grid-template-columns: repeat(2, 1fr); /* スマホでは2列ずつ綺麗に並べる */
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 @media (max-width: 380px) {

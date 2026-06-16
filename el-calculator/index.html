@@ -86,9 +86,28 @@
     </div>
 
     <div class="card">
-        <h2>3. 抵抗カラーコード計算</h2>
-        <p class="sub-text">※バンド数と色を選ぶと、イラストに反映され抵抗値を自動計算します。</p>
+        <h2>3. 抵抗カラーコード計算・逆引き</h2>
+        <p class="sub-text">※色を選んで抵抗値を出すことも、数値を入力して色を逆引きすることも可能です。</p>
         
+        <div class="cc-reverse-row">
+            <div class="input-group cc-rev-val">
+                <label for="cc-reverse-value">抵抗値から逆引き検索</label>
+                <input type="number" id="cc-reverse-value" step="any" placeholder="例: 4.7">
+            </div>
+            <div class="input-group cc-rev-unit">
+                <label for="cc-reverse-unit">単位</label>
+                <select id="cc-reverse-unit">
+                    <option value="1" selected>Ω</option>
+                    <option value="1000">kΩ</option>
+                    <option value="1000000">MΩ</option>
+                </select>
+            </div>
+            <div class="input-group cc-rev-btn-wrap">
+                <label>&nbsp;</label>
+                <button id="btn-cc-reverse">逆引き実行</button>
+            </div>
+        </div>
+
         <div class="resistor-visual-container">
             <div class="resistor-body">
                 <div class="lead-left"></div>
