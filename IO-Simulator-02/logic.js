@@ -109,3 +109,23 @@ function updateStatus() {
 
 function clearAll() { location.reload(); }
 init();
+
+// 現在の編集対象（Y1等）のロジックをクリアする
+function clearCurrentLogic() {
+    if (!confirm(`${currentTarget} のロジックをすべて削除しますか？`)) return;
+
+    // logicStoreのデータを空にする
+    logicStore[currentTarget] = [];
+    
+    // コンテナをクリア
+    document.getElementById("logic-container").innerHTML = "";
+    
+    // リストの表示をクリア
+    document.getElementById(`formula-${currentTarget}`).textContent = "-";
+    
+    // LEDもOFFにする
+    document.getElementById(`${currentTarget}-led`).className = "led";
+    document.getElementById(currentTarget).checked = false;
+    
+    updateStatus();
+}
