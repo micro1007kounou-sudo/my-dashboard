@@ -1,4 +1,4 @@
-let currentTarget = "Y1";
+let currentTarget = "M1";
 let logicStore = {};
 let mStore = new Array(16).fill(false); // M1-M16の状態
 
@@ -33,7 +33,8 @@ function init() {
     for (let i = 1; i <= 16; i++) list.innerHTML += `<div style="padding:2px; font-size:0.9em;">M${i} = <span id="formula-M${i}">-</span></div>`;
     for (let i = 1; i <= 16; i++) list.innerHTML += `<div style="padding:2px; font-size:0.9em;">Y${i} = <span id="formula-Y${i}">-</span></div>`;
     
-    updateStatus();
+   updateStatus();
+    loadLogic("M1"); // ここを追加：起動時にM1を読み込む
 }
 
 function loadLogic(target) {
