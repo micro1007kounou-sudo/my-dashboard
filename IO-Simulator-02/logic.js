@@ -50,34 +50,31 @@ function removeBlock() {
 }
 
 function writeToStore() {
-    const blocks = Array.from(document.querySelectorAll("#logic-container .block")).map(b => ({
+    // 画面上のブロックを全取得
+    const blockElements = document.querySelectorAll("#logic-container .block");
+    
+    // データ保存用に抽出
+    logicStore[currentTarget] = Array.from(blockElements).map(b => ({
         not: b.querySelector(".not-select").value,
         operand: b.querySelector(".operand").value,
         operator: b.querySelector(".operator").value
     }));
     
-    logicStore[currentTarget] = blocks;
-    
-    // 式の表示更新
-    let formula = "";
-    blocks.forEach((b, i) => {
-        // 先頭以外は演算子をつける
-        if (i > 0) {
-            // 前のブロックの演算子ではなく、現在のブロックの演算子を使用
-            // ※「直前のAND/OR」を表示する形に修正
-            formula += ` ${blocks[i-1].operator} `;
-        }
-        formula += (b.not ? "NOT " : "") + b.operand;
+    // 表示用：ブロックを左から順に文字列結合
+    // NOT/AND/OR を小文字に変換
+    let formula = Array.from(blockElements).map(b => {
+        const not = b.querySelector(".not-select").value.toLowerCase();
+        const op = b.querySelector(".operand").value;
+        const logic = b.querySelector(".operator").value.toLowerCase();
         
-        // ENDが含まれる場合はそこで止める
-        if (b.operator === "END") {
-            formula += " END";
-        }
-    });
+        // END は表示しないため、除外または変換
+        if (logic === "end") return (not ? not + " " : "") + op;
+        return (not ? not + " " : "") + op + " " + logic;
+    }).join(" ");
+    
     
     document.getElementById(`formula-${currentTarget}`).textContent = formula || "-";
 }
-
 function calculateAll() {
     for (let i = 1; i <= 16; i++) {
         const blocks = logicStore[`Y${i}`];
