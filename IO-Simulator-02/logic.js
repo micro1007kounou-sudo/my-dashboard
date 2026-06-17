@@ -117,6 +117,14 @@ function setXP(index, pressed) {
     updateStatus();
 }
 
+let animationId = null;
+
+function simulationLoop() {
+    if (!isRunning) return;
+    calculateAll();
+    animationId = requestAnimationFrame(simulationLoop);
+}
+
 function startSimulation() {
     if (!isRunning) {
         isRunning = true;
@@ -124,12 +132,15 @@ function startSimulation() {
         document.getElementById("run-status").style.color = "white";
         document.getElementById("run-status").style.backgroundColor = "#4CAF50";
         calculateAll();
+        animationId = requestAnimationFrame(simulationLoop);
     }
 }
 
 function stopSimulation() {
     if (isRunning) {
         isRunning = false;
+        if (animationId) cancelAnimationFrame(animationId);
+        animationId = null;
         document.getElementById("run-status").textContent = "● 停止中";
         document.getElementById("run-status").style.color = "red";
         document.getElementById("run-status").style.backgroundColor = "#eee";
@@ -147,6 +158,16 @@ function resetContacts() {
 }
 
 function updateStatus() {
+    const calcXStats = () => {
+        let bin = "", val = 0;
+        for (let i = 16; i >= 1; i--) {
+            const index = i - 1;
+            const bit = (document.getElementById(`X${i}`).checked || xpStore[index]) ? 1 : 0;
+            bin += bit; val = (val << 1) | bit;
+        }
+        return `${"X"}: ${bin.match(/.{1,4}/g).join(" ")} (Hex: 0x${val.toString(16).toUpperCase().padStart(4, '0')} | Dec: ${val})`;
+    };
+
     const calcStats = (prefix) => {
         let bin = "", val = 0;
         for (let i = 16; i >= 1; i--) {
@@ -156,7 +177,8 @@ function updateStatus() {
         }
         return `${prefix}: ${bin.match(/.{1,4}/g).join(" ")} (Hex: 0x${val.toString(16).toUpperCase().padStart(4, '0')} | Dec: ${val})`;
     };
-    document.getElementById("status-x").textContent = calcStats("X");
+
+    document.getElementById("status-x").textContent = calcXStats();
     document.getElementById("status-y").textContent = calcStats("Y");
 }
 
