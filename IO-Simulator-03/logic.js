@@ -184,16 +184,26 @@ function stopSimulation() {
 }
 
 function updateStatus() {
-    const calcStats = (prefix, dataArray = null) => {
+    // 既存の calcStats はそのままにして、中身だけ強化します
+    const calcStats = (prefix, dataArray = null, isTimer = false) => {
         let bin = "", val = 0;
         for (let i = 16; i >= 1; i--) {
-            const bit = dataArray ? (dataArray[i-1] ? 1 : 0) : (document.getElementById(prefix + i)?.checked ? 1 : 0);
+            // タイマーの場合は tStore[i-1].done を参照、それ以外はチェックボックスまたは配列
+            let bit = 0;
+            if (isTimer) {
+                bit = tStore[i-1].done ? 1 : 0;
+            } else {
+                bit = dataArray ? (dataArray[i-1] ? 1 : 0) : (document.getElementById(prefix + i)?.checked ? 1 : 0);
+            }
             bin += bit; val = (val << 1) | bit;
         }
         return `${prefix}: ${bin.match(/.{1,4}/g).join(" ")} (Hex: 0x${val.toString(16).toUpperCase().padStart(4, '0')} | Dec: ${val})`;
     };
+
     document.getElementById("status-x").textContent = calcStats("X");
     document.getElementById("status-m").textContent = calcStats("M", mStore);
+    // 【追加】タイマー用ステータス（T1-T16の完了フラグを表示）
+    document.getElementById("status-t").textContent = calcStats("T", null, true); 
     document.getElementById("status-y").textContent = calcStats("Y");
 }
 
