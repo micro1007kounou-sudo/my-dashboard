@@ -1,0 +1,20 @@
+body { font-family: sans-serif; padding: 20px; background: #f4f4f4; padding-top: 100px; }
+.main-content { max-width: 1000px; margin: auto; }
+.status-bar { position: fixed; top: 0; left: 0; width: 100%; z-index: 100; background: #222; color: #0f0; padding: 10px; font-family: monospace; font-size: 1.1em; display: flex; flex-direction: column; }
+.one-line-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; font-size: 0.8em; }
+.led { width: 20px; height: 20px; border-radius: 50%; background: #ddd; border: 2px solid #999; display: inline-block; }
+.led.on { background: #ff4444; box-shadow: 0 0 10px #ff4444; }
+.logic-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 5px; }
+.logic-container { display: flex; gap: 5px; flex-wrap: wrap; }
+.block { border: 1px solid #999; padding: 5px; background: #eee; display: flex; gap: 3px; }
+.led-m {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #ddd;
+    display: inline-block;
+}
+.led-m.on {
+    background-color: #00FF00; /* 緑 */
+    box-shadow: 0 0 5px #00FF00;
+}

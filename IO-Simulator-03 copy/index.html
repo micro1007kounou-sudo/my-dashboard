@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>IO-Simulator-03</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="status-bar" id="status-bar">
+    <div id="status-x">X: 0000 0000 0000 0000 (Hex: 0x0000 | Dec: 0)</div>
+    <div id="status-m">M: 0000 0000 0000 0000 (Hex: 0x0000 | Dec: 0)</div>
+    <div id="status-y">Y: 0000 0000 0000 0000 (Hex: 0x0000 | Dec: 0)</div>
+</div>
+
+    <div class="main-content">
+    <h2>I/O シミュレータ_03</h2>
+    
+    <div class="info-box">
+        <p>まず編集対象を選び論理式（AND,OR,NOT)を選択しロジックを書き込んでください。<br>
+            入力を☑し「全実行」を押して下さい。条件に合わせて出力します。<br>
+        ロジックは「ロジックをインポート/エクスポート」でJSON形式で保存・読み込みができます。</p>
+    </div>
+    
+        <h3>入力 X1-X16</h3>
+        <div id="inputs-x" class="one-line-group"></div>
+        <h3>内部リレー M1-M16</h3>
+        <div id="inputs-m" class="one-line-group"></div>
+        <h3>出力 Y1-Y16</h3>
+        <div id="outputs-y" class="one-line-group"></div>
+
+        <hr>
+
+<h3>編集対象: 
+    <select id="target-selector" onchange="loadLogic(this.value)">
+        </select>
+</h3>
+        <div class="logic-bar">
+            <label id="target-label"><b>M1 = </b></label>
+            <div id="logic-container" class="logic-container"></div>
+            
+            <button onclick="addBlock()">＋</button>
+            <button onclick="removeBlock()">－</button>
+            
+            <span style="margin-left: 10px;">
+                <button onclick="writeToStore()" style="background:#2196F3; color:white;">書き込み</button>
+                <button onclick="clearCurrentLogic()" style="background:#f44336; color:white;">削除</button>
+            </span>
+            
+            <button onclick="calculateAll()" style="background:#4CAF50; color:white; margin-left:10px;">全実行</button>
+        </div>
+
+        <h3>ロジックリスト</h3>
+        <div id="logic-list"></div>
+        <br>
+
+<div class="footer-ops">
+            <button onclick="exportLogic()">ロジックをエクスポート</button>
+            <button onclick="document.getElementById('file-input').click()">ロジックをインポート</button>
+            <input type="file" id="file-input" style="display:none" onchange="importLogic(event)">
+            <button onclick="confirmClearAll()" style="color:red; margin-left: 20px;">全てリセット</button>
+        </div>
+    </div>
+
+</div> <div id="footer"></div>
+
+    <script src="logic.js"></script>
+<div id="footer"></div>
+<script>
+  fetch("../footer.html")
+    .then(res => res.text())
+    .then(html => document.getElementById("footer").innerHTML = html);
+</script>
+
+</body>
+</html>
