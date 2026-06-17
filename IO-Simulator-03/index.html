@@ -85,6 +85,8 @@
 
 <div id="footer"></div>
 <script>
+    // Footer is loaded via fetch, so this page must be served over HTTP/HTTPS.
+    // Opening index.html directly with file:// may prevent fetch from working.
     async function loadFooter() {
         const candidates = ['./footer.html', '../footer.html', '/footer.html'];
         for (const p of candidates) {

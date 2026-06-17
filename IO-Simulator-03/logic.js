@@ -7,8 +7,8 @@ let tStore = Array.from({length: 16}, (_, i) => ({
 
 let isRunning = false;
 let lastTime = performance.now();
-// --- 1. 変数定義エリアに追加 ---
-let xpStore = new Array(16).fill(false); // 押しボタン用状態管理
+// XP push-button state for each X input. X checkbox + XP push-button are combined for logic evaluation.
+let xpStore = new Array(16).fill(false);
 
 function init() {
     const selector = document.getElementById("target-selector");
@@ -37,10 +37,15 @@ for (let i = 1; i <= 16; i++) {
     const outputs = document.getElementById("outputs-y");
     for (let i = 1; i <= 16; i++) {
         outputs.innerHTML += `<div style="text-align:center;"><div class="led" id="Y${i}-led"></div><div>Y${i}</div></div>`;
+        // Hidden checkbox used to store and read Y output state in logic evaluation.
         const hidden = document.createElement("input");
-        hidden.type = "checkbox"; hidden.id = `Y${i}`; hidden.style.display = "none";
+        hidden.type = "checkbox";
+        hidden.id = `Y${i}`;
+        hidden.style.display = "none";
         document.body.appendChild(hidden);
-        logicStore[`M${i}`] = []; logicStore[`T${i}`] = []; logicStore[`Y${i}`] = [];
+        logicStore[`M${i}`] = [];
+        logicStore[`T${i}`] = [];
+        logicStore[`Y${i}`] = [];
     }
 
     const timersT = document.getElementById("timers-t");
@@ -110,6 +115,26 @@ function removeBlock() {
     if (container.children.length > 0) container.removeChild(container.lastElementChild);
 }
 
+function formatFormula(blocks) {
+    return blocks.map(b => {
+        const not = b.not ? b.not + ' ' : '';
+        const op = b.operand;
+        return (b.operator === 'END') ? (not + op) : (not + op + ' ' + b.operator);
+    }).join(' ') || '-';
+}
+
+function updateFormulaLabel(target) {
+    document.getElementById(`formula-${target}`).textContent = formatFormula(logicStore[target] || []);
+}
+
+function updateAllFormulaLabels() {
+    ['M', 'T', 'Y'].forEach(prefix => {
+        for (let i = 1; i <= 16; i++) {
+            updateFormulaLabel(`${prefix}${i}`);
+        }
+    });
+}
+
 function writeToStore() {
     const blockElements = document.querySelectorAll("#logic-container .block");
     logicStore[currentTarget] = Array.from(blockElements).map(b => ({
@@ -117,18 +142,9 @@ function writeToStore() {
         operand: b.querySelector(".operand").value,
         operator: b.querySelector(".operator").value
     }));
-    
-    const formula = Array.from(blockElements).map(b => {
-        const not = b.querySelector(".not-select").value.toLowerCase();
-        const op = b.querySelector(".operand").value;
-        const logic = b.querySelector(".operator").value.toLowerCase();
-        return (logic === "end") ? (not ? not + " " : "") + op : (not ? not + " " : "") + op + " " + logic;
-    }).join(" ");
-    document.getElementById(`formula-${currentTarget}`).textContent = formula || "-";
+    document.getElementById(`formula-${currentTarget}`).textContent = formatFormula(logicStore[currentTarget]);
 }
 
-// computeLogic関数内の判定部分を、XPにも対応させる
-// computeLogic をこのように変更
 function computeLogic(target) {
     const blocks = logicStore[target];
     if (!blocks || blocks.length === 0) return false;
@@ -289,19 +305,7 @@ function importLogicJSON(e) {
             });
             logicStore = normalized;
             loadLogic(currentTarget);
-            // すべてのターゲットのフォーミュラを更新
-            for (let i = 1; i <= 16; i++) {
-                ['M', 'T', 'Y'].forEach(prefix => {
-                    const target = `${prefix}${i}`;
-                    const blocks = logicStore[target] || [];
-                    const formula = blocks.map(b => {
-                        const not = b.not ? b.not + ' ' : '';
-                        const op = b.operand;
-                        return (b.operator === 'END') ? (not + op) : (not + op + ' ' + b.operator);
-                    }).join(' ');
-                    document.getElementById(`formula-${target}`).textContent = formula || '-';
-                });
-            }
+            updateAllFormulaLabels();
             alert("JSONインポート完了");
             document.getElementById('file-input-json').value = '';
         } catch (err) {
@@ -355,19 +359,7 @@ function importLogicCSV(e) {
             });
             logicStore = normalized;
             loadLogic(currentTarget);
-            // すべてのターゲットのフォーミュラを更新
-            for (let i = 1; i <= 16; i++) {
-                ['M', 'T', 'Y'].forEach(prefix => {
-                    const target = `${prefix}${i}`;
-                    const blocks = logicStore[target] || [];
-                    const formula = blocks.map(b => {
-                        const not = b.not ? b.not + ' ' : '';
-                        const op = b.operand;
-                        return (b.operator === 'END') ? (not + op) : (not + op + ' ' + b.operator);
-                    }).join(' ');
-                    document.getElementById(`formula-${target}`).textContent = formula || '-';
-                });
-            }
+            updateAllFormulaLabels();
             alert('CSVインポート完了');
             document.getElementById('file-input-csv').value = '';
         } catch (err) {
