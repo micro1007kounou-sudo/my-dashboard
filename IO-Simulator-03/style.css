@@ -1,11 +1,21 @@
-body { font-family: sans-serif; padding: 20px; background: #f4f4f4; padding-top: 100px; }
+body { font-family: sans-serif; padding: 20px; background: #ffffff; padding-top: 120px; }
 .main-content { max-width: 1000px; margin: auto; }
-.status-bar { position: fixed; top: 0; left: 0; width: 100%; z-index: 100; background: #222; color: #0f0; padding: 10px; font-family: monospace; font-size: 1.1em; display: flex; flex-direction: column; }
+.status-bar { position: fixed; top: 0; left: 0; width: 100%; z-index: 100; background: #222; color: #0f0; padding: 12px 16px; font-family: monospace; font-size: 1.1em; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: start; }
+.status-lines { display: flex; flex-direction: column; gap: 4px; }
+.status-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.status-actions button { cursor: pointer; }
+.status-actions .button-group { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
 .one-line-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; font-size: 0.8em; }
 .led { width: 20px; height: 20px; border-radius: 50%; background: #ddd; border: 2px solid #999; display: inline-block; }
 .led.on { background: #ff4444; box-shadow: 0 0 10px #ff4444; }
-.logic-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 5px; }
-.logic-container { display: flex; gap: 5px; flex-wrap: wrap; }
+.logic-target-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 10px 0; }
+.logic-target-row h3 { margin: 0; }
+.logic-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.logic-bar { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 20px; background: #eef2f5; padding: 10px; border-radius: 5px; }
+.logic-editor { display: flex; flex: 1 1 0; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0; }
+.logic-container { flex: 1 1 100%; display: flex; gap: 5px; flex-wrap: wrap; }
+.logic-buttons { display: flex; gap: 10px; }
+.footer-ops { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; background: #f9f9f9; padding: 10px; border-radius: 8px; }
 .block { border: 1px solid #999; padding: 5px; background: #eee; display: flex; gap: 3px; }
 .led-m {
     width: 12px;

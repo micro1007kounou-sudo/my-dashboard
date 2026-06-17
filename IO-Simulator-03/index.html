@@ -7,21 +7,24 @@
 </head>
 <body>
 <div class="status-bar" id="status-bar">
-    <div id="status-x">X: 0000 0000 0000 0000 (Hex: 0x0000 | Dec: 0)</div>
-    <div id="status-m">M: 0000 0000 0000 0000 (Hex: 0x0000 | Dec: 0)</div>
-    <div id="status-t">T: 0000 0000 0000 0000 (Hex: 0x0000 | Dec: 0)</div>
-    <div id="status-y">Y: 0000 0000 0000 0000 (Hex: 0x0000 | Dec: 0)</div>
+    <div class="status-lines">
+        <div id="status-x">X: 0000 0000 0000 0000 (Hex: 0x0000 | Dec: 0)</div>
+        <div id="status-m">M: 0000 0000 0000 0000 (Hex: 0x0000 | Dec: 0)</div>
+        <div id="status-t">T: 0000 0000 0000 0000 (Hex: 0x0000 | Dec: 0)</div>
+        <div id="status-y">Y: 0000 0000 0000 0000 (Hex: 0x0000 | Dec: 0)</div>
+    </div>
+    <div class="status-actions">
+        <div class="button-group" style="border:1px solid #ccc; padding:10px; border-radius:8px; background:#f9f9f9; align-items:center;">
+            <button id="run-btn" onclick="startSimulation()" style="background:#4CAF50; color:white; padding:10px 20px; font-size:16px; font-weight:bold; cursor:pointer;">ロジック起動</button>
+            <button id="stop-btn" onclick="stopSimulation()" style="background:#607D8B; color:white; padding:10px 20px; font-size:16px; font-weight:bold; cursor:pointer;">停止</button>
+            <span id="run-status" style="padding:10px 15px; font-weight:bold; color:red; border:1px solid #ddd; border-radius:5px; background:#eee;">● 停止中</span>
+        </div>
+    </div>
 </div>
 
 <div class="main-content">
 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
         <h2>I/O シミュレータ_03</h2>
-        
-        <div style="border:1px solid #ccc; padding:10px; border-radius:8px; background:#f9f9f9;">
-            <button id="run-btn" onclick="startSimulation()" style="background:#4CAF50; color:white; padding:10px 20px; font-size:16px; font-weight:bold; cursor:pointer;">ロジック起動</button>
-            <button id="stop-btn" onclick="stopSimulation()" style="background:#607D8B; color:white; padding:10px 20px; font-size:16px; font-weight:bold; cursor:pointer; margin-left:10px;">停止</button>
-            <span id="run-status" style="margin-left:15px; padding:10px 15px; font-weight:bold; color:red; border:1px solid #ddd; border-radius:5px; background:#eee;">● 停止中</span>
-        </div>
     </div>
     <h3>入力 X1-X16 (トグル:チェック / 押しボタン:PB)
         <span style="font-size: 0.6em; margin-left: 15px;">
@@ -42,21 +45,24 @@
 
     <hr>
 
-    <h3>編集対象: 
+    <div class="logic-target-row">
+        <h3 style="margin:0;">編集対象:</h3>
         <select id="target-selector" onchange="loadLogic(this.value)"></select>
-    </h3>
+        <div class="logic-actions">
+            <button onclick="writeToStore()" style="background:#2196F3; color:white; padding:5px 15px;">書き込み</button>
+            <button onclick="clearCurrentLogic()" style="background:#f44336; color:white; padding:5px 15px;">削除</button>
+        </div>
+    </div>
     <div class="logic-bar">
-    <label id="target-label"><b>M1 = </b></label>
-    <div id="logic-container" class="logic-container"></div>
-    
-    <button onclick="addBlock()" style="padding:5px 15px;">＋</button>
-    <button onclick="removeBlock()" style="padding:5px 15px;">－</button>
-    
-    <span style="margin-left: 20px;">
-        <button onclick="writeToStore()" style="background:#2196F3; color:white; padding:5px 15px;">書き込み</button>
-        <button onclick="clearCurrentLogic()" style="background:#f44336; color:white; padding:5px 15px;">削除</button>
-    </span>
-</div>
+        <div class="logic-editor">
+            <label id="target-label"><b>M1 = </b></label>
+            <div id="logic-container" class="logic-container"></div>
+        </div>
+        <div class="logic-buttons">
+            <button onclick="addBlock()" style="padding:5px 15px; background:#ffffff;">＋</button>
+            <button onclick="removeBlock()" style="padding:5px 15px; background:#ffffff;">－</button>
+        </div>
+    </div>
 
 <h3>ロジックリスト</h3>
     <div id="logic-list" style="display: flex; gap: 15px; background: #f9f9f9; padding: 10px; border-radius: 8px;">
