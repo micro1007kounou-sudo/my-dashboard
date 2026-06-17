@@ -7,6 +7,8 @@ let tStore = Array.from({length: 16}, (_, i) => ({
 
 let isRunning = false;
 let lastTime = performance.now();
+// --- 1. 変数定義エリアに追加 ---
+let xpStore = new Array(16).fill(false); // 押しボタン用状態管理
 
 function init() {
     const selector = document.getElementById("target-selector");
@@ -15,9 +17,20 @@ function init() {
         '<optgroup label="T タイマー">' + Array.from({length:16}, (_,i)=>`<option value="T${i+1}">T${i+1}</option>`).join('') + '</optgroup>' +
         '<optgroup label="Y 出力">' + Array.from({length:16}, (_,i)=>`<option value="Y${i+1}">Y${i+1}</option>`).join('') + '</optgroup>';
 
-    const inputs = document.getElementById("inputs-x");
-    for (let i = 1; i <= 16; i++) inputs.innerHTML += `<div style="text-align:center;"><input type="checkbox" id="X${i}" onchange="updateStatus()"><div>X${i}</div></div>`;
-    
+// init() 内の inputs のループ部分をこれに差し替え
+const inputs = document.getElementById("inputs-x");
+for (let i = 1; i <= 16; i++) {
+    inputs.innerHTML += `
+        <div style="text-align:center; display:inline-block; margin:5px; border:1px solid #eee; padding:2px;">
+            <div style="font-weight:bold;">X${i}</div>
+            <input type="checkbox" id="X${i}" onchange="updateStatus()"><br>
+            <button id="XP${i}" 
+                onmousedown="setXP(${i}, true)" 
+                onmouseup="setXP(${i}, false)" 
+                onmouseleave="setXP(${i}, false)"
+                style="width:30px; height:20px; font-size:9px;">PB</button>
+        </div>`;
+}
     const inputsM = document.getElementById("inputs-m");
     for (let i = 1; i <= 16; i++) inputsM.innerHTML += `<div style="text-align:center;"><div class="led-m" id="M${i}-led"></div><div>M${i}</div></div>`;
     
@@ -57,22 +70,34 @@ function loadLogic(target) {
 }
 
 function addBlock(data = null) {
+    const container = document.getElementById("logic-container");
     const div = document.createElement("div");
     div.className = "block";
-    const options = Array.from({length:16}, (_,i)=>`<option>X${i+1}</option>`).join('') +
-                    Array.from({length:16}, (_,i)=>`<option>M${i+1}</option>`).join('') +
-                    Array.from({length:16}, (_,i)=>`<option>T${i+1}</option>`).join('') +
-                    Array.from({length:16}, (_,i)=>`<option>Y${i+1}</option>`).join('');
-    
-    div.innerHTML = `<select class="not-select"><option value="">-</option><option value="NOT">NOT</option></select>
-                     <select class="operand">${options}</select>
-                     <select class="operator"><option value="AND">AND</option><option value="OR">OR</option><option value="END">END</option></select>`;
+
+    const options = 
+        Array.from({length:16}, (_,i)=>`<option value="X${i+1}">X${i+1}</option>`).join('') +
+        Array.from({length:16}, (_,i)=>`<option value="M${i+1}">M${i+1}</option>`).join('') +
+        Array.from({length:16}, (_,i)=>`<option value="T${i+1}">T${i+1}</option>`).join('') +
+        Array.from({length:16}, (_,i)=>`<option value="Y${i+1}">Y${i+1}</option>`).join('');
+    div.innerHTML = `
+        <select class="not-select">
+            <option value="">-</option>
+            <option value="NOT">NOT</option>
+        </select>
+        <select class="operand">${options}</select>
+        <select class="operator">
+            <option value="AND">AND</option>
+            <option value="OR">OR</option>
+            <option value="END">END</option>
+        </select>`;
+
     if (data) {
         div.querySelector(".not-select").value = data.not;
         div.querySelector(".operand").value = data.operand;
         div.querySelector(".operator").value = data.operator;
     }
-    document.getElementById("logic-container").appendChild(div);
+    
+    container.appendChild(div);
 }
 
 function removeBlock() {
@@ -97,21 +122,37 @@ function writeToStore() {
     document.getElementById(`formula-${currentTarget}`).textContent = formula || "-";
 }
 
+// computeLogic関数内の判定部分を、XPにも対応させる
+// computeLogic をこのように変更
 function computeLogic(target) {
     const blocks = logicStore[target];
     if (!blocks || blocks.length === 0) return false;
+    
+    // --- 【追加】ここから：入力の合成ロジック ---
+    // ロジックを計算する前に、各Xの状態を一時的に確定させる
+    let currentX = new Array(16);
+    for(let i=0; i<16; i++) {
+        // トグル(チェックボックス)の状態 OR 押しボタンの状態
+        currentX[i] = document.getElementById(`X${i+1}`).checked || xpStore[i];
+    }
+    // --- 【追加】ここまで ---
+
     let result = false; let isEnd = false;
     
     blocks.forEach((b, idx) => {
         if (isEnd) return;
-        const prefix = b.operand.charAt(0);
-        const index = parseInt(b.operand.substring(1)) - 1;
-        
+        const opStr = b.operand; 
+        const index = parseInt(opStr.substring(1)) - 1;
         let val = false;
-        if (prefix === 'X') val = document.getElementById(b.operand).checked;
-        if (prefix === 'M') val = mStore[index];
-        if (prefix === 'Y') val = document.getElementById(b.operand).checked;
-        if (prefix === 'T') val = tStore[index].done;
+        
+        // 判定ロジック
+        if (opStr.startsWith('X')) {
+            // 合成済みの currentX を使う！
+            val = currentX[index]; 
+        }
+        else if (opStr.startsWith('M')) val = mStore[index];
+        else if (opStr.startsWith('Y')) val = document.getElementById(opStr).checked;
+        else if (opStr.startsWith('T')) val = tStore[index].done;
 
         val = val ^ (b.not === "NOT");
         if (idx === 0) result = !!val;
@@ -184,14 +225,15 @@ function stopSimulation() {
 }
 
 function updateStatus() {
-    // 既存の calcStats はそのままにして、中身だけ強化します
     const calcStats = (prefix, dataArray = null, isTimer = false) => {
         let bin = "", val = 0;
         for (let i = 16; i >= 1; i--) {
-            // タイマーの場合は tStore[i-1].done を参照、それ以外はチェックボックスまたは配列
             let bit = 0;
             if (isTimer) {
                 bit = tStore[i-1].done ? 1 : 0;
+            } else if (prefix === "X") {
+                // 【ここを修正】チェックボックス または 押しボタン のどちらかがONなら1
+                bit = (document.getElementById(`X${i}`).checked || xpStore[i-1]) ? 1 : 0;
             } else {
                 bit = dataArray ? (dataArray[i-1] ? 1 : 0) : (document.getElementById(prefix + i)?.checked ? 1 : 0);
             }
@@ -202,7 +244,6 @@ function updateStatus() {
 
     document.getElementById("status-x").textContent = calcStats("X");
     document.getElementById("status-m").textContent = calcStats("M", mStore);
-    // 【追加】タイマー用ステータス（T1-T16の完了フラグを表示）
     document.getElementById("status-t").textContent = calcStats("T", null, true); 
     document.getElementById("status-y").textContent = calcStats("Y");
 }
@@ -232,8 +273,12 @@ function resetInputs() {
     for (let i = 1; i <= 16; i++) {
         const xInput = document.getElementById(`X${i}`);
         if (xInput) xInput.checked = false;
+        // PBボタンもリセット
+        xpStore[i-1] = false;
+        document.getElementById(`XP${i}`).style.backgroundColor = "";
+        document.getElementById(`XP${i}`).style.color = "black";
     }
-    updateStatus(); 
+    updateStatus();
 }
 function masterReset() {
     stopSimulation(); // 停止
@@ -262,5 +307,17 @@ function masterReset() {
         if (text) text.textContent = "0ms";
     }
 }
+
+function setXP(i, state) {
+    xpStore[i-1] = state;
+    const btn = document.getElementById(`XP${i}`);
+    btn.style.backgroundColor = state ? "#4CAF50" : "";
+    btn.style.color = state ? "white" : "black";
+    
+    // 【重要】状態が変わったことをステータスバーと論理演算に反映させる
+    updateStatus(); 
+    if (isRunning) calculateAll();
+}
+
 
 init();

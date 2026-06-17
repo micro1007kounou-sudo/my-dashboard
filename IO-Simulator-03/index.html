@@ -16,13 +16,7 @@
 <div class="main-content">
     <h2>I/O シミュレータ_03</h2>
     
-    <div class="info-box">
-        <p>まず編集対象を選び論理式（AND,OR,NOT)を選択しロジックを書き込んでください。<br>
-            入力を☑し「全実行」を押して下さい。条件に合わせて出力します。<br>
-        ロジックは「ロジックをインポート/エクスポート」でJSON形式で保存・読み込みができます。</p>
-    </div>
-    
-<h3>入力 X1-X16 
+    <h3>入力 X1-X16 (トグル:チェック / 押しボタン:PB)
         <span style="font-size: 0.6em; margin-left: 15px;">
             <button onclick="resetInputs()">入力のみOFF</button>
             <button onclick="masterReset()" style="color: red;">全体リセット</button>
@@ -44,30 +38,24 @@
     <h3>編集対象: 
         <select id="target-selector" onchange="loadLogic(this.value)"></select>
     </h3>
-<div class="logic-bar">
-    <label id="target-label"><b>M1 = </b></label>
-    <div id="logic-container" class="logic-container"></div>
-    
-    <button onclick="addBlock()">＋</button>
-    <button onclick="removeBlock()">－</button>
-    
-    <span style="margin-left: 10px;">
-        <button onclick="writeToStore()" style="background:#2196F3; color:white;">書き込み</button>
-        <button onclick="clearCurrentLogic()" style="background:#f44336; color:white;">削除</button>
-    </span>
-    
-    <span style="margin-left:20px; border:1px solid #ccc; padding:5px;">
-        <button id="run-btn" onclick="startSimulation()" style="background:#4CAF50; color:white;">全実行</button>
-        <button id="stop-btn" onclick="stopSimulation()" style="background:#607D8B; color:white;">停止</button>
-        <span id="run-status" style="margin-left:10px; font-weight:bold; color:red;">● 停止中</span>
-    </span>
-</div>
+    <div class="logic-bar">
+        <label id="target-label"><b>M1 = </b></label>
+        <div id="logic-container" class="logic-container"></div>
+        <button onclick="addBlock()">＋</button>
+        <button onclick="removeBlock()">－</button>
+        <span style="margin-left: 10px;">
+            <button onclick="writeToStore()" style="background:#2196F3; color:white;">書き込み</button>
+            <button onclick="clearCurrentLogic()" style="background:#f44336; color:white;">削除</button>
+        </span>
+        <span style="margin-left:20px; border:1px solid #ccc; padding:5px;">
+            <button id="run-btn" onclick="startSimulation()" style="background:#4CAF50; color:white;">全実行</button>
+            <button id="stop-btn" onclick="stopSimulation()" style="background:#607D8B; color:white;">停止</button>
+            <span id="run-status" style="margin-left:10px; font-weight:bold; color:red;">● 停止中</span>
+        </span>
+    </div>
 
     <h3>ロジックリスト</h3>
     <div id="logic-list"></div>
-    <br>
-
-
 
     <div class="footer-ops">
         <button onclick="exportLogic()">ロジックをエクスポート</button>
@@ -76,17 +64,6 @@
         <button onclick="confirmClearAll()" style="color:red; margin-left: 20px;">全てリセット</button>
     </div>
 </div>
-
-<div id="footer"></div>
-
 <script src="logic.js"></script>
-<script>
-  // フッターの読み込み
-  fetch("./footer.html")
-    .then(res => res.text())
-    .then(html => document.getElementById("footer").innerHTML = html)
-    .catch(err => console.error("フッター読み込み失敗:", err));
-</script>
-
 </body>
 </html>
