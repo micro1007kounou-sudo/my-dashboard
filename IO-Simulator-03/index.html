@@ -26,6 +26,7 @@
 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
         <h2>学習用I/O（XYMT各16点）シミュレータ</h2>
     </div>
+
     <h3>入力 X1-X16 (トグル:チェック / 押しボタン:PB)
         <span style="font-size: 0.6em; margin-left: 15px;">
             <button onclick="resetInputs()">入力のみリセット</button>
@@ -78,6 +79,15 @@
         <input type="file" id="file-input-json" style="display:none" accept=".json,application/json" onchange="importLogicJSON(event)">
         <input type="file" id="file-input-csv" style="display:none" accept=".csv,text/csv" onchange="importLogicCSV(event)">
     </div>
+</div>
+
+    <div style="background: #fff3cd; border: 1px solid #ffeeba; padding: 10px; margin: 10px 0; border-radius: 5px; font-size: 0.9em;">
+    <strong>【注意事項】</strong>
+    <ul style="margin: 5px 0; padding-left: 20px;">
+        <li>ANDとORが混ざるロジックや入れ子ロジックは正しく動作しません。複雑な条件は内部リレー(M)で分割してください。</li>
+        <li>タイマー(T)のセットポイントは現状1秒(1000ms)固定です。</li>
+        <li>ロジックの評価はM1〜M16、T1〜T16、Y1〜Y16の順で行われます。後段のロジックで前段の結果を参照することは可能ですが、同じスキャンサイクル内での参照タイミングに注意してください。。</li>
+    </ul>
 </div>
 <script src="logic.js"></script>
 
