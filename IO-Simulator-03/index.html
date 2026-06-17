@@ -72,10 +72,13 @@
     </div>
 
     <div class="footer-ops" style="margin-top: 20px;">
-        <button onclick="exportLogic()">ロジックをエクスポート</button>
-        <button onclick="document.getElementById('file-input').click()">ロジックをインポート</button>
-        <input type="file" id="file-input" style="display:none" onchange="importLogic(event)">
-        <button onclick="confirmClearAll()" style="color:red; margin-left: 20px;">全てリセット</button>
+        <button onclick="exportLogicJSON()">JSONをエクスポート</button>
+        <button onclick="document.getElementById('file-input-json').click()">JSONをインポート</button>
+        <button onclick="exportLogicCSV()">CSVをエクスポート</button>
+        <button onclick="document.getElementById('file-input-csv').click()">CSVをインポート</button>
+        <button onclick="confirmClearAll()" style="color:red; margin-left: auto;">全てリセット</button>
+        <input type="file" id="file-input-json" style="display:none" accept=".json,application/json" onchange="importLogicJSON(event)">
+        <input type="file" id="file-input-csv" style="display:none" accept=".csv,text/csv" onchange="importLogicCSV(event)">
     </div>
 </div>
 <script src="logic.js"></script>
