@@ -85,9 +85,22 @@
 
 <div id="footer"></div>
 <script>
-  fetch("../footer.html")
-    .then(res => res.text())
-    .then(html => document.getElementById("footer").innerHTML = html);
+    async function loadFooter() {
+        const candidates = ['./footer.html', '../footer.html', '/footer.html'];
+        for (const p of candidates) {
+            try {
+                const res = await fetch(p);
+                if (res && res.ok) {
+                    document.getElementById('footer').innerHTML = await res.text();
+                    return;
+                }
+            } catch (e) {
+                // ignore and try next
+            }
+        }
+        console.warn('Footer not available at any candidate path');
+    }
+    loadFooter();
 </script>
 
 </body>

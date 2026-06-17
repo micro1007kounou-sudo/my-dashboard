@@ -277,18 +277,38 @@ function exportLogicJSON() {
 }
 function importLogicJSON(e) {
     const r = new FileReader();
+    r.onerror = () => alert("ファイル読み込みエラー");
     r.onload = (evt) => {
-        const imported = JSON.parse(evt.target.result);
-        const normalized = {};
-        ['M','T','Y'].forEach(prefix => {
+        try {
+            const imported = JSON.parse(evt.target.result);
+            const normalized = {};
+            ['M','T','Y'].forEach(prefix => {
+                for (let i = 1; i <= 16; i++) {
+                    normalized[`${prefix}${i}`] = imported[`${prefix}${i}`] || [];
+                }
+            });
+            logicStore = normalized;
+            loadLogic(currentTarget);
+            // すべてのターゲットのフォーミュラを更新
             for (let i = 1; i <= 16; i++) {
-                normalized[`${prefix}${i}`] = imported[`${prefix}${i}`] || [];
+                ['M', 'T', 'Y'].forEach(prefix => {
+                    const target = `${prefix}${i}`;
+                    const blocks = logicStore[target] || [];
+                    const formula = blocks.map(b => {
+                        const not = b.not ? b.not + ' ' : '';
+                        const op = b.operand;
+                        return (b.operator === 'END') ? (not + op) : (not + op + ' ' + b.operator);
+                    }).join(' ');
+                    document.getElementById(`formula-${target}`).textContent = formula || '-';
+                });
             }
-        });
-        logicStore = normalized;
-        loadLogic(currentTarget);
-        alert("JSONインポート完了");
+            alert("JSONインポート完了");
+            document.getElementById('file-input-json').value = '';
+        } catch (err) {
+            alert("JSONエラー: " + err.message);
+        }
     };
+    if (e.target.files.length === 0) return;
     r.readAsText(e.target.files[0]);
 }
 function exportLogicCSV() {
@@ -304,40 +324,57 @@ function exportLogicCSV() {
 }
 function importLogicCSV(e) {
     const r = new FileReader();
+    r.onerror = () => alert("ファイル読み込みエラー");
     r.onload = (evt) => {
-        const text = evt.target.result;
-        const rows = text.trim().split(/\r?\n/).map(row => row.trim()).filter(row => row.length > 0);
-        if (rows.length === 0) {
-            alert('CSVが空です');
-            return;
-        }
-        const header = rows[0].split(',').map(h => h.trim().toLowerCase());
-        if (header.length < 4 || header[0] !== 'target' || header[1] !== 'not' || header[2] !== 'operand' || header[3] !== 'operator') {
-            alert('CSVヘッダが不正です。target,not,operand,operator の形式で読み込んでください');
-            return;
-        }
-        const normalized = {};
-        ['M','T','Y'].forEach(prefix => {
-            for (let i = 1; i <= 16; i++) {
-                normalized[`${prefix}${i}`] = [];
+        try {
+            const text = evt.target.result;
+            const rows = text.trim().split(/\r?\n/).map(row => row.trim()).filter(row => row.length > 0);
+            if (rows.length === 0) { alert('CSVが空です'); return; }
+            const header = rows[0].split(',').map(h => h.trim().toLowerCase());
+            if (header.length < 4 || header[0] !== 'target' || header[1] !== 'not' || header[2] !== 'operand' || header[3] !== 'operator') {
+                alert('CSVヘッダが不正です');
+                return;
             }
-        });
-        rows.slice(1).forEach(row => {
-            const columns = row.split(',');
-            if (columns.length < 4) return;
-            const target = columns[0].trim();
-            if (!target) return;
-            normalized[target] = normalized[target] || [];
-            normalized[target].push({
-                not: columns[1].trim(),
-                operand: columns[2].trim(),
-                operator: columns[3].trim()
+            const normalized = {};
+            ['M','T','Y'].forEach(prefix => {
+                for (let i = 1; i <= 16; i++) {
+                    normalized[`${prefix}${i}`] = [];
+                }
             });
-        });
-        logicStore = normalized;
-        loadLogic(currentTarget);
-        alert('CSVインポート完了');
+            rows.slice(1).forEach(row => {
+                const columns = row.split(',');
+                if (columns.length < 4) return;
+                const target = columns[0].trim();
+                if (!target) return;
+                normalized[target] = normalized[target] || [];
+                normalized[target].push({
+                    not: columns[1].trim(),
+                    operand: columns[2].trim(),
+                    operator: columns[3].trim()
+                });
+            });
+            logicStore = normalized;
+            loadLogic(currentTarget);
+            // すべてのターゲットのフォーミュラを更新
+            for (let i = 1; i <= 16; i++) {
+                ['M', 'T', 'Y'].forEach(prefix => {
+                    const target = `${prefix}${i}`;
+                    const blocks = logicStore[target] || [];
+                    const formula = blocks.map(b => {
+                        const not = b.not ? b.not + ' ' : '';
+                        const op = b.operand;
+                        return (b.operator === 'END') ? (not + op) : (not + op + ' ' + b.operator);
+                    }).join(' ');
+                    document.getElementById(`formula-${target}`).textContent = formula || '-';
+                });
+            }
+            alert('CSVインポート完了');
+            document.getElementById('file-input-csv').value = '';
+        } catch (err) {
+            alert("CSVエラー: " + err.message);
+        }
     };
+    if (e.target.files.length === 0) return;
     r.readAsText(e.target.files[0]);
 }
 function resetInputs() {
