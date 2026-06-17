@@ -7,8 +7,15 @@
 </head>
 <body>
     <div class="status-bar" id="status-bar">
-        <div id="status-x">X: 0000 0000 0000 0000 (Hex: 0x0000 | Dec: 0)</div>
-        <div id="status-y">Y: 0000 0000 0000 0000 (Hex: 0x0000 | Dec: 0)</div>
+        <div class="status-lines">
+            <div id="status-x">X: 0000 0000 0000 0000 (Hex: 0x0000 | Dec: 0)</div>
+            <div id="status-y">Y: 0000 0000 0000 0000 (Hex: 0x0000 | Dec: 0)</div>
+        </div>
+        <div class="status-actions">
+            <button id="run-btn" onclick="startSimulation()">ロジック起動</button>
+            <button id="stop-btn" onclick="stopSimulation()">停止</button>
+            <span id="run-status">● 停止中</span>
+        </div>
     </div>
 
     <div class="main-content">
@@ -16,13 +23,14 @@
     
     <div class="info-box">
         <p>まず編集対象を選び論理式（AND,OR,NOT)を選択しロジックを書き込んでください。<br>
-            入力を☑し「全実行」を押して下さい。条件に合わせて出力します。<br>
-        ロジックは「ロジックをインポート/エクスポート」でJSON形式で保存・読み込みができます。</p>
+            入力を設定し「ロジック起動」で処理を開始します。条件に合わせて出力します。<br>
+        </p>
     </div>
 
-
-        <h3>入力 X1-X16</h3>
-  <div id="inputs-x" class="one-line-group"></div>
+        <h3>入力 X1-X16 (トグル:チェック / 押しボタン:PB)
+            <button onclick="resetContacts()" style="margin-left: 20px;">接点を全てリセット</button>
+        </h3>
+        <div id="inputs-x" class="one-line-group"></div>
 
         <h3>出力 Y1-Y16</h3>
         <div id="outputs-y" class="one-line-group"></div>
@@ -45,8 +53,6 @@
                 <button onclick="writeToStore()" style="background:#2196F3; color:white;">書き込み</button>
                 <button onclick="clearCurrentLogic()" style="background:#f44336; color:white;">削除</button>
             </span>
-            
-            <button onclick="calculateAll()" style="background:#4CAF50; color:white; margin-left:10px;">全実行</button>
         </div>
 
         <h3>ロジックリスト</h3>

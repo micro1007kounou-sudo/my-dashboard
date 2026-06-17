@@ -1,6 +1,12 @@
 body { font-family: sans-serif; padding: 20px; background: #f4f4f4; padding-top: 100px; }
 .main-content { max-width: 1000px; margin: auto; }
-.status-bar { position: fixed; top: 0; left: 0; width: 100%; z-index: 100; background: #222; color: #0f0; padding: 10px; font-family: monospace; font-size: 1.1em; display: flex; flex-direction: column; }
+.status-bar { position: fixed; top: 0; left: 0; width: 100%; z-index: 100; background: #222; color: #0f0; padding: 10px; font-family: monospace; font-size: 1.1em; display: flex; align-items: center; justify-content: space-between; }
+.status-lines { display: flex; flex-direction: column; gap: 4px; }
+.status-actions { display: flex; align-items: center; gap: 10px; }
+.status-actions button { border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.95em; }
+.status-actions button#run-btn { background: #4CAF50; color: white; }
+.status-actions button#stop-btn { background: #607D8B; color: white; }
+.status-actions #run-status { display: inline-flex; align-items: center; padding: 6px 10px; font-weight: bold; color: red; background: #eee; border-radius: 4px; }
 .one-line-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; font-size: 0.8em; }
 .led { width: 20px; height: 20px; border-radius: 50%; background: #ddd; border: 2px solid #999; display: inline-block; }
 .led.on { background: #ff4444; box-shadow: 0 0 10px #ff4444; }

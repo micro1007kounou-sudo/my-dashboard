@@ -1,9 +1,22 @@
 let currentTarget = "Y1";
 let logicStore = {};
+let xpStore = new Array(16).fill(false);
+let isRunning = false;
 
 function init() {
     const inputs = document.getElementById("inputs-x");
-    for (let i = 1; i <= 16; i++) inputs.innerHTML += `<div style="text-align:center;"><input type="checkbox" id="X${i}" onchange="updateStatus()"><div>X${i}</div></div>`;
+    for (let i = 1; i <= 16; i++) {
+        inputs.innerHTML += `
+            <div style="text-align:center; display:inline-block; margin:5px; border:1px solid #eee; padding:4px;">
+                <div style="font-weight:bold;">X${i}</div>
+                <input type="checkbox" id="X${i}" onchange="updateStatus()"><br>
+                <button id="XP${i}"
+                    onmousedown="setXP(${i}, true)"
+                    onmouseup="setXP(${i}, false)"
+                    onmouseleave="setXP(${i}, false)"
+                    style="width:30px; height:24px; font-size:10px; cursor:pointer;">PB</button>
+            </div>`;
+    }
     
     const outputs = document.getElementById("outputs-y");
     for (let i = 1; i <= 16; i++) {
@@ -75,6 +88,12 @@ function writeToStore() {
     
     document.getElementById(`formula-${currentTarget}`).textContent = formula || "-";
 }
+function getInputValue(operand) {
+    if (!operand.startsWith("X")) return false;
+    const index = parseInt(operand.substring(1), 10) - 1;
+    return document.getElementById(`X${index+1}`).checked || xpStore[index];
+}
+
 function calculateAll() {
     for (let i = 1; i <= 16; i++) {
         const blocks = logicStore[`Y${i}`];
@@ -82,13 +101,47 @@ function calculateAll() {
         let result = false; let isEnd = false;
         blocks.forEach((b, idx) => {
             if (isEnd) return;
-            const val = document.getElementById(b.operand).checked ^ (b.not === "NOT");
+            const val = getInputValue(b.operand) ^ (b.not === "NOT");
             if (idx === 0) result = !!val;
             else result = (blocks[idx-1].operator === "AND") ? (result && !!val) : (result || !!val);
             if (b.operator === "END") isEnd = true;
         });
         document.getElementById(`Y${i}-led`).className = "led " + (result ? "on" : "");
         document.getElementById(`Y${i}`).checked = result;
+    }
+    updateStatus();
+}
+
+function setXP(index, pressed) {
+    xpStore[index - 1] = pressed;
+    updateStatus();
+}
+
+function startSimulation() {
+    if (!isRunning) {
+        isRunning = true;
+        document.getElementById("run-status").textContent = "● 稼働中";
+        document.getElementById("run-status").style.color = "white";
+        document.getElementById("run-status").style.backgroundColor = "#4CAF50";
+        calculateAll();
+    }
+}
+
+function stopSimulation() {
+    if (isRunning) {
+        isRunning = false;
+        document.getElementById("run-status").textContent = "● 停止中";
+        document.getElementById("run-status").style.color = "red";
+        document.getElementById("run-status").style.backgroundColor = "#eee";
+    }
+}
+
+function resetContacts() {
+    for (let i = 1; i <= 16; i++) {
+        document.getElementById(`X${i}`).checked = false;
+        document.getElementById(`Y${i}`).checked = false;
+        document.getElementById(`Y${i}-led`).className = "led";
+        xpStore[i - 1] = false;
     }
     updateStatus();
 }
@@ -108,6 +161,7 @@ function updateStatus() {
 }
 
 function clearAll() { location.reload(); }
+
 init();
 
 // 現在の編集対象（Y1等）のロジックをクリアする
