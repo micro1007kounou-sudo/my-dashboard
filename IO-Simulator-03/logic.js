@@ -4,10 +4,15 @@ let mStore = new Array(16).fill(false); // M1-M16の状態
 
 function init() {
     // 1. セレクトボックスの動的生成
-    const selector = document.getElementById("target-selector");
-    selector.innerHTML = '<optgroup label="M リレー">' + 
+const selector = document.getElementById("target-selector");
+    selector.innerHTML = 
+        '<optgroup label="M リレー">' + 
         Array.from({length:16}, (_,i)=>`<option value="M${i+1}">M${i+1}</option>`).join('') +
-        '</optgroup><optgroup label="Y 出力">' + 
+        '</optgroup>' +
+        '<optgroup label="T タイマー">' + // ここが追加されているか確認してください
+        Array.from({length:16}, (_,i)=>`<option value="T${i+1}">T${i+1}</option>`).join('') +
+        '</optgroup>' +
+        '<optgroup label="Y 出力">' + 
         Array.from({length:16}, (_,i)=>`<option value="Y${i+1}">Y${i+1}</option>`).join('') +
         '</optgroup>';
 
@@ -25,13 +30,23 @@ function init() {
         hidden.type = "checkbox"; hidden.id = `Y${i}`; hidden.style.display = "none";
         document.body.appendChild(hidden);
         logicStore[`M${i}`] = [];
+        logicStore[`T${i}`] = []; // これがないとTが選択時にエラーになります
         logicStore[`Y${i}`] = [];
     }
-    
+    // 【ここに追加】タイマー表示エリアの生成
+    const timersT = document.getElementById("timers-t");
+    for (let i = 1; i <= 16; i++) {
+        timersT.innerHTML += `
+            <div style="font-size:0.8em; margin:5px; display:inline-block; width: 200px;">
+                T${i}: <progress id="T${i}-bar" value="0" max="1000"></progress> 
+                <span id="T${i}-text">0ms</span>
+            </div>`;
+    }
     // 3. ロジックリストの生成
     const list = document.getElementById("logic-list");
     for (let i = 1; i <= 16; i++) list.innerHTML += `<div style="padding:2px; font-size:0.9em;">M${i} = <span id="formula-M${i}">-</span></div>`;
     for (let i = 1; i <= 16; i++) list.innerHTML += `<div style="padding:2px; font-size:0.9em;">Y${i} = <span id="formula-Y${i}">-</span></div>`;
+    for (let i = 1; i <= 16; i++) list.innerHTML += `<div style="padding:2px; font-size:0.9em;">T${i} = <span id="formula-T${i}">-</span></div>`;
     
    updateStatus();
     loadLogic("M1"); // ここを追加：起動時にM1を読み込む
@@ -51,6 +66,7 @@ function addBlock(data = null) {
     // X, M, Yすべてを選択可能に
     const options = Array.from({length:16}, (_,i)=>`<option>X${i+1}</option>`).join('') +
                     Array.from({length:16}, (_,i)=>`<option>M${i+1}</option>`).join('') +
+                    Array.from({length:16}, (_,i)=>`<option>T${i+1}</option>`).join('') + // 追加
                     Array.from({length:16}, (_,i)=>`<option>Y${i+1}</option>`).join('');
     
     div.innerHTML = `
@@ -102,7 +118,8 @@ function computeLogic(target) {
         if (prefix === 'X') val = document.getElementById(b.operand).checked;
         if (prefix === 'M') val = mStore[index];
         if (prefix === 'Y') val = document.getElementById(b.operand).checked;
-        
+        if (prefix === 'T') val = tStore[index].done;
+
         val = val ^ (b.not === "NOT");
         if (idx === 0) result = !!val;
         else result = (blocks[idx-1].operator === "AND") ? (result && !!val) : (result || !!val);
@@ -169,3 +186,57 @@ function importLogic(e) {
 }
 
 init();
+
+// タイマーのデータ構造 (16個分)
+let tStore = Array.from({length: 16}, (_, i) => ({
+    id: i + 1,
+    elapsed: 0, // 経過時間(ms)
+    setPoint: 1000, // 設定値(ms) - 必要に応じて調整可
+    done: false
+}));
+
+// タイマーを更新する関数
+function updateTimers(deltaTime) {
+    for (let i = 0; i < 16; i++) {
+        const timer = tStore[i];
+        // ロジックから「T1」等の起動条件を評価して判定（computeLogicを流用）
+        const isTriggered = computeLogic(`T${i + 1}`);
+        
+        if (isTriggered) {
+            timer.elapsed += deltaTime;
+            if (timer.elapsed >= timer.setPoint) {
+                timer.elapsed = timer.setPoint;
+                timer.done = true;
+            }
+        } else {
+            timer.elapsed = 0;
+            timer.done = false;
+        }
+    }
+}
+
+let lastTime = performance.now();
+
+function simulationLoop(timestamp) {
+    const deltaTime = timestamp - lastTime;
+    lastTime = timestamp;
+
+    // タイマー計算
+    updateTimers(deltaTime);
+    
+    // UI反映（プログレスバーの更新）
+    for (let i = 1; i <= 16; i++) {
+        const bar = document.getElementById(`T${i}-bar`);
+        const text = document.getElementById(`T${i}-text`);
+        if (bar) bar.value = tStore[i-1].elapsed;
+        if (text) text.textContent = Math.floor(tStore[i-1].elapsed) + "ms";
+    }
+
+    // 既存の全実行処理
+    calculateAll();
+
+    requestAnimationFrame(simulationLoop);
+}
+
+// 起動時にスタート
+requestAnimationFrame(simulationLoop);
