@@ -52,11 +52,16 @@ for (let i = 1; i <= 16; i++) {
             </div>`;
     }
 
-    const list = document.getElementById("logic-list");
-    for (let i = 1; i <= 16; i++) list.innerHTML += `<div style="padding:2px; font-size:0.9em;">M${i} = <span id="formula-M${i}">-</span></div>`;
-    for (let i = 1; i <= 16; i++) list.innerHTML += `<div style="padding:2px; font-size:0.9em;">Y${i} = <span id="formula-Y${i}">-</span></div>`;
-    for (let i = 1; i <= 16; i++) list.innerHTML += `<div style="padding:2px; font-size:0.9em;">T${i} = <span id="formula-T${i}">-</span></div>`;
-    
+// 新しい3カラムのコンテナにそれぞれ追加する
+    const listM = document.getElementById("list-m");
+    const listT = document.getElementById("list-t");
+    const listY = document.getElementById("list-y");
+
+    for (let i = 1; i <= 16; i++) {
+        listM.innerHTML += `<div style="padding:2px; font-size:0.8em;">M${i} = <span id="formula-M${i}">-</span></div>`;
+        listT.innerHTML += `<div style="padding:2px; font-size:0.8em;">T${i} = <span id="formula-T${i}">-</span></div>`;
+        listY.innerHTML += `<div style="padding:2px; font-size:0.8em;">Y${i} = <span id="formula-Y${i}">-</span></div>`;
+    }
     updateStatus();
     loadLogic("M1");
 }
@@ -210,18 +215,28 @@ function startSimulation() {
         lastTime = performance.now();
         requestAnimationFrame(simulationLoop);
         
-        // UI更新
-        document.getElementById("run-status").textContent = "● 稼働中";
-        document.getElementById("run-status").style.color = "#4CAF50";
+        // UI更新：ボタンとステータス表示
+        const status = document.getElementById("run-status");
+        status.textContent = "● 稼働中";
+        status.style.color = "white";
+        status.style.backgroundColor = "#4CAF50"; // 稼働中は緑の背景
+        
+        // 全体の背景を少しだけ青みのあるグレーにして「モード切替」感を出す
+        document.body.style.backgroundColor = "#f0f4f8";
     }
 }
-// 追加：停止関数
+
 function stopSimulation() {
     isRunning = false;
     
     // UI更新
-    document.getElementById("run-status").textContent = "● 停止中";
-    document.getElementById("run-status").style.color = "red";
+    const status = document.getElementById("run-status");
+    status.textContent = "● 停止中";
+    status.style.color = "red";
+    status.style.backgroundColor = "#eee"; // 停止中は元のグレーへ
+    
+    // 背景を白に戻す
+    document.body.style.backgroundColor = "#ffffff";
 }
 
 function updateStatus() {
