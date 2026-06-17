@@ -21,10 +21,20 @@
         ロジックは「ロジックをインポート/エクスポート」でJSON形式で保存・読み込みができます。</p>
     </div>
     
-    <h3>入力 X1-X16</h3>
+<h3>入力 X1-X16 
+        <span style="font-size: 0.6em; margin-left: 15px;">
+            <button onclick="resetInputs()">入力のみOFF</button>
+            <button onclick="masterReset()" style="color: red;">全体リセット</button>
+        </span>
+    </h3>
     <div id="inputs-x" class="one-line-group"></div>
+
     <h3>内部リレー M1-M16</h3>
     <div id="inputs-m" class="one-line-group"></div>
+
+    <h3>タイマー T1-T16</h3>
+    <div id="timers-t"></div>
+
     <h3>出力 Y1-Y16</h3>
     <div id="outputs-y" class="one-line-group"></div>
 
@@ -33,27 +43,30 @@
     <h3>編集対象: 
         <select id="target-selector" onchange="loadLogic(this.value)"></select>
     </h3>
-    <div class="logic-bar">
-        <label id="target-label"><b>M1 = </b></label>
-        <div id="logic-container" class="logic-container"></div>
-        
-        <button onclick="addBlock()">＋</button>
-        <button onclick="removeBlock()">－</button>
-        
-        <span style="margin-left: 10px;">
-            <button onclick="writeToStore()" style="background:#2196F3; color:white;">書き込み</button>
-            <button onclick="clearCurrentLogic()" style="background:#f44336; color:white;">削除</button>
-        </span>
-        
-        <button onclick="calculateAll()" style="background:#4CAF50; color:white; margin-left:10px;">全実行</button>
-    </div>
+<div class="logic-bar">
+    <label id="target-label"><b>M1 = </b></label>
+    <div id="logic-container" class="logic-container"></div>
+    
+    <button onclick="addBlock()">＋</button>
+    <button onclick="removeBlock()">－</button>
+    
+    <span style="margin-left: 10px;">
+        <button onclick="writeToStore()" style="background:#2196F3; color:white;">書き込み</button>
+        <button onclick="clearCurrentLogic()" style="background:#f44336; color:white;">削除</button>
+    </span>
+    
+    <span style="margin-left:20px; border:1px solid #ccc; padding:5px;">
+        <button id="run-btn" onclick="startSimulation()" style="background:#4CAF50; color:white;">全実行</button>
+        <button id="stop-btn" onclick="stopSimulation()" style="background:#607D8B; color:white;">停止</button>
+        <span id="run-status" style="margin-left:10px; font-weight:bold; color:red;">● 停止中</span>
+    </span>
+</div>
 
     <h3>ロジックリスト</h3>
     <div id="logic-list"></div>
     <br>
 
-    <h3>タイマー T1-T16</h3>
-    <div id="timers-t"></div>
+
 
     <div class="footer-ops">
         <button onclick="exportLogic()">ロジックをエクスポート</button>
