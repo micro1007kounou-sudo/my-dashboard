@@ -76,7 +76,12 @@ function loadLogic(target) {
     document.getElementById("target-label").innerHTML = `<b>${target} = </b>`;
     const container = document.getElementById("logic-container");
     container.innerHTML = "";
-    if (logicStore[target]) logicStore[target].forEach(data => addBlock(data));
+    if (logicStore[target] && logicStore[target].length > 0) {
+        logicStore[target].forEach(data => addBlock(data));
+    } else {
+        logicStore[target] = [];
+        addBlock();
+    }
 }
 
 function addBlock(data = null) {

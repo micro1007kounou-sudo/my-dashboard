@@ -49,6 +49,8 @@
         <h3 style="margin:0;">編集対象:</h3>
         <select id="target-selector" onchange="loadLogic(this.value)"></select>
         <div class="logic-actions">
+            <button onclick="addBlock()" style="padding:5px 15px; background:#ffffff;">＋</button>
+            <button onclick="removeBlock()" style="padding:5px 15px; background:#ffffff;">－</button>
             <button onclick="writeToStore()" style="background:#2196F3; color:white; padding:5px 15px;">書き込み</button>
             <button onclick="clearCurrentLogic()" style="background:#f44336; color:white; padding:5px 15px;">削除</button>
         </div>
@@ -57,10 +59,6 @@
         <div class="logic-editor">
             <label id="target-label"><b>M1 = </b></label>
             <div id="logic-container" class="logic-container"></div>
-        </div>
-        <div class="logic-buttons">
-            <button onclick="addBlock()" style="padding:5px 15px; background:#ffffff;">＋</button>
-            <button onclick="removeBlock()" style="padding:5px 15px; background:#ffffff;">－</button>
         </div>
     </div>
 
