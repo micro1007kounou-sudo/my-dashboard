@@ -28,8 +28,8 @@
     </div>
     <h3>入力 X1-X16 (トグル:チェック / 押しボタン:PB)
         <span style="font-size: 0.6em; margin-left: 15px;">
-            <button onclick="resetInputs()">入力のみOFF</button>
-            <button onclick="masterReset()" style="color: red;">全体リセット</button>
+            <button onclick="resetInputs()">入力のみリセット</button>
+            <button onclick="masterReset()" style="color: red;">接点を全てリセット</button>
         </span>
     </h3>
     <div id="inputs-x" class="one-line-group"></div>
@@ -82,5 +82,13 @@
     </div>
 </div>
 <script src="logic.js"></script>
+
+<div id="footer"></div>
+<script>
+  fetch("../footer.html")
+    .then(res => res.text())
+    .then(html => document.getElementById("footer").innerHTML = html);
+</script>
+
 </body>
 </html>
