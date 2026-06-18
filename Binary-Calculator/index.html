@@ -97,11 +97,19 @@
                 <span class="main-display-title">10進数を入力</span>
                 <span class="color-inline-label" id="color-code-label">RGBｶﾗｰｺｰﾄﾞ#000000</span>
             </div>
-            <div class="buttons-row">
-                <button class="btn-action btn-random" onclick="generateRandomNumber()">🎲 乱数取得</button>
-                <button class="btn-action btn-max" onclick="setToMaxValues()">MAX</button>
-                <button class="btn-action" onclick="setToHalfMax()" style="background: #805ad5; box-shadow: 0 4px #553c9a;">ハーフ</button>
-            </div>
+<div class="buttons-row-container">
+    <div class="buttons-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
+        <button class="btn-action btn-random" onclick="generateRandomNumber()">🎲 乱数</button>
+        <button class="btn-action btn-max" onclick="setToMaxValues()">🔝 MAX</button>
+        <button class="btn-action btn-half" onclick="setToHalfMax()" style="background: #805ad5; box-shadow: 0 4px #553c9a;">½ ハーフ</button>
+    </div>
+    
+    <div class="buttons-row" style="display: flex; gap: 8px;">
+        <button class="btn-action" onclick="startAutoCount(500)" style="background: #48bb78; color: white;">🐢 低速</button>
+        <button class="btn-action" onclick="startAutoCount(50)" style="background: #e53e3e; color: white;">🚀 高速</button>
+        <button class="btn-action" onclick="stopAutoCount()" style="background: #718096; color: white;">⏹️ 停止</button>
+    </div>
+</div>
             <div class="input-row-full">
                 <input type="text" id="dec-input" class="dec-input" value="0" oninput="reverseLookupDec(this.value)">
             </div>
@@ -162,6 +170,7 @@
     let bitStates = {};  
     let rowIds = [];     
     const container = document.getElementById("bit-rows-container");
+let autoTimer = null;
 
     // 起動時：4ビットで初期化
     syncRowsToBitWidth(4);
@@ -580,6 +589,33 @@
     document.getElementById("dec-input").value = halfMax.toString();
     document.getElementById("hex-input").value = formatHexValue(halfMax.toString(16).toUpperCase());
     applyNumberToBits(halfMax);
+}
+// ==========================================
+// 6. 自動送り機能 (独立関数)
+// ==========================================
+function startAutoCount(speed) {
+    stopAutoCount(); // 二重起動防止
+    autoTimer = setInterval(() => {
+        let currentDec = parseInt(document.getElementById("dec-input").value) || 0;
+        let nextDec = BigInt(currentDec) + 1n;
+        
+        // 現在のビット幅の最大値を超えたら0に戻す
+        const selectedBit = parseInt(document.querySelector('input[name="target-bit"]:checked').value);
+        let maxBitValue = (2n ** BigInt(selectedBit)) - 1n;
+        
+        if (nextDec > maxBitValue) nextDec = 0n;
+
+        // 既存の逆引き関数を叩いて同期させる
+        document.getElementById("dec-input").value = nextDec.toString();
+        reverseLookupDec(nextDec.toString());
+    }, speed);
+}
+
+function stopAutoCount() {
+    if (autoTimer) {
+        clearInterval(autoTimer);
+        autoTimer = null;
+    }
 }
 </script>
 <div id="footer"></div>
