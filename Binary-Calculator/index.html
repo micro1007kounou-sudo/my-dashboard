@@ -100,14 +100,19 @@
 <div class="buttons-row-container">
     <div class="buttons-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
         <button class="btn-action btn-random" onclick="generateRandomNumber()">🎲 乱数</button>
-        <button class="btn-action btn-max" onclick="setToMaxValues()">🔝 MAX</button>
-        <button class="btn-action btn-half" onclick="setToHalfMax()" style="background: #805ad5; box-shadow: 0 4px #553c9a;">½ ハーフ</button>
+        <button class="btn-action btn-max" onclick="setToMaxValues()">MAX</button>
+        <button class="btn-action btn-half" onclick="setToHalfMax()" style="background: #805ad5; box-shadow: 0 4px #553c9a;">ハーフ</button>
     </div>
     
-    <div class="buttons-row" style="display: flex; gap: 8px;">
-        <button class="btn-action" onclick="startAutoCount(500)" style="background: #48bb78; color: white;">🐢 低速</button>
-        <button class="btn-action" onclick="startAutoCount(50)" style="background: #e53e3e; color: white;">🚀 高速</button>
+    <div class="buttons-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
+        <button class="btn-action" onclick="startAutoCount(500)" style="background: #48bb78; color: white;">自動低速</button>
+        <button class="btn-action" onclick="startAutoCount(50)" style="background: #e53e3e; color: white;">自動高速</button>
         <button class="btn-action" onclick="stopAutoCount()" style="background: #718096; color: white;">⏹️ 停止</button>
+    </div>
+
+    <div class="buttons-row" style="display: flex; gap: 8px;">
+        <button class="btn-action" onclick="adjustValue(-1)" style="background: #ed8936; color: white;">➖ 減らす</button>
+        <button class="btn-action" onclick="adjustValue(1)" style="background: #4299e1; color: white;">➕ 増やす</button>
     </div>
 </div>
             <div class="input-row-full">
@@ -616,6 +621,26 @@ function stopAutoCount() {
         clearInterval(autoTimer);
         autoTimer = null;
     }
+}
+
+// ==========================================
+// 7. 手動増減機能
+// ==========================================
+function adjustValue(delta) {
+    // 現在の値をデコード
+    let currentDec = parseInt(document.getElementById("dec-input").value) || 0;
+    let nextDec = BigInt(currentDec) + BigInt(delta);
+    
+    // 負の数にならないようにし、ビット幅の最大値を超えないように制限
+    const selectedBit = parseInt(document.querySelector('input[name="target-bit"]:checked').value);
+    let maxBitValue = (2n ** BigInt(selectedBit)) - 1n;
+    
+    if (nextDec < 0n) nextDec = 0n;
+    if (nextDec > maxBitValue) nextDec = maxBitValue;
+
+    // 既存の逆引き関数を叩いて同期
+    document.getElementById("dec-input").value = nextDec.toString();
+    reverseLookupDec(nextDec.toString());
 }
 </script>
 <div id="footer"></div>
