@@ -4,6 +4,8 @@ const path = require("path");
 const WebSocket = require("ws");
 // 📄 server.js の最上部（ライブラリ読み込みの下など）
 const TIMEOUT_LIMIT = 2 * 60 * 60 * 1000; // 2時間をミリ秒に変換 (7200000ms)
+// セキュリティ: 許可するオリジンを環境変数で指定可能（カンマ区切り）
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
 
 // ==========================================
 // 1. サーバーポート設定（本番・ローカル自動対応）
@@ -13,25 +15,56 @@ const PORT = process.env.PORT || 8080;
 
 // HTTP サーバー（ローカルテストのファイル読み込み用・本番でもお守りとして機能します）
 const server = http.createServer((req, res) => {
-    let filePath = "." + req.url;
-    if (filePath === "./") filePath = "./index.html";
+    try {
+        // ベースディレクトリ（このサーバーを起動したディレクトリ）に限定して配信する
+        const baseDir = path.resolve('.');
 
-    const ext = path.extname(filePath);
-    const map = {
-        ".html": "text/html",
-        ".css": "text/css",
-        ".js": "text/javascript"
-    };
+        // 危険なパスを正規化して基底より外なら拒否する
+        let reqPath = req.url || '/';
+        if (reqPath === '/') reqPath = '/index.html';
 
-    fs.readFile(filePath, (err, data) => {
-        if (err) {
-            res.writeHead(404);
-            res.end("Not found");
-        } else {
-            res.writeHead(200, { "Content-Type": map[ext] || "text/plain" });
-            res.end(data);
+        // クエリやハッシュを排除
+        reqPath = reqPath.split('?')[0].split('#')[0];
+
+        const resolvedPath = path.resolve(path.join(baseDir, '.' + reqPath));
+        if (!resolvedPath.startsWith(baseDir + path.sep) && resolvedPath !== baseDir) {
+            res.writeHead(403);
+            res.end('Forbidden');
+            return;
         }
-    });
+
+        // 拡張子によって Content-Type を設定
+        const ext = path.extname(resolvedPath).toLowerCase();
+        const map = {
+            '.html': 'text/html',
+            '.css': 'text/css',
+            '.js': 'text/javascript',
+            '.png': 'image/png',
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.gif': 'image/gif',
+            '.svg': 'image/svg+xml'
+        };
+
+        // ディレクトリだったら index.html を探す
+        let servePath = resolvedPath;
+        if (fs.existsSync(servePath) && fs.statSync(servePath).isDirectory()) {
+            servePath = path.join(servePath, 'index.html');
+        }
+
+        if (!fs.existsSync(servePath)) {
+            res.writeHead(404);
+            res.end('Not found');
+            return;
+        }
+
+        const content = fs.readFileSync(servePath);
+        res.writeHead(200, { 'Content-Type': map[ext] || 'application/octet-stream' });
+        res.end(content);
+    } catch (err) {
+        res.writeHead(500);
+        res.end('Server error');
+    }
 });
 
 // WebSocket サーバーの紐づけ
@@ -167,6 +200,17 @@ wss.on("connection", (ws, req) => {
 
     console.log(`ユーザー接続: ${playerId} (IP: ${ip})`);
 
+    // オリジン制限: 環境変数で許可ドメインが設定されている場合は拒否する
+    try {
+        const origin = req && req.headers && (req.headers.origin || req.headers.Origin);
+        if (allowedOrigins.length > 0 && origin && !allowedOrigins.includes(origin)) {
+            console.warn(`接続拒否: 許可されていないOrigin ${origin}`);
+            try { ws.send(JSON.stringify({ type: 'chat', playerId: 'システム', text: '接続元ドメインが許可されていません' })); } catch (e) {}
+            ws.close(1008, 'Origin not allowed');
+            return;
+        }
+    } catch (e) { /* チェックに失敗しても続行 */ }
+
     // --- 各プレイヤーへの初期データ通知 ---
     
     // 接続した本人に welcome を送信（IDとIPを通知）
@@ -228,11 +272,26 @@ wss.on("connection", (ws, req) => {
             return;
         }
 
+        // Basic input validation helper
+        function isIntInRange(v, min, max) {
+            return Number.isInteger(v) && v >= min && v <= max;
+        }
+
+        // チャットは長さ制限を設ける
+        if (data && data.type === 'chat') {
+            if (typeof data.text !== 'string') return;
+            // 500文字を超える場合は切り詰める
+            if (data.text.length > 500) data.text = data.text.slice(0, 500);
+        }
+
 // ◆ 数字入力の同期と正誤判定（お手付きカウント融合版）
         if (data.type === "placeNumber") {
-            const r = data.r;
-            const c = data.c;
-            const num = data.num;
+            const r = Number(data.r);
+            const c = Number(data.c);
+            const num = Number(data.num);
+
+            // バリデーション: 座標と数字の範囲をチェック
+            if (!isIntInRange(r, 0, 8) || !isIntInRange(c, 0, 8) || !isIntInRange(num, 1, 9)) return;
 
             // 初期問題マスなら処理を拒否
             if (initialPuzzle[r][c] !== 0) return;
@@ -448,7 +507,13 @@ wss.on("connection", (ws, req) => {
 function broadcast(data) {
     wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(data));
+            try {
+                client.send(JSON.stringify(data));
+            } catch (e) {
+                // 送信に失敗したクライアントはログを取り切断する
+                console.error('broadcast send error, closing client', e);
+                try { client.terminate(); } catch (ee) {}
+            }
         }
     });
 }

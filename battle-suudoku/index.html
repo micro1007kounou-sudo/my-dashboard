@@ -58,9 +58,26 @@
 
 <div id="footer"></div>
 <script>
+  // 安全対策: 取得した HTML から <script> タグと inline event ハンドラを除去して挿入する
   fetch("../footer.html")
     .then(res => res.text())
-    .then(html => document.getElementById("footer").innerHTML = html);
+    .then(html => {
+      try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        // スクリプト要素をすべて削除
+        doc.querySelectorAll('script').forEach(s => s.remove());
+        // inline event ハンドラを削除 (on... 属性)
+        doc.querySelectorAll('*').forEach(el => {
+          Array.from(el.attributes).forEach(attr => {
+            if (/^on/i.test(attr.name)) el.removeAttribute(attr.name);
+          });
+        });
+        document.getElementById("footer").innerHTML = doc.body.innerHTML;
+      } catch (e) {
+        console.error('footer load error', e);
+      }
+    });
 </script>
 <script src="client.js"></script>
 </body>
