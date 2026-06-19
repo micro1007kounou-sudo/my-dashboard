@@ -78,59 +78,51 @@ function getWindDirectionName(deg) {
 }
 
 
-function getUSDT() {
-    fetch("https://min-api.cryptocompare.com/data/price?fsym=USDT&tsyms=JPY")
-        .then(res => res.json())
-        .then(data => {
-            const price = data.JPY;
-            document.getElementById("usdt").innerText = price.toFixed(3);
-
-            // ドル換算に必要
-            window.usdtJpy = price;
-        })
-        .catch(err => console.error("USDT/JPY エラー:", err));
-}
+// async function getUSDT() {
+//     const data = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=USDTJPY")
+//         .then(r => r.json());
+//     document.getElementById("usdt").innerText = Number(data.price).toFixed(3);
+// }
 
 
 
 
-// ビットコイン
-function getBTC() {
-    fetch("https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=JPY")
-        .then(res => res.json())
-        .then(data => {
-            const price = data.JPY;
-            document.getElementById("btc").innerText = price.toLocaleString();
-        })
-        .catch(err => console.error("BTC/JPY エラー:", err));
-}
+// async function getBTC() {
+//     const data = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=BTCJPY")
+//         .then(r => r.json());
+//     document.getElementById("btc").innerText = Number(data.price).toLocaleString();
+// }
 
 
-function getGold() {
-    fetch("https://min-api.cryptocompare.com/data/price?fsym=PAXG&tsyms=JPY")
-        .then(res => res.json())
-        .then(data => {
-            const xauJpy = data.JPY;       // 1オンスの円価格
-            const gramPrice = xauJpy / 31.1035;  // 1g に換算
-            document.getElementById("gold").innerText = gramPrice.toFixed(2);
-        })
-        .catch(err => console.error("PAXG エラー:", err));
-}
 
-let step = 0;
+// async function getGold() {
+//     const paxg = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT")
+//         .then(r => r.json());
 
-// --- 初回だけ10秒ずつずらして実行 ---
-setTimeout(() => {
-    getUSDT();   // 5秒
-}, 5000);
+//     const usdt = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=USDTJPY")
+//         .then(r => r.json());
 
-setTimeout(() => {
-    getBTC();    // 10秒
-}, 10000);
+//     const xauJpy = paxg.price * usdt.price;
+//     const gram = xauJpy / 31.1035;
 
-setTimeout(() => {
-    getGold();   // 15秒
-}, 15000);
+//     document.getElementById("gold").innerText = gram.toFixed(2);
+// }
+
+
+// let step = 0;
+
+// // --- 初回だけ10秒ずつずらして実行 ---
+// setTimeout(() => {
+//     getUSDT();   // 5秒
+// }, 5000);
+
+// setTimeout(() => {
+//     getBTC();    // 10秒
+// }, 10000);
+
+// setTimeout(() => {
+//     getGold();   // 15秒
+// }, 15000);
 
 
 // --- その後は各APIを60秒ごとに独立して更新 ---
