@@ -6,6 +6,11 @@ const WebSocket = require("ws");
 const TIMEOUT_LIMIT = 2 * 60 * 60 * 1000; // 2時間をミリ秒に変換 (7200000ms)
 // セキュリティ: 許可するオリジンを環境変数で指定可能（カンマ区切り）
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
+// 簡易レートリミッタ設定
+const RATE_LIMIT_WINDOW_MS = 10 * 1000; // 集計ウィンドウ（ミリ秒）
+const RATE_LIMIT_MAX = 20; // ウィンドウ内の最大メッセージ数
+const RATE_LIMIT_PENALTY_MS = 5 * 1000; // 違反時の一時ブロック時間
+const RATE_LIMIT_MAX_VIOLATIONS = 5; // 繰り返し違反で強制切断
 
 // ==========================================
 // 1. サーバーポート設定（本番・ローカル自動対応）
@@ -127,6 +132,11 @@ wss.on("connection", (ws, req) => {
     // 入室した瞬間から、最初の2時間のカウントダウンを開始
     resetTimeout();
     // ─── 👆 【修正ここまで】 ───
+
+    // レートリミッタ用の初期化
+    ws.msgTimestamps = [];
+    ws.rateViolations = 0;
+    ws.isRateLimited = false;
 
 
     // 👇 ★【リロード対策版】満員チェックロジックに書き換え ★ 👇
@@ -264,6 +274,37 @@ wss.on("connection", (ws, req) => {
         
         // ─── 👇 【追加】メッセージが届いたら20分タイマーをリフレッシュする ───
         resetTimeout();
+
+        // 簡易レートリミット: 一時ブロック中なら無視
+        if (ws.isRateLimited) {
+            return;
+        }
+
+        try {
+            const now = Date.now();
+            // 古いタイムスタンプを落とす
+            ws.msgTimestamps = ws.msgTimestamps.filter(t => now - t < RATE_LIMIT_WINDOW_MS);
+            ws.msgTimestamps.push(now);
+            if (ws.msgTimestamps.length > RATE_LIMIT_MAX) {
+                ws.rateViolations++;
+                ws.isRateLimited = true;
+                try {
+                    ws.send(JSON.stringify({ type: 'chat', playerId: 'システム', text: `🚫 レート制限: ${RATE_LIMIT_WINDOW_MS/1000}秒ごとに${RATE_LIMIT_MAX}件までです。${RATE_LIMIT_PENALTY_MS/1000}秒ブロックします。` }));
+                } catch (e) {}
+                // 一時解除タイマー
+                setTimeout(() => { ws.isRateLimited = false; }, RATE_LIMIT_PENALTY_MS);
+
+                // 繰り返し違反している場合は強制切断
+                if (ws.rateViolations >= RATE_LIMIT_MAX_VIOLATIONS) {
+                    try { ws.send(JSON.stringify({ type: 'chat', playerId: 'システム', text: '接続を切断します（過度の送信）' })); } catch(e){}
+                    try { ws.close(4008, 'rate limit exceeded'); } catch(e){}
+                }
+                return;
+            }
+        } catch (e) {
+            // レート処理でエラーが発生してもメッセージ処理本体は継続
+            console.error('rate limiter error', e);
+        }
 
         let data;
         try {
