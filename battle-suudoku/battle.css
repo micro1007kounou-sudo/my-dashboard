@@ -121,16 +121,18 @@ h2, h3 {
     -webkit-tap-highlight-color: transparent; /* スマホのタップの影を消す */
 }
 
-/* 🧩 3×3 ブロックの太線区切り */
-#board-container .cell[data-r="0"] { border-top: 3px solid black; }
-#board-container .cell[data-r="3"] { border-top: 3px solid black; }
-#board-container .cell[data-r="6"] { border-top: 3px solid black; }
-#board-container .cell[data-r="8"] { border-bottom: 3px solid black; }
+/* 🧩 3×3 ブロックの太線区切り（外枠はコンテナで担保する） */
+/* 外枠は #board-container の border: 3px solid black; で表示しているため、
+   セル側では内側のブロック境界（r=3,6 / c=3,6）のみ太線を付与します */
+#board-container .cell[data-r="3"],
+#board-container .cell[data-r="6"] {
+    border-top: 3px solid black;
+}
 
-#board-container .cell[data-c="0"] { border-left: 3px solid black; }
-#board-container .cell[data-c="3"] { border-left: 3px solid black; }
-#board-container .cell[data-c="6"] { border-left: 3px solid black; }
-#board-container .cell[data-c="8"] { border-right: 3px solid black; }
+#board-container .cell[data-c="3"],
+#board-container .cell[data-c="6"] {
+    border-left: 3px solid black;
+}
 
 /* マス選択時の黄色ハイライト */
 .cell.selected {
